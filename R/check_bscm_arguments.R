@@ -64,7 +64,7 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   )
   stopifnot_(
     checkmate::test_integerish(
-      x = effective_donors, len = 1, lower = 2),
+      x = effective_donors, len = 1, lower = 2, null.ok = TRUE),
     "Argument {.arg effective_donors} must be a single integer defining the 
     prior expected number of effective donors."
   )
