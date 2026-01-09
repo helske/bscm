@@ -17,8 +17,6 @@ remotes::install_github("helske/bscm")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-
 ``` r
 library(bscm)
 fit <- bscm(
