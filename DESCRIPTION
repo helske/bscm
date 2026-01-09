@@ -36,3 +36,5 @@ LinkingTo:
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
 LazyData: true
+URL: https://github.com/helske/bscm
+BugReports: https://github.com/helske/bscm/issues
