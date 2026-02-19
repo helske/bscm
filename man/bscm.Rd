@@ -10,17 +10,27 @@ bscm(
   treatment,
   time = "time",
   unit = "id",
+  time_varying_effects = "none",
   priors = "default",
-  intercept = TRUE,
   effective_donors = NULL,
-  probs = c(0.05, 0.95),
+  mcmc_diagnostics = TRUE,
+  save_data = TRUE,
+  spline_D = NULL,
   ...
 )
 }
 \arguments{
 \item{formula}{[\code{formula}]\cr The model formula containing the outcome
-variable on the left-hand side and treatment variable and optional additional
-time-varying terms on the right-hand side of \code{~}.}
+variable on the left-hand side and optional time-varying predictors on the
+right-hand side (RHS) of \code{~}. In case of no predictors, use \code{outcome ~ 1} or
+\code{outcome ~ 0}. In the former case, as well by the default when using
+predictors (e.g., \code{outcome ~ x + z}), the model includes intercept term.
+Intercept can be omitted by using \code{0} in the RHS, e.g.,
+\code{outcome ~ 0} or \code{outcome ~ 0 + x + z} (equivalently, you can use \code{-1} in
+place of \code{0}). Formula does not need to contain the variable defining the
+treatment, which is defined separately using the argument \code{treatment}. In
+case the variable is present also in the formula, it is automatically
+removed.}
 
 \item{data}{[\code{data.frame} or an object coercible to one]\cr
 The long format data that contains the model variables.}
@@ -33,53 +43,85 @@ variable in \code{data}.}
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data} identifying
 different units.}
 
-\item{priors}{Definition of priors for intercept and standard deviation
-parameters. Currently, only the option \code{"default"} is supported. See details.}
+\item{time_varying_effects}{[\code{character(1)}]\cr Should intercept and
+regression coefficients vary over time? The default is \code{"none"}, while
+\code{"intercept"} and \code{"all"} allow for time-varying intercept and all
+coefficients, respectively. See details for the implications of this choice
+on the model specification.}
 
-\item{intercept}{Should the model include intercept term? Default is \code{TRUE}.}
+\item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
+or \code{"default"} which is a default and only supported option at the moment.
+See details on the prior definitions.}
 
 \item{effective_donors}{Optional argument for defining a prior for weights.
 See details.}
 
-\item{probs}{Vector of probabilities used for computing posterior quantiles.
-Defaults to \code{c(0.05, 0.95)}, i.e., the results contain limits of 90\%
-posterior intervals. Note that \code{probs} can contain more any number of values,
-e.g., \code{probs = c(0.025, 0.05, 0.5, 0.7, 0.9)} is valid.}
+\item{mcmc_diagnostics}{If \code{TRUE} (the default), the output of
+\code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks performed by
+\code{\link[=check_mcmc_diagnostics.bscmfit]{check_mcmc_diagnostics.bscmfit()}}. Note that regardless of
+the value of \code{mcmc_diagnostics}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} can still generate
+warnings regarding convergence and other sampling issues.}
 
-\item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}, e.g.,
-\code{cores} and \code{iter}.}
+\item{save_data}{If \code{TRUE} (the default), \code{bscmfit} object returned by
+\code{\link[=bscm]{bscm()}} includes the input \code{data.frame} (argument \code{data}), after dropping
+unused factor levels and potentially rearranging data by \code{unit} and \code{time}
+variables.}
+
+\item{spline_D}{[\code{integer(1)}] Positive integer defining the degrees of
+freedom for the splines when \code{time_varying_effects != "none"}.}
+
+\item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to adjust
+the sampling options. In contrast to the defaults of \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}},
+\code{\link[=bscm]{bscm()}} defaults to \code{iter = 5000} and \code{control = list(adapt_delta = 0.9)}.}
 }
 \value{
-A list of data frames containing the estimates, as well as the full
-\code{stanfit} object, see \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} for details.
+An object of class \code{bscmfit}.
 }
 \description{
 Function \code{bscm} estimates a Bayesian synthetic control models of varying types.
 }
 \details{
-Priors for intercept \eqn{\alpha} and standard deviation \eqn{\sigma} of the
-noise term are
-\eqn{\alpha \sim N(m, s)} and \eqn{\sigma \sim exponential(l)},
-where by default \code{m = mean(y)}, \code{s = 2 * sd(y)}, \code{l = 1 / sd(diff(y))},
-with \code{y} being the vector of pretreatment outcomes.
-For multiple treated units, each unit have separate \eqn{\alpha} and
-\eqn{\sigma} and their prior definitions.
+When model contains covariates \eqn{X}, their effect is subtracted from
+donors, i.e., for treated unit
+\eqn{y \sim N(\alpha + X\beta + Z^\ast\omega, \sigma^2)},
+where column \eqn{j} of \eqn{Z^\ast} is \eqn{z_j - (\alpha_j + X_j \beta)},
+i.e., the original donor outcome vector \eqn{z_j} minus the donor-specific
+intercept \eqn{\alpha_j} and the effect of covariates \eqn{X_j \beta} for
+that donor. Note that \eqn{\beta} is common across donors and the treated.
+
+The default priors for intercept \eqn{\alpha} and standard deviation
+\eqn{\sigma} of the noise term are
+\eqn{\alpha \sim N(m, s^2)} and \eqn{\sigma \sim exponential(l)},
+where by default \code{m = mean(y)}, \code{s = 2 * sd(y)}, \code{l = 1 / sd(y)},
+with \code{y} being the vector of pretreatment outcomes. Same priors are used for
+the donors as well, with \code{m} and \code{s} defined separately for each donor using
+the pretreatment outcomes of that donor.
+
+#' The default prior for the coefficient \eqn{\beta_k} is
+\eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2 * s / sd(x_k)} and s is
+the mean of the variances of the treated and donors' outcomes in the
+pretreatment period, and \eqn{x_k} is the vector of values of the k-th
+covariate in the pretreatment period over all.
 
 The prior for the weight vector \eqn{w} is defined as a symmetric Dirichlet
-distribution with concentration parameter \eqn{\kappa}. By default,
+distribution with a concentration parameter \eqn{\kappa}. By default,
 \eqn{\kappa = 1}, corresponding to uniform distribution on a simplex.
 Alternatively, argument \code{effective_donors} can be used to define
-prior for \eqn{\kappa} using the approximation of expected number of
+\eqn{\kappa} using the approximation of expected number of
 effective donors, defined as \eqn{1 / sum(w^2)}. More specifically,
-\code{kappa = (effective_donors - 1) / (J - effective_donors)} where J is
-the total number of donors.
+\code{kappa = (effective_donors - 1) / (J - effective_donors)} where \eqn{J} is
+the total number of donors. Default \eqn{\kappa = 1} therefore corresponds
+to prior where the effective number donors is \eqn{(J + 1) / 2}.
+
+The output of \code{bscm()} contains posterior samples of various derived
+quantities such as effect estimates. To access these after model estimation,
+use \code{\link[=summary.bscmfit]{summary.bscmfit()}} method on the output of `bscm().
 }
 \examples{
 fit <- bscm(
-  y ~ treatment, simulated_example, "treatment", "time", "id", 
+  y ~ 1, simulated_example, "treatment", "time", "id", 
   effective_donors = 10, chains = 1, cores = 1, refresh = 0
 )
-fit$avg_effect
-fit$R2
+fit
 
 }

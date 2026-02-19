@@ -9,11 +9,13 @@
 #' @name bscm-package
 #' @useDynLib bscm, .registration = TRUE
 #' @importFrom rstan sampling extract
-#' @importFrom loo loo loo_model_weights
+#' @importFrom loo loo
+#' @importFrom projpred get_refmodel
 #' @importFrom rstantools rstan_config
 #' @importFrom RcppParallel RcppParallelLibs
 #' @importFrom methods new
-#' @importFrom rlang .data .env
+#' @importFrom rlang := .data .env
+#' @import ggplot2
 #' @import posterior
 #' @import dplyr
 #' @references

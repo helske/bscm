@@ -3,7 +3,8 @@
 #' @inheritParams bscm
 #' @noRd
 check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 priors, intercept, effective_donors, probs) {
+                                 time_varying_effects, priors, 
+                                 effective_donors, save_data, spline_D) {
   
   stopifnot_(
     !missing(formula),
@@ -31,6 +32,15 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     "Can't find treatment variable {.var {treatment}} in {.arg data}."
   )
   stopifnot_(
+    (checkmate::test_integerish(
+      data[[treatment]], lower = 0, upper = 1, any.missing = FALSE
+    ) || checkmate::test_logical(
+      data[[treatment]], any.missing = FALSE
+    )) && length(unique(data[[treatment]])) == 2L,
+    "Variable {.arg {treatment}} in {.arg data} should contain either logical 
+    or binary values indicating the pre- and post-treatment time points."
+  )
+  stopifnot_(
     checkmate::test_string(x = time),
     "Argument {.arg time} must be a single character string defining the 
     time index variable."
@@ -53,14 +63,21 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     !is.null(data[[unit]]),
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
+  z <- cli::cli_vec(
+    c("none", "intercept", "all"),
+    style = list('vec-last' = ' or ')
+  )
+  stopifnot_(
+    checkmate::test_choice(
+      x = time_varying_effects, 
+      choices = z
+    ),
+    "Argument {.arg time_varying_effects} must be {.val {z}}."
+  )
   stopifnot_(
     identical(priors, "default"),
     "Argument {.arg priors} is not equal to {.val 'default'}. Only default 
     priors for intercept and sigma are currently supported."
-  )
-  stopifnot_(
-    checkmate::test_flag(x = intercept),
-    "Argument {.arg intercept} must be a single {.cls logical} value."
   )
   stopifnot_(
     checkmate::test_integerish(
@@ -69,14 +86,12 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     prior expected number of effective donors."
   )
   stopifnot_(
-    checkmate::test_numeric(
-      x = probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      min.len = 1L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector with values between
-     0 and 1."
+    checkmate::test_flag(x = save_data),
+    "Argument {.arg save_data} must be a single {.cls logical} value."
+  )
+  stopifnot_(
+    checkmate::test_integerish(
+      x = spline_D, len = 1, lower = 4, null.ok = TRUE),
+    "Argument {.arg spline_D} must be a single integer larger than 3."
   )
 }

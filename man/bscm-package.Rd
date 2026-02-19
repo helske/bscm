@@ -14,6 +14,14 @@ fast estimation uses Markov chain Monte Carlo via Stan.
 \references{
 Stan Development Team (2025). RStan: the R interface to Stan. R package version 2.32.7. https://mc-stan.org
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/helske/bscm}
+  \item Report bugs at \url{https://github.com/helske/bscm/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Jouni Helske \email{jouni.helske@iki.fi}
 

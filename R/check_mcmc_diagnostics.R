@@ -1,0 +1,159 @@
+#' Check the validity of the Posterior of `bscmfit` Object
+#'
+#' This function is automatically called at the end of [bscm()] to check that 
+#' the output can be trusted in terms of convergence of the MCMC sampling. 
+#' Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant used by 
+#' Stan, as well as the Rhat values and effective sample sizes of all model 
+#' parameters and derived variables. See [rstan::check_hmc_diagnostics()] and
+#' [posterior::default_convergence_measures()] for details on the definitions 
+#' of these.
+#'
+#' Typical reasons for sampling issues can be a result of short pre-treatment 
+#' period and/or too many/few donors, units have very different series so that 
+#' the convex hull assumption is not even approximately plausible. Other 
+#' reasons include using priors which are incompatible with the data. 
+#' Especially too small value of `effective_donors` with respect to the total 
+#' number of donors leads to Dirichlet prior of weights with very small 
+#' concentration parameter (e.g., 0.01), which causes numerical issues 
+#' (divergences) with Stan.
+#' 
+#' @export
+#' @rdname check_mcmc_diagnostics
+#' @param x \[`bscmfit`]\cr The model fit object.
+#' @param check_all \[`logical(1)`]\cr If `FALSE` (the default), 
+#' variable-specific diagnostics are computed only for the model parameters and 
+#' not for the generated quantities (e.g., treatment effect estimates). 
+#' If `TRUE`, diagnostics are computed also for these. Note that you get these  
+#' also with [summary.bscmfit()].
+#' @param warn \[`logical(1)`]\cr If `TRUE` (the default), generates and 
+#' (typically) prints out a warning in a case of problematic results. Setting 
+#' this to `FALSE` silently returns the check results. 
+#' @param ... Ignored.
+#' @return Invisibly returns a list containing the results of the check.
+#' @references https://mc-stan.org/learn-stan/diagnostics-warnings.html
+check_mcmc_diagnostics <- function(x, ...) {
+  UseMethod("check_mcmc_diagnostics", x)
+}
+#' @export
+#' @rdname check_mcmc_diagnostics
+check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE, 
+                                           warn = TRUE, ...) {
+  stopifnot_(
+    !missing(x),
+    "Argument {.arg x} is missing."
+  )
+  stopifnot_(
+    checkmate::test_flag(x = warn),
+    "Argument {.arg warn} must be a single {.cls logical}."
+  )
+  algorithm <- x$stanfit@stan_args[[1L]]$algorithm
+  n_chains <- nchains(x)
+  n_draws <- ndraws(x)
+  stopifnot_(
+    n_draws > 50L,
+    "MCMC diagnostics are not meaningful for only few posterior draws. 
+    The model was estimated with only ", n_draws, " draws."
+  )
+  stopifnot_(
+    algorithm %in% c("NUTS", "hmc"),
+    "MCMC diagnostics are only meaningful for samples from MCMC.
+       The model was estimated using the ", algorithm, "algorithm."
+  )
+  n_divergences <- rstan::get_num_divergent(x$stanfit)
+  n_max_treedepth <- rstan::get_num_max_treedepth(x$stanfit)
+  max_td <- x$stanfit@stan_args[[1L]]$control$max_treedepth %||% 10
+  n_low_bfmi <- sum(rstan::get_bfmi(x$stanfit) < 0.2)
+  
+  # omega_raw already excluded in stanfit
+  if (check_all) {
+    exclude_these <- "log_lik"
+  } else {
+    exclude_these <- c(
+      "synthetic_mean", "synthetic_y", "effect", "avg_effect_pre", 
+      "avg_effect_post", "avg_effect_post_cumulative", "relative_change", 
+      "RMSE_pre", "RMSE_post", "RMSE_ratio", "effective_donors", "R2", "log_lik"
+    )
+  }
+  sumr <- x |> 
+    as_draws(variable = exclude_these, include = FALSE) |> 
+    summarise_draws(posterior::default_convergence_measures())
+  idx <- c(
+    which.max(sumr$rhat), which.min(sumr$ess_bulk), which.min(sumr$ess_tail)
+  )
+  sumr <- cbind(
+    data.frame(
+      diagnostic = c("Largest Rhat", "Smallest bulk-ESS", "Smallest tail-ESS")
+    ),
+    sumr[idx, ]
+  )
+  sumr$rhat <- round(sumr$rhat, 3)
+  sumr$ess_bulk <- round(sumr$ess_bulk)
+  sumr$ess_tail <- round(sumr$ess_tail)
+  rhat_ok <- sumr$rhat[1] < 1.01
+  
+  ess_bulk_ok <- sumr$ess_bulk[2] > (n_chains * 100)
+  ess_tail_ok <- sumr$ess_tail[3] > (n_chains * 100)
+  
+  issues <- c(
+    divergences = n_divergences > 0,
+    rhat = !rhat_ok,
+    ess = !ess_bulk_ok || !ess_tail_ok,
+    n_low_bfmi = n_low_bfmi > 0,
+    max_treedepth = n_max_treedepth > 0
+  )
+  messages <- c(
+    x = paste(
+      n_divergences, "out of", n_draws, 
+      "iterations ended with a divergence. This can affect the validity of",
+      "the results. Increasing `adapt_delta` might help."
+    ),
+    x = paste0(
+      "Largest Rhat convergence diagnostic is ", sumr$rhat[1], 
+      " > 1.01 for variable ", sumr$variable[1], 
+      ". As the chains have not necessarily converged, results might not be ",
+      "reliable. Increasing the number of iterations might help."
+    ),
+    `!` = paste0(
+      "Smallest effective samples sizes are less than 100 x number of chains ",
+      "(bulk-ESS ", sumr$ess_bulk[2], " for variable ", sumr$variable[2], 
+      " and tail-ESS ", sumr$ess_tail[3], " for ", sumr$variable[3], 
+      "). This affects the accuracy of the posterior summaries. ",
+      "Increasing the number of iterations might help."
+    ),
+    `!` = paste(
+      n_low_bfmi, "out of", n_chains, 
+      "chains had E-BFMI below 0.2, indicating possible issues."
+    ),
+    i = paste(
+      n_max_treedepth, "out of", n_draws, 
+      "iterations saturated the maximum tree depth of", max_td, 
+      "This indicates inefficient sampling, but does not affect the validity",
+      "of the results."
+    )
+  )[which(issues)]
+  
+  out <- dplyr::lst(
+    n_divergences, n_max_treedepth, n_low_bfmi, rhat_and_ess = sumr,
+    has_issues = any(issues), messages = messages
+  )
+  if (warn && any(issues)) {
+    cli::cli_warn(messages)
+  }
+  class(out) <- "bscmfit_diagnostics"
+  invisible(out)
+}
+#' Print MCMC Diagnostics
+#' 
+#' @param x \[`bscmfit_diagnostics`]\cr The diagnostics object returned by
+#' [check_mcmc_diagnostics.bscmfit()].
+#' @param ... Ignored.
+#' @export
+print.bscmfit_diagnostics <- function(x, ...) {
+  if (x$has_issues) {
+    warning_(c("\nMCMC diagnostics indicate potential problems:", x$messages))
+  } else {
+    cat("\nMCMC diagnostics indicate no major issues:\n")
+  }
+  print(x$rhat_and_ess)
+  invisible(x)
+}

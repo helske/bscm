@@ -1,0 +1,34 @@
+#' Internal getters
+#' @noRd
+get_treated <- \(x) x$setup$treated
+get_donors <- \(x) x$setup$donors
+get_treatment <- \(x) x$setup$treatment
+get_time <- \(x) x$setup$time
+get_unit <- \(x) x$setup$unit
+get_times <- \(x) x$setup$times
+get_T_pre <- \(x) x$setup$T_pre
+get_T_total <- \(x) x$setup$T_total
+
+#' Extract the name of the outcome variable from formula object
+#' @noRd
+get_outcome <- function(x) {
+  
+  if (inherits(x, "bscmfit")) {
+    return(x$setup$outcome)
+  }
+  stopifnot_(
+    inherits(x, "formula"), 
+    "{.arg formula} must be a {.cls formula} object."
+  )
+  stopifnot_(
+    identical(length(x), 3L), 
+    "{.arg formula} must contain the outcome variable on 
+    the left-hand side of the {.cls formula} object."
+  )
+  y <- all.vars(x[[2]])
+  stopifnot_(
+    identical(length(y), 1L), 
+    "{.arg formula} must be a {.cls formula} object with one outcome variable 
+    on the left-hand side.")
+  y
+}

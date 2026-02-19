@@ -1,13 +1,14 @@
 Package: bscm
 Title: Bayesian Synthetic Control Models
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: 
     person("Jouni", "Helske", NULL, "jouni.helske@iki.fi", role = c("aut", "cre"))
-Description: Bayesian synthetic control models for causal inference. Based on a 
-    Bayesian model-based version of classic synthetic control approach. 
-    Supports single or multiple treated units with staggered treatment times 
-    and automatic uncertainty quantification based on posterior samples. The 
-    fast estimation uses Markov chain Monte Carlo via Stan.
+Description: Bayesian treatment of synthetic control method with posterior 
+    uncertainty estimates of treatment effects and other quantities of 
+    interest, as well as various model evaluation and comparison 
+    methods. Models support both time-invariant and time-varying covariates 
+    with possibly time-varying effects. Posterior sampling uses Markov chain 
+    Monte Carlo via Stan. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,9 +20,13 @@ Imports:
     checkmate,
     cli,
     dplyr,
+    ggplot2,
     loo,
     methods,
     posterior,
+    progressr,
+    projpred,
+    quadprog,
     Rcpp (>= 0.12.0),
     RcppParallel (>= 5.0.1),
     rlang,

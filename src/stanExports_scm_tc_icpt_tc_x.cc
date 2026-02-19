@@ -2,12 +2,12 @@
 
 #include <Rcpp.h>
 using namespace Rcpp ;
-#include "stanExports_single_nox_noalpha.h"
+#include "stanExports_scm_tc_icpt_tc_x.h"
 
-RCPP_MODULE(stan_fit4single_nox_noalpha_mod) {
+RCPP_MODULE(stan_fit4scm_tc_icpt_tc_x_mod) {
 
 
-    class_<rstan::stan_fit<stan_model, stan::rng_t> >("rstantools_model_single_nox_noalpha")
+    class_<rstan::stan_fit<stan_model, stan::rng_t> >("rstantools_model_scm_tc_icpt_tc_x")
 
     .constructor<SEXP,SEXP,SEXP>()
 
