@@ -269,10 +269,19 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     }
     B <- splines::bs(seq_len(T_total), df = spline_D, intercept = TRUE)
     B <- sweep(B, 2L, colMeans(B), check.margin = FALSE)
+    sd_z <- apply(Z[1:T_pre, , drop = FALSE], 2, sd)
+    mean_z <- colMeans(Z[1:T_pre, , drop = FALSE])
+    stopifnot_(
+      any(sd_z > tol),
+      "Outcome variable cannot be constant in the pretreatment period. 
+      Found `sd(z) < sqrt(.Machine$double.eps)`."
+    )
     c(
       standata, 
       list(
-        spline_matrix = B, D = spline_D, pr_sd_sigma_delta = 2
+        spline_matrix = B, D = spline_D, pr_sd_sigma_delta = 2,
+        pr_rate_sigma_z = 1 / sd_z, 
+        pr_mean_intercept_z = mean_z, pr_sd_intercept_z = 2 * sd_z
       )
     )
   }

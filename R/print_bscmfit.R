@@ -50,7 +50,7 @@ print.bscmfit <- function(x, ...) {
   if (length(cf <- x$setup$coef_names)) {
     sumr$variable[grep("^beta\\[", sumr$variable)] <- 
       paste0("Coef_", cf)
-    cf <- c(x$setup$has_intercept, "Intercept", cf)
+    cf <- if (x$setup$has_intercept) cf <- c("Intercept", cf) else cf
     sumr$variable[grep("^sigma_delta\\[", sumr$variable)] <- 
       paste0("SD_spline_", cf)
   }

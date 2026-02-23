@@ -88,7 +88,10 @@ summary.bscmfit <- function(object, include = NULL,
   
   # Get draws from Stan fit
   all_pars <- object$stanfit@model_pars
-  pars <- intersect(c("alpha", "sigma", "beta", "sigma_z"), all_pars)
+  pars <- intersect(
+    c("alpha", "sigma", "beta", "alpha_z", "sigma_z", "mu", "gamma",
+      "sigma_delta"), all_pars
+  )
   vars <- c(
     if ("effects" %in% include) "effect",
     if ("synthetic" %in% include) "synthetic_y",
@@ -152,11 +155,15 @@ summary.bscmfit <- function(object, include = NULL,
       mutate("{time}" := .env$post_times, .before = 1L) |> 
       select(-"variable")
   }
-  
+  if ("parameters" %in% include) {
+    out$parameters <- draws |> 
+      subset_draws(pars) |> 
+      summarize_with_probs()
+  }
   vars <- setdiff(
     vars, 
     c("effect", "synthetic_y", "avg_effect_post_cumulative", "omega", 
-      "relative_change")
+      "relative_change", pars)
   )
   if (length(vars) > 0) {
     out$misc <- draws |> 
