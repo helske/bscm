@@ -16,7 +16,7 @@ print.bscmfit <- function(x, ...) {
   print(x$call)
   cat("\n")
   cat("Bayesian synthetic control model", deparse(setup$formula))
-  if (tv != "") {
+  if (tv != "\n") {
     cat(" with", tv, "\n")
   }
   cat("Treated unit:", get_treated(x), "\n")

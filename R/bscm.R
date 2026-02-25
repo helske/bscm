@@ -168,9 +168,11 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     )
     stopifnot_(
       length(constant_sd) == 0 || time_varying_effects %in% c("all"),
-      "Predictor variables cannot be constant in the pretreatment period for 
+      c(
+        "Predictor variables cannot be constant in the pretreatment period for 
       all units unless {.arg timevarying_effects} = {.val {'all'}}.",
-      i = "Found {?a/} constant predictor(?s) {names(constant_sd)}."
+        i = "Found {?a/} constant predictor(?s) {names(constant_sd)}."
+      )
     )
     sd_x_by_unit[, constant_sd] <- 1
     treated_row <- which(unique(data[[unit]]) %in% treated)
@@ -329,7 +331,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
           delta = matrix(0, standata$D, K + 1)
         )
       ),
-    simplify = FALSE
+      simplify = FALSE
     )
   }
   stan_args$object <- stanmodels[[model_type]]
@@ -338,7 +340,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     "omega_raw", "a", if (has_predictors) "a_z",
     if (time_varying_effects != "none") "delta",
     if (time_varying_effects == "all") "Z_res"
-    )
+  )
   stan_args$include <- FALSE
   start_time <- proc.time()
   fit <- do.call(sampling, stan_args)
