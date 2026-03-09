@@ -1,6 +1,6 @@
 ^\.github$
 ^bscm\.Rproj$
 ^\.Rproj\.user$
-^LICENSE\.md$
-^data-raw$
+^readme_fig\.png$
+^data-raw
 ^codecov\.yml$
