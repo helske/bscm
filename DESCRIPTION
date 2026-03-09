@@ -2,7 +2,8 @@ Package: bscm
 Title: Bayesian Synthetic Control Models
 Version: 0.1.0
 Authors@R: 
-    person("Jouni", "Helske", NULL, "jouni.helske@iki.fi", role = c("aut", "cre"))
+    person("Jouni", "Helske", email = "jouni.helske@iki.fi", role = "aut",
+           comment = c(ORCID = "0000-0001-7130-793X"))
 Description: Bayesian treatment of synthetic control method with posterior 
     uncertainty estimates of treatment effects and other quantities of 
     interest, as well as various model evaluation and comparison 
