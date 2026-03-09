@@ -4,3 +4,4 @@
 ^readme_fig\.png$
 ^data-raw
 ^codecov\.yml$
+^data-raw$

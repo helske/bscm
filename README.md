@@ -3,6 +3,7 @@
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/helske/bscm/graph/badge.svg)](https://app.codecov.io/gh/helske/bscm)
+[![R-CMD-check](https://github.com/helske/bscm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/helske/bscm/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 R package for Bayesian Synthetic Control Models (Helske 2026, in-preparation). 
