@@ -1,10 +1,10 @@
-#' Check Arguments of `bscm` Call
+#' Check arguments of `bscm` call
 #'
 #' @inheritParams bscm
 #' @noRd
 check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 time_varying_effects, priors, 
-                                 effective_donors, save_data, spline_D) {
+                                 time_varying_effects, priors, kappa,
+                                 effective_donors, save_data) {
   
   stopifnot_(
     !missing(formula),
@@ -23,9 +23,17 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     "Argument {.arg data} must be a {.cls data.frame} object."
   )
   stopifnot_(
-    checkmate::test_string(x = treatment),
+    !missing(treatment),
+    "Argument {.arg treatment} is missing."
+  )
+  stopifnot_(
+    checkmate::test_string(treatment),
     "Argument {.arg treatment} must be a single character string defining the 
     treatment variable."
+  )
+  stopifnot_(
+    !(treatment %in% all.vars(formula)),
+    "Argument {.arg formula} must not contain the treatment variable {.val {treatment}}."
   )
   stopifnot_(
     !is.null(data[[treatment]]),
@@ -41,7 +49,7 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     or binary values indicating the pre- and post-treatment time points."
   )
   stopifnot_(
-    checkmate::test_string(x = time),
+    checkmate::test_string(time),
     "Argument {.arg time} must be a single character string defining the 
     time index variable."
   )
@@ -51,11 +59,11 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   )
   stopifnot_(
     checkmate::test_numeric(data[[time]], any.missing = FALSE),
-    "Time index variable {.arg {time}} must be of of type {.cls numeric} and 
+    "Time index variable {.arg {time}} must be of type {.cls numeric} and 
     cannot contain missing values."
   )
   stopifnot_(
-    checkmate::test_string(x = unit),
+    checkmate::test_string(unit),
     "Argument {.arg unit} must be a single character string defining the 
     unit index variable."
   )
@@ -63,16 +71,10 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     !is.null(data[[unit]]),
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
-  z <- cli::cli_vec(
-    c("none", "intercept", "all"),
-    style = list('vec-last' = ' or ')
-  )
   stopifnot_(
-    checkmate::test_choice(
-      x = time_varying_effects, 
-      choices = z
-    ),
-    "Argument {.arg time_varying_effects} must be {.val {z}}."
+    checkmate::test_flag(time_varying_effects),
+    "Argument {.arg time_varying_effects} must be a single {.cls logical} 
+    value."
   )
   stopifnot_(
     identical(priors, "default"),
@@ -80,18 +82,23 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     priors for intercept and sigma are currently supported."
   )
   stopifnot_(
+    checkmate::test_number(kappa, finite = FALSE, null.ok = TRUE),
+    "Argument {.arg kappa} must be a single positive number defining the 
+    concentration parameter of the Dirichlet prior of weights."
+  )
+  stopifnot_(
     checkmate::test_integerish(
-      x = effective_donors, len = 1, lower = 2, null.ok = TRUE),
+      effective_donors, len = 1, lower = 2, null.ok = TRUE),
     "Argument {.arg effective_donors} must be a single integer defining the 
     prior expected number of effective donors."
   )
   stopifnot_(
-    checkmate::test_flag(x = save_data),
-    "Argument {.arg save_data} must be a single {.cls logical} value."
+    !is.null(kappa) || !is.null(effective_donors),
+    "Both {.arg kappa} and {.arg effective_donors} are `NULL`. Please define 
+    either one of them."
   )
   stopifnot_(
-    checkmate::test_integerish(
-      x = spline_D, len = 1, lower = 4, null.ok = TRUE),
-    "Argument {.arg spline_D} must be a single integer larger than 3."
+    checkmate::test_flag(save_data),
+    "Argument {.arg save_data} must be a single {.cls logical} value."
   )
 }

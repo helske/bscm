@@ -39,7 +39,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
   T_pre <- get_T_pre(x)
   stopifnot_(
     identical(type, "space") || 
-      checkmate::test_integerish(x = L, len = 1, lower = 2, upper = T_pre - 1),
+      checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
     "Argument {.arg L} must be a single integer between 2 and {T_pre}, defining 
     the number of time points for the first fit."
   )
@@ -52,7 +52,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
   treatment <- get_treatment(x)
   donors <- get_donors(x)
   time <- get_time(x)
-  times <-get_times(x)
+  times <- get_times(x)
   unit <- get_unit(x)
   data <- x$data
   if (identical(type, "space")) {
@@ -64,7 +64,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
       p(sprintf(paste0("Estimating the model for donor ", donor, ".")))
       d <- data |> 
         mutate(
-          {{treatment}} := ifelse(
+          "{treatment}" := ifelse(
             .data[[unit]] == .env$donor & .data[[time]] > .env$end, 1, 0
           )
         )
@@ -86,7 +86,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
       d <- data |> 
         filter(.data[[time]] <= .env$t) |> 
         mutate(
-          {{treatment}} := ifelse(
+          "{treatment}" := ifelse(
             .data[[unit]] == .env$treated & .data[[time]] == .env$t, 1, 0
           )
         )

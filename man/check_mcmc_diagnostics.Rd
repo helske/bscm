@@ -3,7 +3,7 @@
 \name{check_mcmc_diagnostics}
 \alias{check_mcmc_diagnostics}
 \alias{check_mcmc_diagnostics.bscmfit}
-\title{Check the validity of the Posterior of \code{bscmfit} Object}
+\title{Check the validity of the posterior of \code{bscmfit} object}
 \usage{
 check_mcmc_diagnostics(x, ...)
 

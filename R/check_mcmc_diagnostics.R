@@ -1,4 +1,4 @@
-#' Check the validity of the Posterior of `bscmfit` Object
+#' Check the validity of the posterior of `bscmfit` object
 #'
 #' This function is automatically called at the end of [bscm()] to check that 
 #' the output can be trusted in terms of convergence of the MCMC sampling. 
@@ -39,11 +39,11 @@ check_mcmc_diagnostics <- function(x, ...) {
 check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE, 
                                            warn = TRUE, ...) {
   stopifnot_(
-    !missing(x),
-    "Argument {.arg x} is missing."
+    checkmate::test_flag(check_all),
+    "Argument {.arg check_all} must be a single {.cls logical}."
   )
   stopifnot_(
-    checkmate::test_flag(x = warn),
+    checkmate::test_flag(warn),
     "Argument {.arg warn} must be a single {.cls logical}."
   )
   algorithm <- x$stanfit@stan_args[[1L]]$algorithm
@@ -52,12 +52,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
   stopifnot_(
     n_draws > 50L,
     "MCMC diagnostics are not meaningful for only few posterior draws. 
-    The model was estimated with only ", n_draws, " draws."
-  )
-  stopifnot_(
-    algorithm %in% c("NUTS", "hmc"),
-    "MCMC diagnostics are only meaningful for samples from MCMC.
-       The model was estimated using the ", algorithm, "algorithm."
+    The model was estimated with only {n_draws} draws."
   )
   n_divergences <- rstan::get_num_divergent(x$stanfit)
   n_max_treedepth <- rstan::get_num_max_treedepth(x$stanfit)
@@ -75,7 +70,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
     )
   }
   sumr <- x |> 
-    as_draws(variable = exclude_these, include = FALSE) |> 
+    as_draws(parameters = exclude_these, include = FALSE) |> 
     summarise_draws(posterior::default_convergence_measures())
   idx <- c(
     which.max(sumr$rhat), which.min(sumr$ess_bulk), which.min(sumr$ess_tail)
@@ -146,14 +141,25 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
 #' 
 #' @param x \[`bscmfit_diagnostics`]\cr The diagnostics object returned by
 #' [check_mcmc_diagnostics.bscmfit()].
+#' @param print_table \[`logical(1)`] If `NULL` (the default) only prints the 
+#' table of largest Rhat and smallest ESS values in case diagnostics indicate 
+#' problems. If `TRUE` or `FALSE`, always prints or does not print the table.
 #' @param ... Ignored.
 #' @export
-print.bscmfit_diagnostics <- function(x, ...) {
+print.bscmfit_diagnostics <- function(x, print_table = NULL, ...) {
+  stopifnot_(
+    checkmate::test_flag(print_table, null.ok = TRUE),
+    "Argument {.arg print_table} must be a single {.cls logical} value."
+  )
   if (x$has_issues) {
+    if (is.null(print_table)) print_table <- TRUE
     warning_(c("\nMCMC diagnostics indicate potential problems:", x$messages))
   } else {
-    cat("\nMCMC diagnostics indicate no major issues:\n")
+    if (is.null(print_table)) print_table <- FALSE
+    cat("\nMCMC diagnostics indicate no major issues. \n")
   }
-  print(x$rhat_and_ess)
+  if (print_table) {
+    print(x$rhat_and_ess)
+  }
   invisible(x)
 }

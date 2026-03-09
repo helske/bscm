@@ -2,9 +2,9 @@
 % Please edit documentation in R/as_data_frame.R
 \name{as.data.frame.bscmfit}
 \alias{as.data.frame.bscmfit}
-\title{Extract Posterior Draws of Model Parameters as a Data Frame}
+\title{Extract posterior draws of model parameters as a data frame}
 \usage{
-\method{as.data.frame}{bscmfit}(x, row.names = NULL, optional = FALSE, ...)
+\method{as.data.frame}{bscmfit}(x, row.names = NULL, optional = FALSE, parameters = NULL, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
@@ -12,6 +12,8 @@
 \item{row.names}{Ignored.}
 
 \item{optional}{Ignored.}
+
+\item{parameters}{[\code{character()}]\cr Vector of parameter names.}
 
 \item{...}{Ignored.}
 }

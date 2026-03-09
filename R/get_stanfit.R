@@ -1,4 +1,4 @@
-#' Extract the `stanfit` Object from the `bscmfit` Object
+#' Extract the `stanfit` object from the `bscmfit` object
 #' 
 #' This function returns the output (`stanfit` object) from [rstan::sampling()].
 #' 
@@ -14,7 +14,7 @@ get_stanfit <- function(x, ...) {
 #' @rdname get_stanfit
 get_stanfit.default <- function(x, ...) {
   stopifnot_(
-    !is.list(x),
+    is.list(x),
     "Input {.arg x} is not a list-like object."
   )
   x$stanfit
@@ -25,7 +25,7 @@ get_stanfit.bscmfit <- function(x, ...) {
   x$stanfit
 }
 
-#' Return the Number of Posterior Draws of a `bscmfit` Object
+#' Return the number of posterior draws of a `bscmfit` object
 #'
 #' @aliases ndraws
 #' @export
@@ -36,7 +36,7 @@ ndraws.bscmfit <- function(x) {
   as.integer((x$stanfit@sim$n_save[1L] - x$stanfit@sim$warmup2[1L]) * 
                x$stanfit@sim$chains)
 }
-#' Return the Number of Chains of `bscmfit` Object
+#' Return the number of chains of `bscmfit` object
 #' @aliases nchains
 #' @export
 #' @export nchains
@@ -44,32 +44,4 @@ ndraws.bscmfit <- function(x) {
 #' @return Number of Markov chains used in sampling as a single `integer` value.
 nchains.bscmfit <- function(x) {
   as.integer(x$stanfit@sim$chains)
-}
-#' Return Posterior Draws from BSCM fit
-#' 
-#' @aliases as_draws
-#' @param x \[`bscmfit`]\cr The model fit object.
-#' @param variable \[`character()`]\cr Vector of parameter names.
-#' @param inc_warmup \[`logical(1)`]\cr Whether to include warmup draws. 
-#' Default is `FALSE`.
-#' @param include \[`logical(1)`]\cr If `TRUE` (the default), output includes 
-#' only the variables defined by the argument `variable`. If `FALSE`, these 
-#' variables are excluded from the output.
-#' @param ... Ignored.
-#' @return An object of class `draws_array` containing the posterior draws of 
-#' the specified parameters.
-#' @seealso [posterior::as_draws()] for converting the output to other formats.
-#' @export
-#' @export as_draws
-as_draws.bscmfit <- function(x, variable, inc_warmup = FALSE, include = TRUE, 
-                             ...) {
-  posterior::as_draws_array(
-    rstan::extract(
-      x$stanfit,
-      pars = variable,
-      permuted = FALSE,
-      inc_warmup = inc_warmup,
-      include = include
-    )
-  )
 }

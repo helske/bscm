@@ -11,6 +11,9 @@
 
 \item{...}{Ignored.}
 }
+\value{
+The summary output of the model.
+}
 \description{
 Print method for bscmfit objects
 }

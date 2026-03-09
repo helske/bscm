@@ -4,11 +4,15 @@
 \alias{print.bscmfit_diagnostics}
 \title{Print MCMC Diagnostics}
 \usage{
-\method{print}{bscmfit_diagnostics}(x, ...)
+\method{print}{bscmfit_diagnostics}(x, print_table = NULL, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit_diagnostics}]\cr The diagnostics object returned by
 \code{\link[=check_mcmc_diagnostics.bscmfit]{check_mcmc_diagnostics.bscmfit()}}.}
+
+\item{print_table}{[\code{logical(1)}] If \code{NULL} (the default) only prints the
+table of largest Rhat and smallest ESS values in case diagnostics indicate
+problems. If \code{TRUE} or \code{FALSE}, always prints or does not print the table.}
 
 \item{...}{Ignored.}
 }

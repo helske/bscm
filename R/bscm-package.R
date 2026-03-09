@@ -11,7 +11,8 @@
 #' @importFrom rstan sampling extract
 #' @importFrom loo loo
 #' @importFrom projpred get_refmodel
-#' @importFrom rstantools rstan_config
+#' @importFrom rstantools rstan_config log_lik bayes_R2 loo_R2
+#' @importFrom rstantools posterior_epred posterior_linpred posterior_predict
 #' @importFrom RcppParallel RcppParallelLibs
 #' @importFrom methods new
 #' @importFrom rlang := .data .env

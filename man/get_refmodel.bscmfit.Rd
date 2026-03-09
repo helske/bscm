@@ -3,7 +3,7 @@
 \name{get_refmodel.bscmfit}
 \alias{get_refmodel.bscmfit}
 \alias{get_refmodel}
-\title{Create a projpred Reference Model from a BSCM Fit}
+\title{Create a projpred reference model from a BSCM fit}
 \usage{
 \method{get_refmodel}{bscmfit}(object, ...)
 }
@@ -33,16 +33,16 @@ needs the data in wide format, see examples.
 \dontrun{
 fit <- bscm(
   y ~ 1, treatment = "treatment", time = "time", unit = "id",
-  data = simulated_example, refresh = 0, chains = 2, cores = 2
+  data = simulated_data, refresh = 0, chains = 2, cores = 2
 )
 refmodel <- get_refmodel(fit)
 vs <- projpred::varsel(refmodel)
 plot(vs)
 # predict with new data using the projection:
 # (here original data for all time points)
-# simulated_example data is ordered by id and time
-newdata <- matrix(simulated_example$y, nrow = 50)
-colnames(newdata) <- unique(simulated_example$id)
+# simulated_data is ordered by id and time
+newdata <- matrix(simulated_data$y, nrow = 50)
+colnames(newdata) <- unique(simulated_data$id)
 newdata <- as.data.frame(newdata)
 # returns posterior samples of predictions
 predictions <- projpred::proj_predict(

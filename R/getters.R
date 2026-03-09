@@ -8,6 +8,9 @@ get_unit <- \(x) x$setup$unit
 get_times <- \(x) x$setup$times
 get_T_pre <- \(x) x$setup$T_pre
 get_T_total <- \(x) x$setup$T_total
+has_intercept <- \(x) x$setup$has_intercept
+has_predictors <- \(x) length(x$setup$predictors) > 0L
+get_predictors <- \(x) x$setup$predictors
 
 #' Extract the name of the outcome variable from formula object
 #' @noRd
@@ -18,17 +21,17 @@ get_outcome <- function(x) {
   }
   stopifnot_(
     inherits(x, "formula"), 
-    "{.arg formula} must be a {.cls formula} object."
+    "Argument {.arg formula} must be a {.cls formula} object."
   )
   stopifnot_(
     identical(length(x), 3L), 
-    "{.arg formula} must contain the outcome variable on 
-    the left-hand side of the {.cls formula} object."
+    "Argument {.arg formula} must be a {.cls formula} object with an outcome 
+    variable on the left-hand side."
   )
   y <- all.vars(x[[2]])
   stopifnot_(
     identical(length(y), 1L), 
-    "{.arg formula} must be a {.cls formula} object with one outcome variable 
-    on the left-hand side.")
+    "Argument {.arg formula} must be a {.cls formula} object with one outcome 
+    variable on the left-hand side.")
   y
 }

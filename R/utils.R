@@ -1,4 +1,4 @@
-#' Stop if Condition is not True
+#' Stop if condition is not true
 #' 
 #' @noRd
 stopifnot_ <- function (cond, message, ..., call = rlang::caller_env()) {
@@ -6,7 +6,7 @@ stopifnot_ <- function (cond, message, ..., call = rlang::caller_env()) {
     cli::cli_abort(message, ..., .envir = parent.frame(), call = call)
   }
 }
-#' Warn if Condition is not True
+#' Warn if condition is not true
 #'
 #' @noRd
 warnifnot_ <- function(cond, message, ...) {
@@ -22,7 +22,7 @@ warnifnot_ <- function(cond, message, ...) {
 warning_ <- function(message, ...) {
   cli::cli_warn(message, ..., .envir = parent.frame())
 }
-#' Silent Version of `try`
+#' Silent version of `try`
 #' 
 #' Same as [base::try] but with `silent = TRUE`.
 #' 
@@ -31,4 +31,14 @@ warning_ <- function(message, ...) {
 try_ <- function(expr) {
   try(expr, silent = TRUE)
 }
-
+#' custom summary function for posterior::summarise_draws()
+#' @param x draws object
+#' @noRd
+summarize_with_probs <- function(x, probs) {
+  summarise_draws(
+    x,
+    mean, sd, 
+    ~ quantile2(.x, probs = probs), 
+    default_convergence_measures()
+  )
+}

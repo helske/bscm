@@ -12,7 +12,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   type <- yintercept <- ymin <- ymax <- NULL
   stopifnot_(
     checkmate::test_numeric(
-      x = probs,
+      probs,
       lower = 0.0,
       upper = 1.0,
       any.missing = FALSE,
@@ -55,8 +55,8 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
       data = dt, aes(yintercept = yintercept), 
       linetype = "dashed", colour = "grey50"
     ) +
-    geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = type), alpha = 0.5) +
-    geom_line(aes(colour = type), linewidth = 1) +
+    geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = type), alpha = 0.25) +
+    geom_line(aes(colour = type)) +
     geom_point(data = dy, colour = "grey30") +
     labs(x = time, y = NULL) +
     scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +

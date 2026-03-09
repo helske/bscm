@@ -1,6 +1,6 @@
 .Rproj.user
 .Rhistory
-.RData
-.httr-oauth
-.DS_Store
-.quarto
+*.o
+*.cc
+*.h
+R/stanmodels.R

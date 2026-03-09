@@ -1,4 +1,4 @@
-#' Summarize Results from Bayesian Synthetic Control Model Estimation
+#' Summarize posterior draws of an estimated Bayesian synthetic control model
 #'
 #' Generates posterior summary statistics for a Bayesian synthetic control 
 #' model estimated with [bscm()]. The output is organized as a list containing 
@@ -19,8 +19,7 @@
 #'    control value in the post-treatment period.
 #' * `"parameters"`: Model parameters excluding the weights, e.g., 
 #'   intercept (`alpha`), standard deviation of noise term (`sigma`); and in a 
-#'   case of covariates, regression coefficients (`beta`) and standard 
-#'   deviations of noise terms of donor regressions (`sigma_z`).
+#'   case of covariates, regression coefficients (`beta`).
 #' * `"weights"`: Donor weights used in the synthetic control.
 #' * `"effective_donors"`: Effective number of donor units based on weight 
 #'   concentration \eqn{1/\sum(w^2)}.
@@ -38,18 +37,18 @@
 #'   posterior summaries to include in the output. See details for accepted 
 #'   values. If `NULL` (the default), all available summaries are included.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.25, 0.5, 0.75, 0.975)`.
-#' @param ... Additional arguments (not used).
+#'   Default is `c(0.025, 0.975)`.
+#' @param ... Ignored.
 #' @return A named list of data frames containing the requested posterior 
 #'   summaries. The `misc` element combines all scalar summaries with a 
 #'   `variable` column indicating the quantity.
 #' @export
 summary.bscmfit <- function(object, include = NULL, 
-                            probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...) {
+                            probs = c(0.025, 0.975), ...) {
   
   stopifnot_(
     checkmate::test_numeric(
-      x = probs,
+      probs,
       lower = 0.0,
       upper = 1.0,
       any.missing = FALSE,
@@ -89,8 +88,7 @@ summary.bscmfit <- function(object, include = NULL,
   # Get draws from Stan fit
   all_pars <- object$stanfit@model_pars
   pars <- intersect(
-    c("alpha", "sigma", "beta", "alpha_z", "sigma_z", "mu", "gamma",
-      "sigma_delta"), all_pars
+    c("alpha", "beta", "sigma", "tau"), all_pars
   )
   vars <- c(
     if ("effects" %in% include) "effect",
@@ -106,29 +104,19 @@ summary.bscmfit <- function(object, include = NULL,
   )
   draws <- as_draws(object, vars)
   
-  # custom summary function
-  summarize_with_probs <- function(d) {
-    summarise_draws(
-      d,
-      mean, sd, 
-      ~ quantile2(.x, probs = probs), 
-      default_convergence_measures()
-    )
-  }
-  
   out <- list()
   
   if ("effects" %in% include) {
     out$effects <- draws |> 
       subset_draws("effect") |> 
-      summarize_with_probs() |> 
+      summarize_with_probs(probs) |> 
       mutate("{time}" := .env$times, .before = 1L) |> 
       select(-"variable")
   }
   if ("synthetic" %in% include) {
     out$synthetic <- draws |> 
       subset_draws("synthetic_y") |> 
-      summarize_with_probs() |> 
+      summarize_with_probs(probs) |> 
       mutate("{time}" := .env$times, .before = 1L) |> 
       select(-"variable")
   }
@@ -136,14 +124,14 @@ summary.bscmfit <- function(object, include = NULL,
     post_times <- times[(T_pre + 1L):T_total]
     out$cumulative_effects <- draws |> 
       subset_draws("avg_effect_post_cumulative") |> 
-      summarize_with_probs() |> 
+      summarize_with_probs(probs) |> 
       mutate("{time}" := .env$post_times, .before = 1L) |> 
       select(-"variable")
   }
   if ("weights" %in% include) {
     out$weights <- draws |> 
       subset_draws("omega") |> 
-      summarize_with_probs() |> 
+      summarize_with_probs(probs) |> 
       mutate("{unit}" := .env$donors, .before = 1L) |> 
       select(-"variable")
   }
@@ -151,14 +139,14 @@ summary.bscmfit <- function(object, include = NULL,
     post_times <- times[(T_pre + 1L):T_total]
     out$relative_change <- draws |> 
       subset_draws("relative_change") |> 
-      summarize_with_probs() |> 
+      summarize_with_probs(probs) |> 
       mutate("{time}" := .env$post_times, .before = 1L) |> 
       select(-"variable")
   }
   if ("parameters" %in% include) {
     out$parameters <- draws |> 
       subset_draws(pars) |> 
-      summarize_with_probs()
+      summarize_with_probs(probs)
   }
   vars <- setdiff(
     vars, 
@@ -168,8 +156,8 @@ summary.bscmfit <- function(object, include = NULL,
   if (length(vars) > 0) {
     out$misc <- draws |> 
       subset_draws(vars) |> 
-      summarize_with_probs()
+      summarize_with_probs(probs)
   }
-  class(out) < "bscmfit_summary"
+  class(out) <- "bscmfit_summary"
   out
 }

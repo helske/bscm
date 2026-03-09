@@ -1,4 +1,4 @@
-#' Create a projpred Reference Model from a BSCM Fit
+#' Create a projpred reference model from a BSCM fit
 #' 
 #' Creates a `refmodel` object from `bscmfit` to be used with `projpred` 
 #' package. This enables the usage of [projpred::varsel()] and 
@@ -22,16 +22,16 @@
 #' \dontrun{
 #' fit <- bscm(
 #'   y ~ 1, treatment = "treatment", time = "time", unit = "id",
-#'   data = simulated_example, refresh = 0, chains = 2, cores = 2
+#'   data = simulated_data, refresh = 0, chains = 2, cores = 2
 #' )
 #' refmodel <- get_refmodel(fit)
 #' vs <- projpred::varsel(refmodel)
 #' plot(vs)
 #' # predict with new data using the projection:
 #' # (here original data for all time points)
-#' # simulated_example data is ordered by id and time
-#' newdata <- matrix(simulated_example$y, nrow = 50)
-#' colnames(newdata) <- unique(simulated_example$id)
+#' # simulated_data is ordered by id and time
+#' newdata <- matrix(simulated_data$y, nrow = 50)
+#' colnames(newdata) <- unique(simulated_data$id)
 #' newdata <- as.data.frame(newdata)
 #' # returns posterior samples of predictions
 #' predictions <- projpred::proj_predict(
@@ -114,23 +114,6 @@ get_refmodel.bscmfit <- function(object, ...) {
     
     if (is.null(newdata)) {
       newdata <- object$proj$data
-      # unit <- object$setup$unit
-      # T_total <- object$setup$T_total
-      # T_pre <- object$setup$T_pre
-      # outcome <- object$setup$outcome
-      # treated <- object$setup$treated
-      # donors <- object$setup$donors
-      # 
-      # newdata <- object$data |> 
-      #   filter(.data[[unit]] %in% .env$donors) |> 
-      #   pull(.data[[outcome]]) |> 
-      #   matrix(nrow = T_total) |> 
-      #   as.data.frame() |> 
-      #   stats::setNames(donors)
-      # newdata[[treated]] <- object$data |>
-      #   filter(.data[[unit]] == .env$treated) |>
-      #   pull(.data[[outcome]])
-      # newdata <- proj_data[1:T_pre, , drop = FALSE]
     }
     N <- nrow(newdata)
     
@@ -204,29 +187,6 @@ get_refmodel.bscmfit <- function(object, ...) {
     stop("K-fold cross-validation is not supported for bscm models. ",
          "Use cv_varsel() with cv_method = 'LOO' instead.")
   }
-  # object$proj_data <- proj_data
-  # object$proj_formula <- proj_formula
-  # omega <- as.matrix(object$stanfit, pars = "omega")
-  # sigma <- c(as.matrix(object$stanfit, pars = "sigma"))
-  # alpha <- if (has_intercept) {
-  #   c(as.matrix(object$stanfit, pars = "alpha"))
-  # } else {
-  #   rep(0, nrow(omega))
-  # }
-  # treated = treated,
-  # donors = donors,
-  # draws = list(alpha = alpha, omega = omega),
-  # proj_extra <- list(
-  #   data = proj_data,
-  #   omega = omega,
-  #   sigma = sigma,
-  #   alpha = alpha,
-  #   formula = proj_formula,
-  #   treated = treated,
-  #   donors = donors,
-  #   donor_names_safe = donors,
-  #   has_intercept = has_intercept
-  # )
   object$proj <- list(
     data = proj_data, formula = proj_formula
   )

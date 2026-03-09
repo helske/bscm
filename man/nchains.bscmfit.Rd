@@ -3,7 +3,7 @@
 \name{nchains.bscmfit}
 \alias{nchains.bscmfit}
 \alias{nchains}
-\title{Return the Number of Chains of \code{bscmfit} Object}
+\title{Return the number of chains of \code{bscmfit} object}
 \usage{
 \method{nchains}{bscmfit}(x)
 }
@@ -14,5 +14,5 @@
 Number of Markov chains used in sampling as a single \code{integer} value.
 }
 \description{
-Return the Number of Chains of \code{bscmfit} Object
+Return the number of chains of \code{bscmfit} object
 }

@@ -10,12 +10,12 @@ bscm(
   treatment,
   time = "time",
   unit = "id",
-  time_varying_effects = "none",
+  time_varying_effects = FALSE,
   priors = "default",
+  kappa = 1,
   effective_donors = NULL,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
-  spline_D = NULL,
   ...
 )
 }
@@ -43,36 +43,34 @@ variable in \code{data}.}
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data} identifying
 different units.}
 
-\item{time_varying_effects}{[\code{character(1)}]\cr Should intercept and
-regression coefficients vary over time? The default is \code{"none"}, while
-\code{"intercept"} and \code{"all"} allow for time-varying intercept and all
-coefficients, respectively. See details for the implications of this choice
-on the model specification.}
+\item{time_varying_effects}{[\code{logical(1)}]\cr Should the
+regression coefficients vary over time? The default is \code{FALSE}, while
+\code{TRUE} defines the regression coefficients as penalized splines. See details.}
 
 \item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
 or \code{"default"} which is a default and only supported option at the moment.
 See details on the prior definitions.}
 
-\item{effective_donors}{Optional argument for defining a prior for weights.
-See details.}
+\item{kappa}{[\code{numeric(1)}]\cr A positive number defining the concentration
+parameter of symmetric Dirichlet prior of the donor weights. Ignored if the
+argument \code{effective_donors} is non-NULL.}
 
-\item{mcmc_diagnostics}{If \code{TRUE} (the default), the output of
-\code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks performed by
-\code{\link[=check_mcmc_diagnostics.bscmfit]{check_mcmc_diagnostics.bscmfit()}}. Note that regardless of
+\item{effective_donors}{[\code{integer(1)}]\cr Integer for alternative
+definition of the prior for the donor weights. See details.}
+
+\item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
+output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks performed
+by \code{\link[=check_mcmc_diagnostics.bscmfit]{check_mcmc_diagnostics.bscmfit()}}. Note that regardless of
 the value of \code{mcmc_diagnostics}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} can still generate
 warnings regarding convergence and other sampling issues.}
 
-\item{save_data}{If \code{TRUE} (the default), \code{bscmfit} object returned by
-\code{\link[=bscm]{bscm()}} includes the input \code{data.frame} (argument \code{data}), after dropping
-unused factor levels and potentially rearranging data by \code{unit} and \code{time}
-variables.}
-
-\item{spline_D}{[\code{integer(1)}] Positive integer defining the degrees of
-freedom for the splines when \code{time_varying_effects != "none"}.}
+\item{save_data}{[\code{logical(1)}]\cr If \code{TRUE} (the default), \code{bscmfit}
+object returned by  \code{\link[=bscm]{bscm()}} includes the input \code{data.frame}
+(argument \code{data}), after dropping unused factor levels and potentially
+rearranging data by \code{unit} and \code{time} variables.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to adjust
-the sampling options. In contrast to the defaults of \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}},
-\code{\link[=bscm]{bscm()}} defaults to \code{iter = 5000} and \code{control = list(adapt_delta = 0.9)}.}
+the sampling options.}
 }
 \value{
 An object of class \code{bscmfit}.
@@ -97,18 +95,18 @@ with \code{y} being the vector of pretreatment outcomes. Same priors are used fo
 the donors as well, with \code{m} and \code{s} defined separately for each donor using
 the pretreatment outcomes of that donor.
 
-#' The default prior for the coefficient \eqn{\beta_k} is
+The default prior for the coefficient \eqn{\beta_k} is
 \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2 * s / sd(x_k)} and s is
 the mean of the variances of the treated and donors' outcomes in the
 pretreatment period, and \eqn{x_k} is the vector of values of the k-th
 covariate in the pretreatment period over all.
 
-The prior for the weight vector \eqn{w} is defined as a symmetric Dirichlet
-distribution with a concentration parameter \eqn{\kappa}. By default,
-\eqn{\kappa = 1}, corresponding to uniform distribution on a simplex.
+The prior for the weight vector \eqn{\omega} is defined as a symmetric
+Dirichlet distribution with a concentration parameter \eqn{\kappa}. By
+default, \eqn{\kappa = 1}, corresponding to uniform distribution on a simplex.
 Alternatively, argument \code{effective_donors} can be used to define
 \eqn{\kappa} using the approximation of expected number of
-effective donors, defined as \eqn{1 / sum(w^2)}. More specifically,
+effective donors, defined as \eqn{1 / \sum(w^2)}. More specifically,
 \code{kappa = (effective_donors - 1) / (J - effective_donors)} where \eqn{J} is
 the total number of donors. Default \eqn{\kappa = 1} therefore corresponds
 to prior where the effective number donors is \eqn{(J + 1) / 2}.
@@ -119,9 +117,12 @@ use \code{\link[=summary.bscmfit]{summary.bscmfit()}} method on the output of `b
 }
 \examples{
 fit <- bscm(
-  y ~ 1, simulated_example, "treatment", "time", "id", 
-  effective_donors = 10, chains = 1, cores = 1, refresh = 0
+  y ~ 1, simulated_data, "treatment", "time", "id", 
+  chains = 1, cores = 1, refresh = 0
 )
 fit
 
+}
+\seealso{
+\code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
 }

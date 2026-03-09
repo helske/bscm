@@ -2,9 +2,9 @@
 % Please edit documentation in R/summary_bscmfit.R
 \name{summary.bscmfit}
 \alias{summary.bscmfit}
-\title{Summarize Results from Bayesian Synthetic Control Model Estimation}
+\title{Summarize posterior draws of an estimated Bayesian synthetic control model}
 \usage{
-\method{summary}{bscmfit}(object, include = NULL, probs = c(0.025, 0.25, 0.5, 0.75, 0.975), ...)
+\method{summary}{bscmfit}(object, include = NULL, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
@@ -14,9 +14,9 @@ posterior summaries to include in the output. See details for accepted
 values. If \code{NULL} (the default), all available summaries are included.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
-Default is \code{c(0.025, 0.25, 0.5, 0.75, 0.975)}.}
+Default is \code{c(0.025, 0.975)}.}
 
-\item{...}{Additional arguments (not used).}
+\item{...}{Ignored.}
 }
 \value{
 A named list of data frames containing the requested posterior
@@ -43,8 +43,7 @@ periods.
 control value in the post-treatment period.
 \item \code{"parameters"}: Model parameters excluding the weights, e.g.,
 intercept (\code{alpha}), standard deviation of noise term (\code{sigma}); and in a
-case of covariates, regression coefficients (\code{beta}) and standard
-deviations of noise terms of donor regressions (\code{sigma_z}).
+case of covariates, regression coefficients (\code{beta}).
 \item \code{"weights"}: Donor weights used in the synthetic control.
 \item \code{"effective_donors"}: Effective number of donor units based on weight
 concentration \eqn{1/\sum(w^2)}.

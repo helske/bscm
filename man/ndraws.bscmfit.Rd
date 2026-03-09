@@ -3,7 +3,7 @@
 \name{ndraws.bscmfit}
 \alias{ndraws.bscmfit}
 \alias{ndraws}
-\title{Return the Number of Posterior Draws of a \code{bscmfit} Object}
+\title{Return the number of posterior draws of a \code{bscmfit} object}
 \usage{
 \method{ndraws}{bscmfit}(x)
 }
@@ -14,5 +14,5 @@
 Number of posterior draws as a single \code{integer} value.
 }
 \description{
-Return the Number of Posterior Draws of a \code{bscmfit} Object
+Return the number of posterior draws of a \code{bscmfit} object
 }

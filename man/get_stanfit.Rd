@@ -4,7 +4,7 @@
 \alias{get_stanfit}
 \alias{get_stanfit.default}
 \alias{get_stanfit.bscmfit}
-\title{Extract the \code{stanfit} Object from the \code{bscmfit} Object}
+\title{Extract the \code{stanfit} object from the \code{bscmfit} object}
 \usage{
 get_stanfit(x, ...)
 
