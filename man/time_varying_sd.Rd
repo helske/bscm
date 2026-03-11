@@ -2,12 +2,17 @@
 % Please edit documentation in R/time_varying_sd.R
 \name{time_varying_sd}
 \alias{time_varying_sd}
+\alias{time_varying_sd.bscmfit}
 \title{Standard deviation induced by the time-varying covariate imbalance effects}
 \usage{
-time_varying_sd(x, plot = TRUE, probs = c(0.025, 0.975))
+time_varying_sd(x, ...)
+
+\method{time_varying_sd}{bscmfit}(x, plot = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
+
+\item{...}{Ignored.}
 
 \item{plot}{[\code{logical(1)}]\cr If \code{TRUE} (the default), plots the posterior
 mean and interval of the (scaled) synthetic covariate distances over time.}

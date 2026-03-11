@@ -3,39 +3,46 @@
 \name{placebo_effects}
 \alias{placebo_effects}
 \alias{placebo_effects.bscmfit}
-\title{Placebo effects for \code{bscmfit}}
+\title{Placebo effects of a Bayesian synthetic control model}
 \usage{
 placebo_effects(x, ...)
 
-\method{placebo_effects}{bscmfit}(x, type, L = NULL, summaries = c("effect", "RMSE"), ...)
+\method{placebo_effects}{bscmfit}(x, type, L = NULL, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The output returned by the \code{\link[=bscm]{bscm()}}.}
 
-\item{...}{Additional parameters passed on to \code{\link[=bscm]{bscm()}}.}
-
-\item{type}{[\code{character(1)}]\cr Type of the placebo effects to compute.
-Either \code{"space"} for in-space placebos or \code{"time"} for in-time placebos. See
-details.}
+\item{...}{Additional arguments passed on to \code{\link[=bscm]{bscm()}}.}
 
 \item{L}{[\code{integer(1)}]\cr If \verb{type = "time}, minimum number of observations
 to use for the in-time placebos, i.e. the number of pre-treatment time points
 for the first fit. For too small \code{L}, estimation can be unstable, so you
-should likely use at least \code{L = 10}.}
+should likely use at least \code{L = 10} or so.}
 
-\item{summaries}{[\code{character()}]\cr Posterior summaries to be computed.
-The default is \code{c("effect", "rmse")}. See \code{\link[=summary.bscmfit]{summary.bscmfit()}} for details
-and list of accepted values.}
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries of the
+treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
+
+\item{vary}{[\code{character(1)}]\cr Type of the placebo effects to compute.
+Either \code{"donor"} for in-space placebos, \code{"time"} for in-time placebos. See
+details.}
 }
 \value{
-A list of data frames containing the estimates.
+A list with three elements: \code{effect}, \code{rmse}, and \code{diagnostics},
+containing the treatment effect estimates, pre- and post-treatment RMSE
+estimates, and MCMC diagnostics for each placebo run.
 }
 \description{
-For the in-space placebo, original model is re-estimated using each donor as
-the treated unit in turn (ignoring the original, true treated). For the
-in-time placebo, we still estimate the treatment effect for the original
-treated, but consider only the pretreatment data, and moving the start of the
-treatment from \eqn{L + 1} to \eqn{T_0 - 1}, where \eqn{L} is the minimum
-number of pre-treatment time points to use, and \eqn{T_0} is the time of the
-true intervention.
+For the in-space placebo (\code{type = "donor"}), original model is re-estimated
+using each donor as the treated unit in turn (omitting the original, true
+treated unit). The obtained effect estimates should be around zero, under
+the assumption that the treatment affected only the true treated unit.
+}
+\details{
+For the in-time placebo (\code{type = "time"}) we still
+estimate the treatment effect for the original treated, but move the start
+of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the
+minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the
+last pre-treatment time point. In all cases, the obtained treatment effects
+should fluctuate around zero for time points before the true treatment time,
+under the assumption of no anticipation effects.
 }

@@ -3,42 +3,58 @@
 placebo_effects <- function(x, ...) {
   UseMethod("placebo_effects", x)
 }
-#' Placebo effects for `bscmfit` 
+#' Placebo effects of a Bayesian synthetic control model
 #' 
-#' For the in-space placebo, original model is re-estimated using each donor as 
-#' the treated unit in turn (ignoring the original, true treated). For the 
-#' in-time placebo, we still estimate the treatment effect for the original 
-#' treated, but consider only the pretreatment data, and moving the start of the 
-#' treatment from \eqn{L + 1} to \eqn{T_0 - 1}, where \eqn{L} is the minimum 
-#' number of pre-treatment time points to use, and \eqn{T_0} is the time of the 
-#' true intervention.
+#' For the in-space placebo (`type = "donor"`), original model is re-estimated 
+#' using each donor as the treated unit in turn (omitting the original, true 
+#' treated unit). The obtained effect estimates should be around zero, under 
+#' the assumption that the treatment affected only the true treated unit.
+#' 
+#' For the in-time placebo (`type = "time"`) we still 
+#' estimate the treatment effect for the original treated, but move the start 
+#' of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the 
+#' minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the 
+#' last pre-treatment time point. In all cases, the obtained treatment effects 
+#' should fluctuate around zero for time points before the true treatment time, 
+#' under the assumption of no anticipation effects. 
 #'   
 #' @export
 #' @rdname placebo_effects
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
-#' @param type \[`character(1)`]\cr Type of the placebo effects to compute. 
-#' Either `"space"` for in-space placebos or `"time"` for in-time placebos. See 
+#' @param vary \[`character(1)`]\cr Type of the placebo effects to compute. 
+#' Either `"donor"` for in-space placebos, `"time"` for in-time placebos. See 
 #' details.
 #' @param L \[`integer(1)`]\cr If `type = "time`, minimum number of observations 
 #' to use for the in-time placebos, i.e. the number of pre-treatment time points 
 #' for the first fit. For too small `L`, estimation can be unstable, so you 
-#' should likely use at least `L = 10`.
-#' @param summaries \[`character()`]\cr Posterior summaries to be computed.   
-#' The default is `c("effect", "rmse")`. See [summary.bscmfit()] for details 
-#' and list of accepted values. 
-#' @param ... Additional parameters passed on to [bscm()].
-#' @return A list of data frames containing the estimates.
+#' should likely use at least `L = 10` or so.
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
+#' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
+#' @param ... Additional arguments passed on to [bscm()].
+#' @return A list with three elements: `effect`, `rmse`, and `diagnostics`, 
+#' containing the treatment effect estimates, pre- and post-treatment RMSE 
+#' estimates, and MCMC diagnostics for each placebo run.
 placebo_effects.bscmfit <- function(x, type, L = NULL, 
-                                    summaries = c("effect", "RMSE"), ...) {
-  
-  type <- try_(match.arg(type, c("space", "time")))
+                                    probs = c(0.025, 0.975), ...) {
+  stopifnot_(
+    checkmate::test_numeric(
+      probs,
+      lower = 0.0,
+      upper = 1.0,
+      any.missing = FALSE,
+      min.len = 1L
+    ),
+    "Argument {.arg probs} must be a {.cls numeric} vector with values between
+     0 and 1."
+  )
+  type <- try_(match.arg(type, c("donor", "time")))
   stopifnot_(
     !inherits(type, "try-error"),
-    "Argument {.arg type} must be either {.val space} or {.val time}."
+    "Argument {.arg type} must be either {.val donor} or {.val time}."
   )
   T_pre <- get_T_pre(x)
   stopifnot_(
-    identical(type, "space") || 
+    identical(type, "donor") || 
       checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
     "Argument {.arg L} must be a single integer between 2 and {T_pre}, defining 
     the number of time points for the first fit."
@@ -55,8 +71,9 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
   times <- get_times(x)
   unit <- get_unit(x)
   data <- x$data
-  if (identical(type, "space")) {
-    fits <- stats::setNames(vector("list", length(donors)), donors)
+  if (identical(type, "donor")) {
+    effect <- rmse <- diagnostics <- 
+      stats::setNames(vector("list", length(donors)), donors)
     data <- data |> filter(.data[[unit]] %in% .env$donors)
     end <- times[T_pre]
     p <- progressr::progressor(along = donors)
@@ -68,9 +85,12 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
             .data[[unit]] == .env$donor & .data[[time]] > .env$end, 1, 0
           )
         )
-      fits[[donor]] <- stats::update(
-        x, data = d, save_data = FALSE, ...
+      fit <- stats::update(
+        x, data = d, mcmc_diagnostics = FALSE, save_data = FALSE, ...
       )
+      effect[[donor]] <- treatment_effect(fit, probs)
+      rmse[[donor]] <- rmse(fit, probs)
+      diagnostics[[donor]] <- check_mcmc_diagnostics(fit, warn = FALSE)
     }
   }
   if (type == "time") {
@@ -79,7 +99,8 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
     data <- data |> 
       filter(.data[[time]] <= .env$end)
     times <- times[(L + 1):T_pre]
-    fits <- stats::setNames(vector("list", T_pre - L), times)
+    effect <- rmse <- diagnostics <- 
+      stats::setNames(vector("list", T_pre - L), times)
     p <- progressr::progressor(along = fits)
     for (t in times) {
       p(sprintf(paste0("Estimating the model for up to time ", t, ".")))
@@ -90,16 +111,20 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
             .data[[unit]] == .env$treated & .data[[time]] == .env$t, 1, 0
           )
         )
-      fits[[as.character(t)]] <- stats::update(
-        x, data = d, save_data = FALSE, ...
+      fit <- stats::update(
+        x, data = d, mcmc_diagnostics = FALSE, save_data = FALSE, ...
       )
+      idx <- as.character(t)
+      effect[[idx]] <- treatment_effect(fit, probs)
+      rmse[[idx]] <- rmse(fit, probs)
+      diagnostics[[idx]] <- check_mcmc_diagnostics(fit, warn = FALSE)
     }
   }
-  issues <- names(fits)[unlist(lapply(fits, \(x) x$convergence$has_issues))]
+  issues <- lapply(diagnostics, \(x) x$has_issues)
   warnifnot_(
-    length(issues) == 0,
-    "Some of the placebo runs resulted in MCMC diagnostic warnings. Check the
-    diagnostics by `lapply(output, \\(x) x$convergence)`."
+    all(!unlist(issues)),
+    "Some of the placebo runs resulted in MCMC diagnostic warnings. Check 
+    the `diagnostics` element of the output list for details."
   )
-  fits
+  list(effect = effect, rmse = rmse, diagnostics = diagnostics)
 }

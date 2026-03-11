@@ -1,3 +1,8 @@
+#' @export
+#' @rdname time_varying_sd
+time_varying_sd <- function(x, ...) {
+  UseMethod("time_varying_sd", x)
+}
 #' Standard deviation induced by the time-varying covariate imbalance effects
 #'
 #' For models estimate with argument `time_varying_effects = TRUE`, 
@@ -9,6 +14,7 @@
 #' treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}.
 #' 
 #' @export
+#' @rdname time_varying_sd
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param plot \[`logical(1)`]\cr If `TRUE` (the default), plots the posterior 
 #' mean and interval of the (scaled) synthetic covariate distances over time.
@@ -16,9 +22,11 @@
 #' Default is `c(0.025, 0.975)`. If length of `probs` less than 2, no posterior 
 #' intervals are drawn, and if length of `probs` is larger than two, the most 
 #' extreme values are used for the posterior intervals.
+#' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the standard deviation of 
 #' the time-varying covariate imbalance effects.
-time_varying_sd <- function(x, plot = TRUE, probs = c(0.025, 0.975)) {
+time_varying_sd.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975), 
+                                    ...) {
   variable <- NULL # to avoid NSE warnings
   stopifnot_(
     checkmate::test_flag(plot),

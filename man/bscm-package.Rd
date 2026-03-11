@@ -23,6 +23,6 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jouni Helske \email{jouni.helske@iki.fi}
+\strong{Maintainer}: Jouni Helske \email{jouni.helske@iki.fi} (\href{https://orcid.org/0000-0001-7130-793X}{ORCID})
 
 }

@@ -20,13 +20,12 @@ Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A named list of data frames containing the requested posterior
-summaries. The \code{misc} element combines all scalar summaries with a
-\code{variable} column indicating the quantity.
+summaries.
 }
 \description{
 Generates posterior summary statistics for a Bayesian synthetic control
-model estimated with \code{\link[=bscm]{bscm()}}. The output is organized as a list containing
-data frames for different types of summaries.
+model estimated with \code{\link[=bscm]{bscm()}}. Note that most of the summaries are also
+available via separate methods, e.g., \code{\link[=donor_weights]{donor_weights()}}.
 }
 \details{
 By default, the output contains various posterior summary statistics. You can
@@ -35,6 +34,7 @@ accepted values:
 \itemize{
 \item \code{"effects"}: Treatment effects over time (observed series - synthetic control).
 \item \code{"synthetic"}: Synthetic control values over time.
+\item \code{"weights"}: Donor weights used in the synthetic control.
 \item \code{"cumulative_effects"}: Cumulative average treatment effects in the
 post-treatment period.
 \item \code{"average_effects"}: Average treatment effects in pre- and post-treatment
@@ -44,16 +44,10 @@ control value in the post-treatment period.
 \item \code{"parameters"}: Model parameters excluding the weights, e.g.,
 intercept (\code{alpha}), standard deviation of noise term (\code{sigma}); and in a
 case of covariates, regression coefficients (\code{beta}).
-\item \code{"weights"}: Donor weights used in the synthetic control.
 \item \code{"effective_donors"}: Effective number of donor units based on weight
 concentration \eqn{1/\sum(w^2)}.
 \item \code{"RMSE"}: Root mean squared errors for pre- and post-treatment periods, and
 their ratio.
 \item \code{"R2"}: Bayesian \eqn{R^2} measure of model fit.
 }
-
-Scalar quantities (\code{average_effects}, \code{RMSE}, \code{R2}, \code{effective_donors}) are
-combined into a single \code{misc} data frame when multiple are requested.
-Non-scalar quantities are returned as separate data frames indexed by time
-or donor unit.
 }

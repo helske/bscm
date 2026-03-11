@@ -1,10 +1,10 @@
 test_that("summary returns a bscmfit_summary list", {
   suppressWarnings(s <- summary(fit_intercept))
   expect_type(s, "list")
-  expect_s3_class(s, "bscmfit_summary")
   expected_elements <- c(
-    "effects", "synthetic", "cumulative_effects", "weights",
-    "relative_change", "parameters", "misc"
+    "effects", "synthetic", "weights", "cumulative_effects", 
+    "relative_change", "parameters", "RMSE", "R2", 
+    "effective_donors", "average_effects"
   )
   expect_true(all(expected_elements %in% names(s)))
   d <- s$effects
@@ -35,10 +35,3 @@ test_that("summary rejects invalid include values", {
   )
 })
 
-test_that("summary$misc contains scalar summaries", {
-  suppressWarnings(s <- summary(fit_intercept))
-  m <- s$misc
-  expect_s3_class(m, "data.frame")
-  vars <- m$variable
-  expect_true("RMSE_pre" %in% vars)
-})

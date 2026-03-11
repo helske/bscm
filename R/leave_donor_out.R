@@ -3,22 +3,33 @@
 leave_donor_out <- function(x, ...) {
   UseMethod("leave_donor_out", x)
 }
-#' Leave-donor-out effects for `bscmfit` 
+#' Leave-donor-out effects of a Bayesian synthetic control model
 #' 
-#' Re-estimates original model J times by removing one of the J donors from the 
-#' model in turn. This can be used to assess how sensitive the results are to the
-#' inclusion of specific donors.
+#' Re-estimates original model \eqn{J} times by removing one of the \eqn{J} 
+#' donors from the data in turn. This can be used to assess how sensitive the 
+#' results are to the inclusion of specific donors.
 #'   
 #' @export
 #' @rdname leave_donor_out
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
-#' @param include \[`character()`]\cr Posterior summaries to be computed.   
-#' The default is `c("effect", "rmse")`. See [summary.bscmfit()] for details 
-#' and list of accepted values. 
-#' @param ... Additional parameters passed on to [bscm()].
-#' @return A list of data frames containing the estimates.
-leave_donor_out.bscmfit <- function(x, include = c("effect", "RMSE"), ...) {
-  
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
+#' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
+#' @param ... Additional arguments passed on to [bscm()].
+#' @return A list with three elements: `effect`, `rmse`, and `diagnostics`, 
+#' containing the treatment effect estimates, pre- and post-treatment RMSE 
+#' estimates, and MCMC diagnostics for each of the \eqn{J} models.
+leave_donor_out.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
+  stopifnot_(
+    checkmate::test_numeric(
+      probs,
+      lower = 0.0,
+      upper = 1.0,
+      any.missing = FALSE,
+      min.len = 1L
+    ),
+    "Argument {.arg probs} must be a {.cls numeric} vector with values between
+     0 and 1."
+  )
   stopifnot_(
     !is.null(x$data),
     "The model fit {.arg x} does not contain the original data. You probably 
@@ -32,24 +43,24 @@ leave_donor_out.bscmfit <- function(x, include = c("effect", "RMSE"), ...) {
   unit <- get_unit(x)
   data <- x$data
   
-  fits <- stats::setNames(vector("list", length(donors)), donors)
+  effect <- rmse <- diagnostics <- 
+    stats::setNames(vector("list", length(donors)), donors)
   p <- progressr::progressor(along = donors)
   for (donor in donors) {
     p(sprintf(paste0("Estimating the model without donor ", donor, ".")))
     d <- data |> filter(.data[[unit]] != .env$donor)
-    fits[[donor]] <- stats::update(x, data = d, save_data = FALSE, ...)
-    fits[[donor]]$convergence <- check_mcmc_diagnostics(
-      fits[[donor]], warn = FALSE
+    fit <- stats::update(
+      x, data = d, mcmc_diagnostics = FALSE, save_data = FALSE, ...
     )
-    fits[[donor]]$summary <- summary(
-      fits[[donor]], include = include
-    )
+    effect[[donor]] <- treatment_effect(fit, probs)
+    rmse[[donor]] <- rmse(fit, probs)
+    diagnostics[[donor]] <- check_mcmc_diagnostics(fit, warn = FALSE)
   }
-  issues <- names(fits)[unlist(lapply(fits, \(x) x$convergence$has_issues))]
+  issues <- lapply(diagnostics, \(x) x$has_issues)
   warnifnot_(
-    length(issues) == 0,
-    "Some of the placebo runs resulted in MCMC diagnostic warnings. Check the
-    diagnostics by `lapply(output, \\(x) x$convergence)`."
+    all(!unlist(issues)),
+    "Some of the runs resulted in MCMC diagnostic warnings. Check 
+    the `diagnostics` element of the output list for details."
   )
-  fits
+  list(effect = effect, rmse = rmse, diagnostics = diagnostics)
 }

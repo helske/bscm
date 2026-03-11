@@ -3,26 +3,27 @@
 \name{leave_donor_out}
 \alias{leave_donor_out}
 \alias{leave_donor_out.bscmfit}
-\title{Leave-donor-out effects for \code{bscmfit}}
+\title{Leave-donor-out effects of a Bayesian synthetic control model}
 \usage{
 leave_donor_out(x, ...)
 
-\method{leave_donor_out}{bscmfit}(x, include = c("effect", "RMSE"), ...)
+\method{leave_donor_out}{bscmfit}(x, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The output returned by the \code{\link[=bscm]{bscm()}}.}
 
-\item{...}{Additional parameters passed on to \code{\link[=bscm]{bscm()}}.}
+\item{...}{Additional arguments passed on to \code{\link[=bscm]{bscm()}}.}
 
-\item{include}{[\code{character()}]\cr Posterior summaries to be computed.
-The default is \code{c("effect", "rmse")}. See \code{\link[=summary.bscmfit]{summary.bscmfit()}} for details
-and list of accepted values.}
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries of the
+treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A list of data frames containing the estimates.
+A list with three elements: \code{effect}, \code{rmse}, and \code{diagnostics},
+containing the treatment effect estimates, pre- and post-treatment RMSE
+estimates, and MCMC diagnostics for each of the \eqn{J} models.
 }
 \description{
-Re-estimates original model J times by removing one of the J donors from the
-model in turn. This can be used to assess how sensitive the results are to the
-inclusion of specific donors.
+Re-estimates original model \eqn{J} times by removing one of the \eqn{J}
+donors from the data in turn. This can be used to assess how sensitive the
+results are to the inclusion of specific donors.
 }

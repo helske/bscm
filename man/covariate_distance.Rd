@@ -2,12 +2,17 @@
 % Please edit documentation in R/covariate_distance.R
 \name{covariate_distance}
 \alias{covariate_distance}
+\alias{covariate_distance.bscmfit}
 \title{Synthetic covariate distance}
 \usage{
-covariate_distance(x, plot = TRUE, probs = c(0.025, 0.975), ...)
+covariate_distance(x, ...)
+
+\method{covariate_distance}{bscmfit}(x, plot = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
+
+\item{...}{Optional arguments passed to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}.}
 
 \item{plot}{[\code{logical(1)}]\cr If \code{TRUE} (the default), plots the posterior
 mean and interval of the synthetic covariate distances over time.}
@@ -16,8 +21,6 @@ mean and interval of the synthetic covariate distances over time.}
 Default is \code{c(0.025, 0.975)}. If length of \code{probs} less than 2, no posterior
 intervals are drawn, and if length of \code{probs} is larger than two, the most
 extreme values are used for the posterior intervals.}
-
-\item{...}{Optional arguments passed to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}.}
 }
 \value{
 A \code{data.frame} of posterior summaries of synthetic covariate

@@ -1,3 +1,8 @@
+#' @export
+#' @rdname covariate_distance
+covariate_distance <- function(x, ...) {
+  UseMethod("covariate_distance", x)
+}
 #' Synthetic covariate distance
 #'
 #' For models with covariates, returns and optionally visualizes the synthetic 
@@ -8,6 +13,7 @@
 #' treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}.
 #' 
 #' @export
+#' @rdname covariate_distance
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param plot \[`logical(1)`]\cr If `TRUE` (the default), plots the posterior 
 #' mean and interval of the synthetic covariate distances over time.
@@ -18,7 +24,8 @@
 #' @param ... Optional arguments passed to [ggplot2::facet_wrap()].
 #' @return A `data.frame` of posterior summaries of synthetic covariate
 #' distances.
-covariate_distance <- function(x, plot = TRUE, probs = c(0.025, 0.975), ...) {
+covariate_distance.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975),
+                                       ...) {
   variable <- NULL # to avoid NSE warnings
   stopifnot_(
     checkmate::test_flag(plot),

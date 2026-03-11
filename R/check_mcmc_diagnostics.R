@@ -22,9 +22,10 @@
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param check_all \[`logical(1)`]\cr If `FALSE` (the default), 
 #' variable-specific diagnostics are computed only for the model parameters and 
-#' not for the generated quantities (e.g., treatment effect estimates). 
-#' If `TRUE`, diagnostics are computed also for these. Note that you get these  
-#' also with [summary.bscmfit()].
+#' the treatment effect estimates, but not for the other generated quantities 
+#' (e.g., RMSE estimates, pointwise log-likelihood values).
+#' If `TRUE`, diagnostics are computed for all output variables. Note that you 
+#' get these  also with [summary.bscmfit()].
 #' @param warn \[`logical(1)`]\cr If `TRUE` (the default), generates and 
 #' (typically) prints out a warning in a case of problematic results. Setting 
 #' this to `FALSE` silently returns the check results. 
@@ -59,7 +60,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
   max_td <- x$stanfit@stan_args[[1L]]$control$max_treedepth %||% 10
   n_low_bfmi <- sum(rstan::get_bfmi(x$stanfit) < 0.2)
   
-  # omega_raw already excluded in stanfit
+  # omega_raw and a already excluded in stanfit
   if (check_all) {
     exclude_these <- "log_lik"
   } else {
