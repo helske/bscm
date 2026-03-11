@@ -37,17 +37,9 @@ fit <- bscm(
 )
 refmodel <- get_refmodel(fit)
 vs <- projpred::varsel(refmodel)
-plot(vs)
-# predict with new data using the projection:
-# (here original data for all time points)
-# simulated_data is ordered by id and time
-newdata <- matrix(simulated_data$y, nrow = 50)
-colnames(newdata) <- unique(simulated_data$id)
-newdata <- as.data.frame(newdata)
-# returns posterior samples of predictions
-predictions <- projpred::proj_predict(
-  vs, newdata = newdata
-)
+plot(vs, stats = c("elpd", "rmse"), alpha = 0.05)
+# predictions using the projection:
+predictions <- projpred::proj_predict(vs)
 # posterior mean of the predictions
 colMeans(predictions)
 } 

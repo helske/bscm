@@ -26,17 +26,9 @@
 #' )
 #' refmodel <- get_refmodel(fit)
 #' vs <- projpred::varsel(refmodel)
-#' plot(vs)
-#' # predict with new data using the projection:
-#' # (here original data for all time points)
-#' # simulated_data is ordered by id and time
-#' newdata <- matrix(simulated_data$y, nrow = 50)
-#' colnames(newdata) <- unique(simulated_data$id)
-#' newdata <- as.data.frame(newdata)
-#' # returns posterior samples of predictions
-#' predictions <- projpred::proj_predict(
-#'   vs, newdata = newdata
-#' )
+#' plot(vs, stats = c("elpd", "rmse"), alpha = 0.05)
+#' # predictions using the projection:
+#' predictions <- projpred::proj_predict(vs)
 #' # posterior mean of the predictions
 #' colMeans(predictions)
 #' } 
@@ -56,15 +48,22 @@ get_refmodel.bscmfit <- function(object, ...) {
     "Reference model construction currently only supports BSCM without
     additional predictors."
   )
-  unit <- object$setup$unit
-  T_total <- object$setup$T_total
-  T_pre <- object$setup$T_pre
-  has_intercept <- object$setup$has_intercept
-  outcome <- object$setup$outcome
-  treated <- object$setup$treated
-  donors <- object$setup$donors
   
+  treated <- get_treated(object)
+  donors <- get_donors(object)
+  unit <- get_unit(object)
   units <- unique(object$data[[unit]])
+  if (!identical(units, make.names(units))) {
+    units <- paste0("unit_", units)
+    treated <- paste0("unit_", treated)
+    donors <- paste0("unit_", donors)
+    object$setup$donors <- donors
+    object$setup$treated <- treated
+  }
+  T_total <- get_T_total(object)
+  T_pre <- get_T_pre(object)
+  has_intercept <- has_intercept(object)
+  outcome <- get_outcome(object)
   proj_data <- object$data |> 
     pull(.data[[outcome]]) |> 
     matrix(nrow = T_total) |> 
