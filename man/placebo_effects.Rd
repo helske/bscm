@@ -42,7 +42,7 @@ For the in-time placebo (\code{type = "time"}) we still
 estimate the treatment effect for the original treated, but move the start
 of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the
 minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the
-last pre-treatment time point. In all cases, the obtained treatment effects
-should fluctuate around zero for time points before the true treatment time,
-under the assumption of no anticipation effects.
+true last pre-treatment time point. In all cases, the obtained treatment
+effects should fluctuate around zero for time points before the true
+treatment time, under the assumption of no anticipation effects.
 }

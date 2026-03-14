@@ -45,9 +45,10 @@ test_that("bscm() rejects constant outcome in pre-treatment", {
 test_that("bscm() rejects constant predictor for all units", {
   d <- simulated_data
   d$x <- 1
-  expect_error(
-    bscm(y ~ x, data = d, treatment = "treatment"),
-    "Predictor variables cannot be constant in the pre-treatment period "
+  expect_warning(
+    bscm(y ~ x, data = d, treatment = "treatment", 
+         algorithm = "Fixed_param", chains = 1, iter = 1, refresh = 0),
+    "Model has unit-specific intercepts and predictors which do not vary"
   )
 })
 

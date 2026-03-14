@@ -13,7 +13,7 @@ effective_donors(x, ...)
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
-Default is \code{c(0.025, 0.5, 0.975)}.}
+Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{data.frame} of posterior summaries of the estimated effective

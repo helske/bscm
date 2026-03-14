@@ -9,10 +9,10 @@ synthetic_control <- function(x, ...) {
 #' @rdname synthetic_control
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.5, 0.975)`.
+#'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the synthetic_control series.
-synthetic_control.bscmfit <- function(x, probs = c(0.025, 0.5, 0.975), ...) {
+synthetic_control.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   stopifnot_(
     checkmate::test_numeric(
       probs,

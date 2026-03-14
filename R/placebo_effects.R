@@ -14,9 +14,9 @@ placebo_effects <- function(x, ...) {
 #' estimate the treatment effect for the original treated, but move the start 
 #' of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the 
 #' minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the 
-#' last pre-treatment time point. In all cases, the obtained treatment effects 
-#' should fluctuate around zero for time points before the true treatment time, 
-#' under the assumption of no anticipation effects. 
+#' true last pre-treatment time point. In all cases, the obtained treatment 
+#' effects should fluctuate around zero for time points before the true 
+#' treatment time, under the assumption of no anticipation effects. 
 #'   
 #' @export
 #' @rdname placebo_effects
@@ -57,7 +57,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
     identical(type, "donor") || 
       checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
     "Argument {.arg L} must be a single integer between 2 and {T_pre}, defining 
-    the number of time points for the first fit."
+    the number of time points used for the first fit."
   )
   stopifnot_(
     !is.null(x$data),
@@ -94,21 +94,19 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
     }
   }
   if (type == "time") {
-    end <- times[T_pre]
     treated <- x$setup$treated
-    data <- data |> 
-      filter(.data[[time]] <= .env$end)
-    times <- times[(L + 1):T_pre]
+    times <- times[L:T_pre]
     effect <- rmse <- diagnostics <- 
-      stats::setNames(vector("list", T_pre - L), times)
-    p <- progressr::progressor(along = fits)
+      stats::setNames(vector("list", T_pre - L + 1), times)
+    p <- progressr::progressor(along = times)
     for (t in times) {
-      p(sprintf(paste0("Estimating the model for up to time ", t, ".")))
+      p(sprintf(
+        paste0("Estimating the model with data up to time ", t, ".")
+      ))
       d <- data |> 
-        filter(.data[[time]] <= .env$t) |> 
         mutate(
           "{treatment}" := ifelse(
-            .data[[unit]] == .env$treated & .data[[time]] == .env$t, 1, 0
+            .data[[unit]] == .env$treated & .data[[time]] > .env$t, 1, 0
           )
         )
       fit <- stats::update(

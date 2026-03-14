@@ -11,7 +11,7 @@ effective_donors <- function(x, ...) {
 #' @rdname effective_donors
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.5, 0.975)`.
+#'   Default is `c(0.025, 0.975)`.
 #' @return A `data.frame` of posterior summaries of the estimated effective 
 #' donors.
 effective_donors.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {

@@ -227,12 +227,12 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     constant_sd <- which(
       stats::setNames(apply(sd_x_by_unit, 2, max) < tol, coef_names)
     )
-    stopifnot_(
-      length(constant_sd) == 0,
+    warnifnot_(
+      length(constant_sd) == 0 || !has_intercept,
       c(
-        "Predictor variables cannot be constant in the pre-treatment period for 
-      all units.",
-        i = "Found {?a/} constant predictor(?s) {names(constant_sd)}."
+        "Model has unit-specific intercepts and predictors which do not vary in 
+        the pre-treatment period for any units.",
+        i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
       )
     )
     sd_x <- apply(sd_x_by_unit, 2, stats::median)
@@ -289,7 +289,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     model_type, time_varying_effects, priors
   )
   class(out) <- "bscmfit"
-  if (mcmc_diagnostics) {
+  if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {
     out$converge <- check_mcmc_diagnostics.bscmfit(out)
   }
   out$elapsed_time <- list(

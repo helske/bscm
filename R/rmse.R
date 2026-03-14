@@ -31,7 +31,7 @@ rmse.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
       variable = case_when(
         variable == "RMSE_pre" ~ "Pre-RMSE",
         variable == "RMSE_post" ~ "Post-RMSE",
-        variable == "RMSE_ratio" ~ "post-RMSE / pre-RMSE"
+        variable == "RMSE_ratio" ~ "Post-RMSE / Pre-RMSE"
       )
     )
 }
