@@ -3,8 +3,7 @@
 #' @inheritParams bscm
 #' @noRd
 check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 time_varying_effects, priors, kappa,
-                                 effective_donors, save_data) {
+                                 priors, kappa, effective_donors, save_data) {
   
   stopifnot_(
     !missing(formula),
@@ -72,11 +71,6 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
   stopifnot_(
-    checkmate::test_flag(time_varying_effects),
-    "Argument {.arg time_varying_effects} must be a single {.cls logical} 
-    value."
-  )
-  stopifnot_(
     identical(priors, "default"),
     "Argument {.arg priors} is not equal to {.val 'default'}. Only default 
     priors for intercept and sigma are currently supported."
@@ -89,7 +83,7 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   stopifnot_(
     checkmate::test_integerish(
       effective_donors, len = 1, lower = 2, null.ok = TRUE),
-    "Argument {.arg effective_donors} must be a single integer defining the 
+    "Argument {.arg effective_donors} must be a single integer > 1 defining the 
     prior expected number of effective donors."
   )
   stopifnot_(
@@ -100,5 +94,19 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   stopifnot_(
     checkmate::test_flag(save_data),
     "Argument {.arg save_data} must be a single {.cls logical} value."
+  )
+}
+
+test_probs <- function(probs) {
+  stopifnot_(
+    checkmate::test_numeric(
+      probs,
+      lower = 0.0,
+      upper = 1.0,
+      any.missing = FALSE,
+      min.len = 0L
+    ),
+    "Argument {.arg probs} must be a {.cls numeric} vector with values between
+     0 and 1."
   )
 }

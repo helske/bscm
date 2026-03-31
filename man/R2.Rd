@@ -5,17 +5,14 @@
 \alias{loo_R2}
 \alias{bayes_R2.bscmfit}
 \alias{bayes_R2}
-\title{Posterior draws of the Bayesian R-squared value}
+\title{Bayesian R-squared value}
 \usage{
-\method{loo_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), ...)
+\method{loo_R2}{bscmfit}(object, probs = c(0.025, 0.975), ...)
 
-\method{bayes_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), ...)
+\method{bayes_R2}{bscmfit}(object, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
-
-\item{summary}{['logical(1)]\cr If \code{TRUE} (the default) returns posterior
-summary statistics, if \code{FALSE}, returns posterior draws.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
@@ -23,8 +20,7 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-Either a vector of posterior draws or \code{data.frame} of posterior
-summary of (LOO-adjusted) R-squared values.
+\code{data.frame} of posterior summary of (LOO-adjusted) R-squared values.
 }
 \description{
 \code{bayes_R2} computes the Bayesian \eqn{R^2} measure of model fit for a

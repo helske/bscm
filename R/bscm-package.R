@@ -10,6 +10,7 @@
 #' @useDynLib bscm, .registration = TRUE
 #' @importFrom rstan sampling extract
 #' @importFrom loo loo
+#' @importFrom stats sigma coef
 #' @importFrom projpred get_refmodel
 #' @importFrom rstantools rstan_config log_lik bayes_R2 loo_R2
 #' @importFrom rstantools posterior_epred posterior_linpred posterior_predict

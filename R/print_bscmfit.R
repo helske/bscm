@@ -1,27 +1,32 @@
 #' Print method for bscmfit objects
 #'
+#' @rdname print_bscm
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
-#' @return The summary output of the model.
+#' @return Returns `x` (invisibly).
 #' @export
 print.bscmfit <- function(x, ...) {
   
-  setup <- x$setup
-  T_pre <- setup$T_pre
-  T_total <- setup$T_total
+  T_pre <- get_T_pre(x)
+  T_total <- get_T_total(x)
+  N <- get_N(x)
+  J <- get_J(x)
+  
   cat("Call:\n")
   print(x$call)
   cat("\n")
-  cat("Bayesian synthetic control model", deparse(stats::formula(x)))
-  if (setup$time_varying_effects) {
-    cat(" with time-varying coefficients \n")
+  cat("Bayesian synthetic control model", deparse(stats::formula(x)), "\n")
+  if (N == 1L) {
+    cat("Treated unit:", get_treated(x), "\n")
+    cat("Number of donors:", J, "\n")
+    cat(
+      "Number of time periods (pre + post):", T_pre, "+", T_total - T_pre, "\n"
+    )
   } else {
-    cat("\n")
+    cat("Number of treated units:", N, "\n")
+    cat("Number of donors:", J, "\n")
+    cat("Number of time periods:", T_total, "\n")
   }
-  cat("Treated unit:", get_treated(x), "\n")
-  cat("Number of donors:", length(setup$donors), "\n")
-  cat("Number of time periods (pre + post):", T_pre, "+", T_total - T_pre, "\n")
-  
   cat(
     "MCMC sampling time:", max(rowSums(x$elapsed_time$sampling)), "seconds\n"
   )
@@ -35,41 +40,18 @@ print.bscmfit <- function(x, ...) {
       )
     )
   }
-  pars <- c(
-    if (setup$has_intercept) "alpha", if (length(setup$predictors) > 0L) "beta", 
-    if (setup$time_varying_effects) "tau",
-    "sigma", paste0("effect[", T_pre + 1, "]"), "avg_effect_post",
-    "effective_donors", "RMSE_pre", "RMSE_post", "R2"
-  )
-  timevar <- setup$time
-  t0 <- setup$times[T_pre + 1]
-  beta_map <- stats::setNames(
-    paste0("Coef_", x$setup$coef_names),
-    paste0("beta[", seq_along(x$setup$coef_names), "]")
-  )
+  invisible(x)
+}
+
+#' @rdname print_bscm
+#' @param x \[`bscmfit` or `summary_bscmfit`]\cr Output from [bscm()] or 
+#' [summary.bscmfit()].
+#' @param ... Ignored.
+#' @return Returns `x` (invisibly).
+#' @export
+print.summary_bscmfit <- function(x, ...) {
   
-  sumr <- as_draws(x, parameters = pars) |> 
-    summarise_draws(
-      mean, sd, 
-      ~ quantile2(.x, probs = c(0.025, 0.975)), 
-      default_convergence_measures()
-    ) |> 
-    mutate(
-      variable = case_when(
-        variable == "alpha" ~ "Intercept",
-        variable %in% names(beta_map) ~ beta_map[variable],
-        variable == "tau" ~ "Base SD of the time-varying imbalance effects",
-        variable == "sigma" ~ "Residual SD",
-        variable == paste0("effect[", T_pre + 1, "]") ~ 
-          paste("Treatment effect at", timevar, t0),
-        variable == "avg_effect_post" ~ "Average treatment effect",
-        variable == "effective_donors" ~ "Number of effective donors",
-        variable == "RMSE_pre" ~ "Pre-RMSE",
-        variable == "RMSE_post" ~ "Post-RMSE",
-        variable == "R2" ~ "Bayesian R^2"
-      )
-    )
   cat("\n")
-  cat(format(sumr, n = nrow(sumr))[-c(1, 3)], sep = "\n") # remove extra lines
-  invisible(sumr)
+  cat(format(x, n = nrow(x))[-c(1, 3)], sep = "\n") # remove extra lines
+  invisible(x)
 }

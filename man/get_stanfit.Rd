@@ -18,7 +18,7 @@ get_stanfit(x, ...)
 \item{...}{Ignored.}
 }
 \value{
-Object of class\code{stanfit}.
+Object of class \code{stanfit}.
 }
 \description{
 This function returns the output (\code{stanfit} object) from \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.

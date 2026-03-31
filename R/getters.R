@@ -6,8 +6,10 @@ get_treatment <- \(x) x$setup$treatment
 get_time <- \(x) x$setup$time
 get_unit <- \(x) x$setup$unit
 get_times <- \(x) x$setup$times
-get_T_pre <- \(x) x$setup$T_pre
+get_T_pre <- \(x) stats::setNames(x$setup$T_pre, x$setup$treated)
 get_T_total <- \(x) x$setup$T_total
+get_N <- \(x) length(x$setup$treated)
+get_J <- \(x) length(x$setup$donors)
 has_intercept <- \(x) x$setup$has_intercept
 has_predictors <- \(x) length(x$setup$predictors) > 0L
 get_predictors <- \(x) x$setup$predictors

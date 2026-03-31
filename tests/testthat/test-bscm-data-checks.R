@@ -1,49 +1,98 @@
 test_that("bscm() rejects unbalanced panel data", {
-  d <- simulated_data[-1L, ]
+  d <- single_treated[-1L, ]
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
-    "Data is not balanced\\. All units should have equal number of time points\\."
+    "Data is not balanced"
   )
-})
-
-test_that("bscm() rejects multiple treated units", {
-  d <- simulated_data
-  d$treatment[d$id == 2 & d$time >= 0] <- 1L
+  d <- single_treated
+  d <- d[d$time != 5 | d$id < 30, ]
+  d <- d[d$time != 10 | d$id > 30, ]
   expect_error(
-    bscm(y ~ 1, data = d, treatment = "treatment"),
-    "Only the case of a single treated unit is currently implemented\\."
+    fit <- bscm(
+      y ~ x, data = d, 
+      treatment = "treatment", algorithm = "Fixed_param", 
+      chains = 1, refresh = 0, iter = 2
+    ),
+    "Data is not balanced"
   )
 })
 
 test_that("bscm() rejects gaps in treatment variable", {
-  d <- simulated_data
+  d <- single_treated
   d$treatment[d$id == 1 & d$time == 5] <- 0L
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
-    "There should be no gaps in the treatment\\. Check the treatment variable\\."
+    "There should be no gaps in the treatment"
   )
 })
 
-test_that("bscm() rejects missing values in outcome", {
-  d <- simulated_data
-  d$y[1] <- NA
+test_that("bscm() accepts multiple treated units", {
+  expect_error(
+    bscm(
+      y ~ 1, data = multiple_treated, treatment = "treatment", 
+      algorithm = "Fixed_param", chains = 1, refresh = 0, iter = 2
+    ),
+    NA
+  )
+  d <- multiple_treated
+  d$treatment[d$id == 6 & d$time > -2] <- 1
+  d$treatment[d$id == 1] <- 0
+  expect_error(
+    fit <- bscm(
+      y ~ 1, data = d, 
+      treatment = "treatment", algorithm = "Fixed_param", 
+      chains = 1, refresh = 0, iter = 2
+    ),
+    NA
+  )
+  expect_equal(
+    get_donors(fit), 
+    as.character(setdiff(seq_len(max(d$id)), c(2:3, 6)))
+  )
+})
+test_that("bscm() rejects missing values", {
+  d <- single_treated
+  d$y[10] <- NA
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
     "Missing values are not supported\\."
   )
+  d <- single_treated
+  d$x[10] <- NA
+  expect_error(
+    bscm(y ~ x, data = d, treatment = "treatment"),
+    "Missing values are not supported\\."
+  )
+  d <- single_treated
+  d$time[10] <- NA
+  expect_error(
+    bscm(y ~ x, data = d, treatment = "treatment"),
+    "Time index variable `time` must be of type"
+  )
 })
-
+test_that("bscm() accepts gaps in time", {
+  d <- single_treated
+  d <- d[d$time != 5, ]
+  expect_error(
+    fit <- bscm(
+      y ~ x, data = d, 
+      treatment = "treatment", algorithm = "Fixed_param", 
+      chains = 1, refresh = 0, iter = 2
+    ),
+    NA
+  )
+})
 test_that("bscm() rejects constant outcome in pre-treatment", {
-  d <- simulated_data
+  d <- single_treated
   d$y[d$id == 1 & d$treatment == 0] <- 5
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
-    "Outcome variable cannot be constant in the pre-treatment period\\."
+    "Outcome variable cannot be constant in the pre-treatment period"
   )
 })
 
 test_that("bscm() rejects constant predictor for all units", {
-  d <- simulated_data
+  d <- single_treated
   d$x <- 1
   expect_warning(
     bscm(y ~ x, data = d, treatment = "treatment", 
@@ -55,20 +104,9 @@ test_that("bscm() rejects constant predictor for all units", {
 test_that("bscm() validates effective_donors range", {
   expect_error(
     bscm(
-      y ~ 1, data = simulated_data, treatment = "treatment",
+      y ~ 1, data = single_treated, treatment = "treatment",
       effective_donors = 30L
     ),
     "Argument `effective_donors` should be between 2 and 29\\."
-  )
-})
-
-test_that("bscm() warns about small kappa from effective_donors", {
-  expect_warning(
-      bscm(
-        y ~ 1, data = simulated_data, treatment = "treatment",
-        effective_donors = 2L, chains = 1, algorithm = "Fixed_param",
-        refresh = 0, mcmc_diagnostics = FALSE
-      ),
-    "implies a Dirichlet prior"
   )
 })

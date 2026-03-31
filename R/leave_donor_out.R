@@ -9,8 +9,6 @@ leave_donor_out <- function(x, ...) {
 #' donors from the data in turn. This can be used to assess how sensitive the 
 #' results are to the inclusion of specific donors.
 #'   
-#' @export
-#' @rdname leave_donor_out
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
@@ -18,18 +16,12 @@ leave_donor_out <- function(x, ...) {
 #' @return A list with three elements: `effect`, `rmse`, and `diagnostics`, 
 #' containing the treatment effect estimates, pre- and post-treatment RMSE 
 #' estimates, and MCMC diagnostics for each of the \eqn{J} models.
+#' @rdname leave_donor_out
+#' @aliases leave_donor_out
+#' @export
 leave_donor_out.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      min.len = 1L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector with values between
-     0 and 1."
-  )
+  
+  test_probs(probs)
   stopifnot_(
     !is.null(x$data),
     "The model fit {.arg x} does not contain the original data. You probably 
@@ -39,7 +31,7 @@ leave_donor_out.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   treatment <- get_treatment(x)
   donors <- get_donors(x)
   time <- get_time(x)
-  times <-get_times(x)
+  times <- get_times(x)
   unit <- get_unit(x)
   data <- x$data
   

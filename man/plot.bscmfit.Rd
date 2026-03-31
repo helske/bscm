@@ -2,6 +2,7 @@
 % Please edit documentation in R/plot_bscmfit.R
 \name{plot.bscmfit}
 \alias{plot.bscmfit}
+\alias{plot}
 \title{Visualize BSCM estimates}
 \usage{
 \method{plot}{bscmfit}(x, probs = c(0.025, 0.975), ...)

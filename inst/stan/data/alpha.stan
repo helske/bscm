@@ -1,2 +1,2 @@
-  real pr_mean_intercept;                 // prior mean of intercept
-  real<lower = 0> pr_sd_intercept;        // prior SD of intercept
+  vector[N] pr_mean_intercept;                 // prior mean of intercept
+  vector<lower = 0>[N] pr_sd_intercept;        // prior SD of intercept

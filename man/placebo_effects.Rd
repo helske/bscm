@@ -14,6 +14,10 @@ placebo_effects(x, ...)
 
 \item{...}{Additional arguments passed on to \code{\link[=bscm]{bscm()}}.}
 
+\item{type}{[\code{character(1)}]\cr Type of the placebo effects to compute.
+Either \code{"donor"} for in-space placebos, \code{"time"} for in-time placebos. See
+details.}
+
 \item{L}{[\code{integer(1)}]\cr If \verb{type = "time}, minimum number of observations
 to use for the in-time placebos, i.e. the number of pre-treatment time points
 for the first fit. For too small \code{L}, estimation can be unstable, so you
@@ -21,10 +25,6 @@ should likely use at least \code{L = 10} or so.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries of the
 treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
-
-\item{vary}{[\code{character(1)}]\cr Type of the placebo effects to compute.
-Either \code{"donor"} for in-space placebos, \code{"time"} for in-time placebos. See
-details.}
 }
 \value{
 A list with three elements: \code{effect}, \code{rmse}, and \code{diagnostics},

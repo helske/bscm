@@ -1,2 +1,4 @@
-  omega_raw ~ gamma(kappa, 1);
+  for (i in 1:N) {
+    omega[i] ~ dirichlet(kappavec);
+  }
   sigma ~ exponential(pr_rate_sigma);

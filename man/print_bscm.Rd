@@ -2,17 +2,23 @@
 % Please edit documentation in R/print_bscmfit.R
 \name{print.bscmfit}
 \alias{print.bscmfit}
+\alias{print.summary_bscmfit}
 \title{Print method for bscmfit objects}
 \usage{
 \method{print}{bscmfit}(x, ...)
+
+\method{print}{summary_bscmfit}(x, ...)
 }
 \arguments{
-\item{x}{[\code{bscmfit}]\cr The model fit object.}
+\item{x}{[\code{bscmfit} or \code{summary_bscmfit}]\cr Output from \code{\link[=bscm]{bscm()}} or
+\code{\link[=summary.bscmfit]{summary.bscmfit()}}.}
 
 \item{...}{Ignored.}
 }
 \value{
-The summary output of the model.
+Returns \code{x} (invisibly).
+
+Returns \code{x} (invisibly).
 }
 \description{
 Print method for bscmfit objects

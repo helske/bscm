@@ -10,10 +10,10 @@
 #' @return A matrix of posterior predictive draws of the synthetic control, 
 #' where rows correspond to posterior draws and columns to time periods.
 #' @aliases posterior_predict
-#' @export
 #' @export posterior_predict
+#' @export
 posterior_predict.bscmfit <- function(object, ...) {
-  as.matrix(object$stanfit, pars = "synthetic_y")
+  as.matrix(get_stanfit(object), pars = "y_rep")
 }
 #' Posterior Draws of the Expected Predictive Distribution
 #'
@@ -25,10 +25,10 @@ posterior_predict.bscmfit <- function(object, ...) {
 #' @return A matrix where rows correspond to posterior draws and columns to
 #'   time periods.
 #' @aliases posterior_epred
-#' @export
 #' @export posterior_epred
+#' @export
 posterior_epred.bscmfit <- function(object, ...) {
-  as.matrix(object$stanfit, pars = "synthetic_mean")
+  as.matrix(get_stanfit(object), pars = "y_mean")
 }
 #' Posterior Draws of the Linear Predictor
 #'
@@ -43,10 +43,10 @@ posterior_epred.bscmfit <- function(object, ...) {
 #' @return A matrix where rows correspond to posterior draws and columns to
 #' time periods.
 #' @aliases posterior_linpred
-#' @export
 #' @export posterior_linpred
+#' @export
 posterior_linpred.bscmfit <- function(object, transform = FALSE, ...) {
-  as.matrix(object$stanfit, pars = "synthetic_mean")
+  as.matrix(get_stanfit(object), pars = "y_mean")
 }
 #' Posterior draws of pointwise log-likelihood
 #'
@@ -58,8 +58,8 @@ posterior_linpred.bscmfit <- function(object, transform = FALSE, ...) {
 #' @return A matrix where rows correspond to posterior draws and columns to
 #' time periods.
 #' @aliases log_lik
-#' @export
 #' @export log_lik
-log_lik <- function(object, ...) {
-  as.matrix(object$stanfit, pars = "log_lik")
+#' @export
+log_lik.bscmfit <- function(object, ...) {
+  as.matrix(get_stanfit(object), pars = "log_lik")
 }

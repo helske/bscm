@@ -1,25 +1,25 @@
 test_that("plot.bscmfit returns a ggplot object", {
-  p <- plot(fit_intercept)
+  p <- plot(fit1_int)
   expect_s3_class(p, "ggplot")
   expect_s3_class(p$facet, "FacetWrap")
 })
 
 test_that("plot.bscmfit works with custom probs", {
-  p <- plot(fit_intercept, probs = c(0.1, 0.9))
+  p <- plot(fit1_int, probs = c(0.1, 0.9))
   expect_s3_class(p, "ggplot")
 })
 
 test_that("plot.bscmfit validates probs argument", {
   expect_error(
-    plot(fit_intercept, probs = c(0.025)),
+    plot(fit1_int, probs = c(0.025)),
     "Argument `probs` must be a <numeric> vector of length 2"
   )
   expect_error(
-    plot(fit_intercept, probs = c(-0.1, 0.975)),
+    plot(fit1_int, probs = c(-0.1, 0.975)),
     "Argument `probs` must be a <numeric> vector of length 2"
   )
   expect_error(
-    plot(fit_intercept, probs = "a"),
+    plot(fit1_int, probs = "a"),
     "Argument `probs` must be a <numeric> vector of length 2"
   )
 })

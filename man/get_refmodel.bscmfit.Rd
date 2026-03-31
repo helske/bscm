@@ -33,7 +33,7 @@ needs the data in wide format, see examples.
 \dontrun{
 fit <- bscm(
   y ~ 1, treatment = "treatment", time = "time", unit = "id",
-  data = simulated_data, refresh = 0, chains = 2, cores = 2
+  data = single_treated, refresh = 0, chains = 2, cores = 2
 )
 refmodel <- get_refmodel(fit)
 vs <- projpred::varsel(refmodel)

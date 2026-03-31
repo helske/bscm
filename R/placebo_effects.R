@@ -21,7 +21,7 @@ placebo_effects <- function(x, ...) {
 #' @export
 #' @rdname placebo_effects
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
-#' @param vary \[`character(1)`]\cr Type of the placebo effects to compute. 
+#' @param type \[`character(1)`]\cr Type of the placebo effects to compute. 
 #' Either `"donor"` for in-space placebos, `"time"` for in-time placebos. See 
 #' details.
 #' @param L \[`integer(1)`]\cr If `type = "time`, minimum number of observations 
@@ -37,16 +37,11 @@ placebo_effects <- function(x, ...) {
 placebo_effects.bscmfit <- function(x, type, L = NULL, 
                                     probs = c(0.025, 0.975), ...) {
   stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      min.len = 1L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector with values between
-     0 and 1."
+    identical(get_N(x), 1L),
+    "Placebo effect computation is currently supported only for models with a 
+    single treated unit."
   )
+  test_probs(probs)
   type <- try_(match.arg(type, c("donor", "time")))
   stopifnot_(
     !inherits(type, "try-error"),

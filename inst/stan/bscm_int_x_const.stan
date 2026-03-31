@@ -17,30 +17,32 @@ parameters {
 #include parameters/alpha.stan
 #include parameters/beta.stan
 }
-transformed parameters {
-#include transformed_parameters/base.stan
-}
 model {
 #include model/base.stan
 #include model/alpha.stan
 #include model/beta.stan
-  {
-     matrix[T_pre, K] X = X_y_c;
+  for (i in 1:N) {
+     matrix[T_pre[i], K] X = X_y_c[i, 1:T_pre[i]];
      for (j in 1:J) {
-       X -= X_z_c[j] * omega[j];
+       X -= X_z_c[j, 1:T_pre[i], ] * omega[i, j];
      }
-     y[1:T_pre] ~ normal_id_glm(
-       append_col(X, Z_c), a, append_row(beta, omega), sigma
+     y[1:T_pre[i], i] ~ normal_id_glm(
+       append_col(X, Z_c[1:T_pre[i]]), a[i], 
+       append_row(beta, omega[i]), sigma[i]
        );
   }
 }
 generated quantities {
-  real alpha = a - Z_mean * omega - X_y_mean * beta + 
-  dot_product(omega, X_z_mean * beta);
-  vector[T] synthetic_mean = alpha + X_y * beta + Z * omega;
-  for (j in 1:J) {
-    synthetic_mean -= omega[j] * X_z[j] * beta;
+  // actual intercept
+  vector[N] alpha;
+  matrix[T, N] y_mean;
+  for (i in 1:N) {
+    alpha[i] = a[i] - Z_mean * omega[i] - X_y_mean[i] * beta + 
+    dot_product(omega[i], X_z_mean * beta);
+    y_mean[, i] = alpha[i] + X_y[i] * beta + Z * omega[i];
+    for (j in 1:J) {
+      y_mean[, i] -= omega[i, j] * X_z[j] * beta;
+    }
   }
-#include generated_quantities/no_tau.stan
 #include generated_quantities/base.stan
 }

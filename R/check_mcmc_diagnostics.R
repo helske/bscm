@@ -47,7 +47,11 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
     checkmate::test_flag(warn),
     "Argument {.arg warn} must be a single {.cls logical}."
   )
-  algorithm <- x$stanfit@stan_args[[1L]]$algorithm
+  algorithm <- get_stanfit(x)@stan_args[[1L]]$algorithm
+  stopifnot_(
+    algorithm %in% c("NUTS", "HMC"), 
+    "Model was not estimated using MCMC, nothing to diagnose."
+  )
   n_chains <- nchains(x)
   n_draws <- ndraws(x)
   stopifnot_(
@@ -55,19 +59,20 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
     "MCMC diagnostics are not meaningful for only few posterior draws. 
     The model was estimated with only {n_draws} draws."
   )
-  n_divergences <- rstan::get_num_divergent(x$stanfit)
-  n_max_treedepth <- rstan::get_num_max_treedepth(x$stanfit)
-  max_td <- x$stanfit@stan_args[[1L]]$control$max_treedepth %||% 10
-  n_low_bfmi <- sum(rstan::get_bfmi(x$stanfit) < 0.2)
+  n_divergences <- rstan::get_num_divergent(get_stanfit(x))
+  n_max_treedepth <- rstan::get_num_max_treedepth(get_stanfit(x))
+  max_td <- get_stanfit(x)@stan_args[[1L]]$control$max_treedepth %||% 10
+  n_low_bfmi <- sum(rstan::get_bfmi(get_stanfit(x)) < 0.2)
   
   # omega_raw and a already excluded in stanfit
   if (check_all) {
     exclude_these <- "log_lik"
   } else {
     exclude_these <- c(
-      "synthetic_mean", "synthetic_y", "effect", "avg_effect_pre", 
-      "avg_effect_post", "avg_effect_post_cumulative", "relative_change", 
-      "RMSE_pre", "RMSE_post", "RMSE_ratio", "effective_donors", "R2", "log_lik"
+      "y_mean", "y_rep", 
+      "effect", "R2", "RMSE_pre", "RMSE_post", "RMSE_ratio", "effective_donors", 
+      "avg_effect_pre", "avg_effect_post", "avg_RMSE_pre", "avg_RMSE_post", 
+      "avg_RMSE_ratio", "avg_effective_donors", "log_lik"
     )
   }
   sumr <- x |> 

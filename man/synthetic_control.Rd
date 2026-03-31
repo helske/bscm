@@ -18,7 +18,7 @@ synthetic_control(x, ...)
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the synthetic_control series.
+A \code{data.frame} of posterior summaries of synthetic controls.
 }
 \description{
 Extract synthetic control series of a Bayesian synthetic control model

@@ -1,1 +1,1 @@
-  real a; // working intercept
+  vector[N] a; // working intercept

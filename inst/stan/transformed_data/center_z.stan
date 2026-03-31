@@ -1,8 +1,11 @@
   // center donors using the pre-treatment period
   // uncertainty of alpha_z is absorbed to a_y
-  matrix[T_pre, J] Z_c = Z[1:T_pre];
+  matrix[T, J] Z_c;
   row_vector[J] Z_mean;
-  for (j in 1:J) {
-    Z_mean[j] = mean(Z_c[, j]);
-    Z_c[, j] -= Z_mean[j];
+  {
+    int min_T_pre = min(T_pre);
+    for (j in 1:J) {
+      Z_mean[j] = mean(Z[1:min_T_pre, j]);
+      Z_c[, j] = Z[, j] - Z_mean[j];
+    }
   }

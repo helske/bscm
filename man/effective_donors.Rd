@@ -7,13 +7,20 @@
 \usage{
 effective_donors(x, ...)
 
-\method{effective_donors}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{effective_donors}{bscmfit}(x, probs = c(0.025, 0.975), average = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
+\item{...}{Ignored.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default) and the model
+contains multiple treated units, an additional row with the posterior
+summary of the average number of effective donors across treated units is
+appended to the output.}
 }
 \value{
 A \code{data.frame} of posterior summaries of the estimated effective

@@ -1,51 +1,62 @@
 suppressWarnings({
-  fit_intercept <- bscm(
+  fit1_int <- bscm(
     y ~ 1,
-    data = simulated_data,
+    data = single_treated,
     treatment = "treatment",
     time = "time",
     unit = "id",
-    chains = 1,
-    iter = 300,
-    warmup = 150,
+    chains = 2,
+    iter = 200,
     refresh = 0,
-    seed = 123
+    seed = 1,
+    save_warmup = FALSE
   )
-  fit_no_intercept <- bscm(
+  fit1_noint <- bscm(
     y ~ 0,
-    data = simulated_data,
+    data = single_treated,
     treatment = "treatment",
     time = "time",
     unit = "id",
-    chains = 1,
-    iter = 300,
-    warmup = 150,
+    chains = 2,
+    iter = 200,
     refresh = 0,
-    seed = 123
+    seed = 1,
+    save_warmup = FALSE
   )
-  fit_x <- bscm(
+  fit1_x <- bscm(
     y ~ x,
-    data = simulated_data,
+    data = single_treated,
     treatment = "treatment",
     time = "time",
     unit = "id",
-    chains = 1,
-    iter = 300,
-    warmup = 150,
+    chains = 2,
+    iter = 200,
     refresh = 0,
-    seed = 123
+    seed = 1,
+    save_warmup = FALSE
   )
-  fit_tv_x <- bscm(
-    y ~ x,
-    time_varying_effects = TRUE,
-    data = simulated_data,
+  fitN_int <- bscm(
+    y ~ 1,
+    data = multiple_treated,
     treatment = "treatment",
     time = "time",
     unit = "id",
-    chains = 1,
-    iter = 300,
-    warmup = 150,
+    chains = 2,
+    iter = 200,
     refresh = 0,
-    seed = 123,
+    seed = 1,
+    save_warmup = FALSE
+  )
+  fitN_xz <- bscm(
+    y ~ x + z,
+    data = multiple_treated,
+    treatment = "treatment",
+    time = "time",
+    unit = "id",
+    chains = 2,
+    iter = 200,
+    refresh = 0,
+    seed = 1,
+    save_warmup = FALSE
   )
 })

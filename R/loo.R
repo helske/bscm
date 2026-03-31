@@ -10,8 +10,8 @@
 #' Practical Bayesian model evaluation using leave-one-out cross-validation and
 #' WAIC. *Statistics and Computing*. 27(5), 1413--1432.
 #' @aliases loo
-#' @export
 #' @export loo
+#' @export
 loo.bscmfit <- function(x, r_eff = TRUE,...) {
-  rstan::loo(x$stanfit, r_eff = r_eff, ...)
+  rstan::loo(get_stanfit(x), r_eff = r_eff, ...)
 }

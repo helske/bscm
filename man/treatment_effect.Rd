@@ -7,7 +7,7 @@
 \usage{
 treatment_effect(x, ...)
 
-\method{treatment_effect}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{treatment_effect}{bscmfit}(x, probs = c(0.025, 0.975), average = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
@@ -16,6 +16,10 @@ treatment_effect(x, ...)
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns the
+average treatment effects over treated units (per time point) in case of
+multiple treated units. If \code{FALSE}, unit-specific effects are returned.}
 }
 \value{
 A \code{data.frame} of posterior summaries of the treatment effects per

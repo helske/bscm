@@ -1,12 +1,42 @@
-  vector[T] effect = y - synthetic_y;
-  real avg_effect_pre = mean(head(effect, T_pre));
-  real avg_effect_post = mean(tail(effect, T - T_pre));
-  vector[T - T_pre] avg_effect_post_cumulative = 
-  cumulative_sum(tail(effect, T - T_pre)) ./ tt;
-  vector[T - T_pre] relative_change = 
-  tail(synthetic_y, T - T_pre) ./ synthetic_y[T_pre];
+  matrix [T, N] y_rep;
+  for (i in 1:N) {
+    y_rep[, i] = to_vector(normal_rng(y_mean[, i], sigma[i]));
+  }
+  matrix[T, N] effect = y - y_rep;
   
-  real RMSE_pre = sqrt(mean(head(effect, T_pre)^2));
-  real RMSE_post = sqrt(mean(tail(effect, T - T_pre)^2));
-  real RMSE_ratio = RMSE_post / RMSE_pre;
-  real effective_donors = inv(sum(square(omega)));
+  vector[N] R2;
+  vector[N] RMSE_pre;
+  vector[N] RMSE_post;
+  vector[N] RMSE_ratio;
+  vector[N] effective_donors;
+  real avg_effect_pre = 0;
+  real avg_effect_post = 0;
+  for (i in 1:N) {
+    avg_effect_pre += sum(effect[1:T_pre[i], i]);
+    avg_effect_post += sum(effect[(T_pre[i] + 1):T, i]);
+    real var_res = square(sigma[i]);
+    real var_fit = variance(y_mean[1:T_pre[i], i]);
+    R2[i] = var_fit / (var_fit + var_res);
+    RMSE_pre[i] = sqrt(mean(effect[1:T_pre[i], i]^2));
+    RMSE_post[i] = sqrt(mean(effect[(T_pre[i] + 1):T, i]^2));
+    RMSE_ratio[i] = RMSE_pre[i] / RMSE_post[i];
+    effective_donors[i] = inv(sum(square(omega[i])));
+  }
+  avg_effect_pre /= sum(T_pre);
+  avg_effect_post /= (N * T - sum(T_pre));
+  real avg_RMSE_pre = mean(RMSE_pre);
+  real avg_RMSE_post = mean(RMSE_post);
+  real avg_RMSE_ratio = mean(RMSE_ratio);
+  real avg_effective_donors = mean(effective_donors);
+  
+  // for leave-one-out cross-validation
+  vector[sum(T_pre)] log_lik;
+  {
+    int idx = 1;
+    for (i in 1:N) {
+      for (t in 1:T_pre[i]) {
+        log_lik[idx] = normal_lpdf(y[t, i] | y_mean[t, i], sigma[i]);
+        idx += 1;
+      }
+    }
+  }

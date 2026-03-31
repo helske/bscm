@@ -34,11 +34,19 @@ try_ <- function(expr) {
 #' custom summary function for posterior::summarise_draws()
 #' @param x draws object
 #' @noRd
-summarize_with_probs <- function(x, probs) {
-  summarise_draws(
-    x,
-    mean, sd, 
-    ~ quantile2(.x, probs = probs), 
-    default_convergence_measures()
-  )
+summarise_with_probs <- function(x, probs, for_plots = FALSE) {
+  if (for_plots) {
+    summarise_draws(
+      x,
+      mean,
+      if (length(probs) > 1) ~ quantile2(.x, probs = probs)
+    )
+  } else {
+    summarise_draws(
+      x,
+      mean, sd, 
+      if (length(probs) > 0) ~ quantile2(.x, probs = probs),
+      default_convergence_measures()
+    )
+  }
 }

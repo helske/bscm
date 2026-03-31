@@ -3,7 +3,6 @@
 #' Returns a `data.frame` representation of the posterior sample of the model
 #' parameters.
 #' 
-#' @export
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param parameters \[`character()`]\cr Vector of parameter names.
 #' @param row.names Ignored.
@@ -11,11 +10,13 @@
 #' @param ... Ignored.
 #' @return A `data.frame` containing model parameters in a wide format.
 #' @seealso [as_draws.bscmfit()].
+#' @aliases as.data.frame
+#' @export
 as.data.frame.bscmfit <- function(x, row.names = NULL, optional = FALSE, 
                                   parameters = NULL, ...) {
-  all_pars <- setdiff(x$stanfit@model_pars, c("omega_raw", "a"))
+  all_pars <- setdiff(get_stanfit(x)@model_pars, c("omega_raw", "a"))
   if (is.null(parameters)) {
-    parameters <- c("alpha", "beta", "sigma", "omega", "tau")
+    parameters <- c("alpha", "beta", "sigma", "omega")
     parameters <- intersect(parameters, all_pars)
   } else {
     stopifnot_(
@@ -24,5 +25,5 @@ as.data.frame.bscmfit <- function(x, row.names = NULL, optional = FALSE,
       {.val {setdiff(parameters, all_pars)}}."
     )
   }
-  as.data.frame(x$stanfit, pars = parameters)
+  as.data.frame(get_stanfit(x), pars = parameters)
 }

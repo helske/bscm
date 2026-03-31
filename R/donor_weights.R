@@ -5,30 +5,34 @@ donor_weights <- function(x, ...) {
 }
 #' Extract donor weights of a Bayesian synthetic control model
 #'
-#' @export
-#' @rdname donor_weights
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
 #'   Default is `c(0.025, 0.5, 0.975)`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the donor weights
+#' @rdname donor_weights
+#' @aliases donor_weights
+#' @export
 donor_weights.bscmfit <- function(x, probs = c(0.025, 0.5, 0.975), ...) {
- 
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      min.len = 1L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector with values between
-     0 and 1."
-  )
+  
+  test_probs(probs)
   donors <- get_donors(x)
   unit <- get_unit(x)
-  as_draws(x, "omega") |> 
-    summarize_with_probs(probs) |> 
-    mutate("{unit}" := .env$donors, .before = 1L) |> 
-    select(-"variable")
+  treated <- get_treated(x)
+  N <- get_N(x)
+  J <- get_J(x)
+  out <- lapply(
+    seq_len(N), \(i) {
+      pars <- paste0("omega[", seq_len(J), ",", i, "]")
+      as_draws(x, pars) |> 
+        summarise_with_probs(probs) |> 
+        mutate(
+          treated_unit = .env$treated[i],
+          "{unit}" := .env$donors,
+          .before = 1L
+        ) |> 
+        select(-"variable")
+    }
+  )
+  bind_rows(out)
 }

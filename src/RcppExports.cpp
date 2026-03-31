@@ -14,18 +14,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_int_nox_none_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_int_x_const_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_int_x_varying_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_noint_nox_none_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_noint_x_const_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_noint_x_varying_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_stan_fit4bscm_int_nox_none_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_int_nox_none_mod, 0},
     {"_rcpp_module_boot_stan_fit4bscm_int_x_const_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_int_x_const_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_int_x_varying_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_int_x_varying_mod, 0},
     {"_rcpp_module_boot_stan_fit4bscm_noint_nox_none_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_noint_nox_none_mod, 0},
     {"_rcpp_module_boot_stan_fit4bscm_noint_x_const_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_noint_x_const_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_noint_x_varying_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_noint_x_varying_mod, 0},
     {NULL, NULL, 0}
 };
 

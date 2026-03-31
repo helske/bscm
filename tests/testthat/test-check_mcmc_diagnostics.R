@@ -1,5 +1,9 @@
 test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
-  suppressWarnings(diag <- check_mcmc_diagnostics(fit_intercept, warn = FALSE))
+  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  expect_warning(
+    check_mcmc_diagnostics(fit1_int), 
+    "Largest Rhat convergence diagnostic is"
+  )
   expect_s3_class(diag, "bscmfit_diagnostics")
   expect_gt(length(diag$me), 0)
   expected <- c(
@@ -12,11 +16,11 @@ test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
     c("Largest Rhat", "Smallest bulk-ESS", "Smallest tail-ESS")
   )
   expect_error(
-    check_mcmc_diagnostics(fit_intercept, check_all = "yes"),
+    check_mcmc_diagnostics(fit1_int, check_all = "yes"),
     "Argument `check_all` must be a single <logical>\\."
   )
   expect_error(
-    check_mcmc_diagnostics(fit_intercept, warn = "yes"),
+    check_mcmc_diagnostics(fit1_int, warn = "yes"),
     "Argument `warn` must be a single <logical>\\."
   )
 })

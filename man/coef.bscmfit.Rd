@@ -2,6 +2,7 @@
 % Please edit documentation in R/coef.R
 \name{coef.bscmfit}
 \alias{coef.bscmfit}
+\alias{coef}
 \title{Extract regression coefficients of a Bayesian synthetic control model}
 \usage{
 \method{coef}{bscmfit}(object, probs = c(0.025, 0.975), ...)
@@ -15,7 +16,7 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the coefficients.
+A \code{data.frame} of posterior summaries of the model coefficients.
 }
 \description{
 Extract regression coefficients of a Bayesian synthetic control model

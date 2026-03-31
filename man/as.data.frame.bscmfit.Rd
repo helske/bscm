@@ -2,6 +2,7 @@
 % Please edit documentation in R/as_data_frame.R
 \name{as.data.frame.bscmfit}
 \alias{as.data.frame.bscmfit}
+\alias{as.data.frame}
 \title{Extract posterior draws of model parameters as a data frame}
 \usage{
 \method{as.data.frame}{bscmfit}(x, row.names = NULL, optional = FALSE, parameters = NULL, ...)

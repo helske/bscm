@@ -22,7 +22,7 @@
 #' \dontrun{
 #' fit <- bscm(
 #'   y ~ 1, treatment = "treatment", time = "time", unit = "id",
-#'   data = simulated_data, refresh = 0, chains = 2, cores = 2
+#'   data = single_treated, refresh = 0, chains = 2, cores = 2
 #' )
 #' refmodel <- get_refmodel(fit)
 #' vs <- projpred::varsel(refmodel)
@@ -34,8 +34,8 @@
 #' } 
 #' @seealso[projpred::varsel()], [projpred::cv_varsel()]
 #' @aliases get_refmodel
-#' @export get_refmodel
 #' @export
+#' @export get_refmodel
 get_refmodel.bscmfit <- function(object, ...) {
   
   stopifnot_(
@@ -80,7 +80,7 @@ get_refmodel.bscmfit <- function(object, ...) {
   ref_predfun <- function(fit, newdata = NULL) {
     if (is.null(newdata)) {
       newdata <- fit$proj$data[, fit$setup$donors, drop = FALSE]
-      eta <- t(as.matrix(fit$stanfit, "synthetic_mean"))
+      eta <- t(as.matrix(fit$stanfit, "y_mean"))
       eta <- eta[1:fit$setup$T_pre, , drop = FALSE]
     } else {
       stop(
@@ -98,7 +98,7 @@ get_refmodel.bscmfit <- function(object, ...) {
   
   proj_predfun <- function(fits, newdata) {
     # Get predictions for each fit
-    preds <- lapply(fits, function(fit) {
+    preds <- lapply(fits, \(fit) {
       if (length(fit$donors) == 0) {
         return(rep(fit$alpha, nrow(newdata)))
       }

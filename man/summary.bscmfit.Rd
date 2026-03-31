@@ -2,16 +2,13 @@
 % Please edit documentation in R/summary_bscmfit.R
 \name{summary.bscmfit}
 \alias{summary.bscmfit}
-\title{Summarize posterior draws of an estimated Bayesian synthetic control model}
+\alias{summary}
+\title{Summarise posterior draws of an estimated Bayesian synthetic control model}
 \usage{
-\method{summary}{bscmfit}(object, include = NULL, probs = c(0.025, 0.975), ...)
+\method{summary}{bscmfit}(object, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
-
-\item{include}{[\code{character()} or \code{NULL}]\cr Character vector defining which
-posterior summaries to include in the output. See details for accepted
-values. If \code{NULL} (the default), all available summaries are included.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
@@ -19,35 +16,17 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-A named list of data frames containing the requested posterior
-summaries.
+A data frame with posterior summaries of
+\itemize{
+\item Estimated intercept terms, regression coefficients and residual SDs
+\item Bayesian \eqn{R^2} values for each treated unit
+\item Average RMSE for pre- and post-treatment periods and their ratio
+\item Average effective number of donors
+\item Average treatment effect (over post-treatment period and treated units)
+}
 }
 \description{
 Generates posterior summary statistics for a Bayesian synthetic control
-model estimated with \code{\link[=bscm]{bscm()}}. Note that most of the summaries are also
-available via separate methods, e.g., \code{\link[=donor_weights]{donor_weights()}}.
-}
-\details{
-By default, the output contains various posterior summary statistics. You can
-select a subset of these via the \code{include} argument with the following
-accepted values:
-\itemize{
-\item \code{"effects"}: Treatment effects over time (observed series - synthetic control).
-\item \code{"synthetic"}: Synthetic control values over time.
-\item \code{"weights"}: Donor weights used in the synthetic control.
-\item \code{"cumulative_effects"}: Cumulative average treatment effects in the
-post-treatment period.
-\item \code{"average_effects"}: Average treatment effects in pre- and post-treatment
-periods.
-\item \code{"relative_change"}: Relative change from last pre-treatment synthetic
-control value in the post-treatment period.
-\item \code{"parameters"}: Model parameters excluding the weights, e.g.,
-intercept (\code{alpha}), standard deviation of noise term (\code{sigma}); and in a
-case of covariates, regression coefficients (\code{beta}).
-\item \code{"effective_donors"}: Effective number of donor units based on weight
-concentration \eqn{1/\sum(w^2)}.
-\item \code{"RMSE"}: Root mean squared errors for pre- and post-treatment periods, and
-their ratio.
-\item \code{"R2"}: Bayesian \eqn{R^2} measure of model fit.
-}
+model estimated with \code{\link[=bscm]{bscm()}}. Note that many (more) summaries are available
+via separate methods, e.g., \code{\link[=donor_weights]{donor_weights()}}.
 }
