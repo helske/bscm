@@ -45,7 +45,8 @@
 #' 
 #' The output of `bscm()` contains posterior samples of various derived 
 #' quantities such as effect estimates. To access these after model
-#' estimation, use [summary.bscmfit()] method on the output of bscm()`. 
+#' estimation, use methods such as [treatment_effect()] [coef()], and 
+#' [summary.bscmfit()] on the output of `bscm()`. 
 #' 
 #' @param formula \[`formula`]\cr The model formula containing the outcome 
 #' variable on the left-hand side and optional time-varying predictors on
@@ -58,6 +59,14 @@
 #' variable defining the treatment, which is defined separately using the
 #' argument `treatment`. In case the variable is present also in the
 #' formula, it is automatically removed.
+#' 
+#' To specify predictors with time-varying coefficients, wrap them in
+#' `tv()`, e.g., `outcome ~ x + tv(~ z)` defines a model where `x` has
+#' a time-constant coefficient and `z` has a time-varying coefficient.
+#' Terms inside `tv()` are automatically also included in the
+#' time-constant part of the model, since the time-varying coefficients
+#' are defined to have zero mean. Possible time-varying intercept is omitted as 
+#' it would cancel out in the linear predictor.
 #' 
 #' @param data \[`data.frame` or an object coercible to one]\cr
 #'   The long format data that contains the model variables.
@@ -90,8 +99,7 @@
 #'   adjust the sampling options.
 #' @return An object of class `bscmfit`.
 #' @export
-#' @seealso [summary.bscmfit()], [as_draws.bscmfit()],
-#'   [rstan::sampling()].
+#' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
 #' @examples
 #' fit <- bscm(
 #'   y ~ 1, single_treated, "treatment", "time", "id", 
@@ -109,23 +117,34 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     s_y <- pmax(1, sd_y)
     standata <- list(
       T = T_total, T_pre = array(T_pre), N = N, J = J, 
-      y = Y, Z = Z, kappa = kappa,
+      y = t(Y), Z = Z,
       pr_rate_sigma = array(1 / s_y),
       pr_mean_intercept = array(mean_y), 
-      pr_sd_intercept = array(2 * s_y)
+      pr_sd_intercept = array(2 * s_y),
+      kappa = kappa
     )
-    if (has_predictors) {
+    if (has_x) {
       s_x <- pmax(1, sd_x)
-      s_yz <- max(1, sqrt(mean(c(sd_y, sd_z)^2)))
-      pr_sd_coef <- 2 * s_yz / s_x
+      s_yz <- max(1, sqrt(stats::median(c(sd_y, sd_z)^2)))
+      pr_sd_beta <- 2 * s_yz / s_x
       standata <- c(
         standata, 
         list(
-          K = K, X_z = X_z, X_y = X_y,
-          pr_mean_coef = array(0, K), pr_sd_coef = array(pr_sd_coef, K),
-          inv_sd_x = array(1 / sd_x, K)
+          K = K, X_z = aperm(X_z, c(3, 2, 1)), X_y = X_y,
+          pr_mean_beta = array(0, K), pr_sd_beta = array(pr_sd_beta)
         )
       )
+      if (has_w) {
+        s_w <- pmax(1, sd_w)
+        pr_rate_tau <- 5 * s_w / s_yz
+        standata <- c(
+          standata, 
+          list(
+            L = L, tv_idx = array(tv_idx),
+            pr_rate_tau = array(pr_rate_tau)
+          )
+        )
+      }
     }
     standata
   }
@@ -137,14 +156,19 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       omega_raw = matrix(1, J, N),
       sigma = array(stats::runif(N, 0.5 * s_y, 2 * s_y))
     )
-    if (has_intercept) {
+    if (has_icpt) {
       inits$a <- array(stats::rnorm(N, mean_y, 0.1))
     }
-    if (has_predictors) {
+    if (has_x) {
       s_x <- pmax(1, sd_x)
       s_yz <- max(1, sqrt(mean(c(sd_y, sd_z)^2)))
-      pr_sd_coef <- 2 * s_yz / s_x
-      inits$beta <- array(stats::rnorm(K, 0, 0.1 * pr_sd_coef))
+      pr_sd_beta <- 2 * s_yz / s_x
+      inits$beta <- array(stats::rnorm(K, 0, 0.1 * pr_sd_beta))
+      if (has_w) {
+        inits$gamma_pre <- matrix(0, L, max(T_pre))
+        inits$gamma_post <- matrix(0, L, T_total - max(T_pre))
+        inits$tau <- array(stats::runif(L, 0.05, 0.1))
+      }
     }
     inits
   }
@@ -156,6 +180,12 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     priors, kappa, effective_donors, save_data
   )
   outcome <- get_outcome(formula)
+  parsed_formula <- parse_bscm_formula(formula)
+  formula <- parsed_formula$x_formula
+  has_icpt <- parsed_formula$icpt
+  predictors <- parsed_formula$predictors
+  has_x <- length(predictors > 0)
+  has_w <- length(parsed_formula$w_terms > 0)
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
@@ -217,14 +247,11 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     "Outcome variable cannot be constant in the pre-treatment period. 
       Found `sd(z) < sqrt(.Machine$double.eps)`."
   )
-  has_intercept <- as.logical(attr(stats::terms(formula), "intercept"))
-  predictors <- all.vars(formula[-2L])
-  has_predictors <- length(predictors) > 0L
-  coef_names <- NULL
-  if (has_predictors) {
+  beta_names <- gamma_names <- NULL
+  if (has_x) {
     X <- stats::model.matrix(formula, data = data)
-    if (has_intercept) X <- X[, -1L, drop = FALSE]
-    coef_names <- colnames(X)
+    if (has_icpt) X <- X[, -1L, drop = FALSE]
+    beta_names <- colnames(X)
     stopifnot_(
       nrow(X) == nrow(data),
       "Missing values are not supported."
@@ -238,10 +265,10 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       X[, seq_len(min_T_pre), , drop = FALSE], c(1, 3), sd
     )
     constant_sd <- which(
-      stats::setNames(apply(sd_x_by_unit, 2, max) < tol, coef_names)
+      stats::setNames(apply(sd_x_by_unit, 2, max) < tol, beta_names)
     )
     warnifnot_(
-      length(constant_sd) == 0 || !has_intercept,
+      length(constant_sd) == 0 || !has_icpt,
       c(
         "Model has unit-specific intercepts and predictors which do not vary in 
         the pre-treatment period for any units.",
@@ -252,6 +279,19 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     donor_idx <- which(!colnames(treatment_table) %in% treated)
     X_z <- X[donor_idx, , , drop = FALSE]
     X_y <- X[treated_idx, , , drop = FALSE]
+    if (has_w) {
+      gamma_names <- colnames(
+        stats::model.matrix(parsed_formula$w_formula, data = data)
+      )
+      gamma_names <- setdiff(gamma_names, "(Intercept)")
+      tv_idx <- match(gamma_names, beta_names)
+      stopifnot_(
+        !anyNA(tv_idx),
+        "Column mismatch between time-varying and full predictor matrices."
+      )
+      L <- length(tv_idx)
+      sd_w <- sd_x[tv_idx]
+    }
   }
   if (!is.null(effective_donors)) {
     stopifnot_(
@@ -260,9 +300,15 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     )
     kappa <- (effective_donors - 1) / (J - effective_donors)
   }
-  icpt <- ifelse(has_intercept, "int", "noint")
-  x <- ifelse(has_predictors, "x", "nox")
-  effect <- ifelse(has_predictors, "const", "none")
+  icpt <- ifelse(has_icpt, "int", "noint")
+  x <- ifelse(has_x, "x", "nox")
+  effect <- if (has_w) {
+    "varying"
+  } else if (has_x) {
+    "const"
+  } else {
+    "none"
+  }
   model_type <- paste("bscm", icpt, x, effect, sep = "_")
   
   stan_args <- list(...)
@@ -276,7 +322,11 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     )
   }
   stan_args$object <- stanmodels[[model_type]]
-  stan_args$pars <- c("omega_raw", if (has_intercept) "a")
+  stan_args$pars <- c(
+    "omega_raw", 
+    if (has_icpt) "a",
+    if (has_w) "gamma_raw"
+  )
   stan_args$include <- FALSE
   start_time <- proc.time()
   fit <- do.call(sampling, stan_args)
@@ -286,7 +336,9 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   priors <- stan_args$data[substr(names(stan_args$data), 1, 3) %in% c("pr_")]
   out$setup <- dplyr::lst(
     outcome, treatment, treated, donors, unit, time, times, 
-    T_pre, T_total, has_intercept, predictors, coef_names, kappa,
+    T_pre, T_total, 
+    has_intercept = has_icpt,
+    predictors, beta_names, gamma_names, kappa,
     model_type, priors
   )
   class(out) <- "bscmfit"

@@ -11,7 +11,8 @@ get_T_total <- \(x) x$setup$T_total
 get_N <- \(x) length(x$setup$treated)
 get_J <- \(x) length(x$setup$donors)
 has_intercept <- \(x) x$setup$has_intercept
-has_predictors <- \(x) length(x$setup$predictors) > 0L
+has_predictors <- \(x) length(x$setup$beta_names) > 0L
+has_tv_coefs <- \(x) length(x$setup$gamma_names) > 0L
 get_predictors <- \(x) x$setup$predictors
 
 #' Extract the name of the outcome variable from formula object

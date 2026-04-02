@@ -1,9 +1,9 @@
-  matrix [T, N] y_rep;
+  matrix[T, N] y_rep;
+  matrix[T, N] effect;
   for (i in 1:N) {
     y_rep[, i] = to_vector(normal_rng(y_mean[, i], sigma[i]));
+    effect[, i] = y[i] - y_rep[, i];
   }
-  matrix[T, N] effect = y - y_rep;
-  
   vector[N] R2;
   vector[N] RMSE_pre;
   vector[N] RMSE_post;
@@ -35,7 +35,7 @@
     int idx = 1;
     for (i in 1:N) {
       for (t in 1:T_pre[i]) {
-        log_lik[idx] = normal_lpdf(y[t, i] | y_mean[t, i], sigma[i]);
+        log_lik[idx] = normal_lpdf(y[i, t] | y_mean[t, i], sigma[i]);
         idx += 1;
       }
     }

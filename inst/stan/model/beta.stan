@@ -1,1 +1,1 @@
-  beta ~ normal(pr_mean_coef, pr_sd_coef);
+  beta ~ normal(pr_mean_beta, pr_sd_beta);

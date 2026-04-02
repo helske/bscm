@@ -32,7 +32,8 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   )
   stopifnot_(
     !(treatment %in% all.vars(formula)),
-    "Argument {.arg formula} must not contain the treatment variable {.val {treatment}}."
+    "Argument {.arg formula} must not contain the treatment variable 
+    {.val {treatment}}."
   )
   stopifnot_(
     !is.null(data[[treatment]]),

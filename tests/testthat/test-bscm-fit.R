@@ -11,8 +11,8 @@ test_that("bscmfit$setup has correct structure", {
   expect_type(setup, "list")
   expected_fields <- c(
     "outcome", "treatment", "treated", "donors", "unit", "time", "times",
-    "T_pre", "T_total", "has_intercept", "predictors", "coef_names", 
-    "kappa", "model_type", "priors"
+    "T_pre", "T_total", "has_intercept", "predictors", "beta_names", 
+    "gamma_names", "kappa", "model_type", "priors"
   )
   expect_true(all(expected_fields %in% names(setup)))
 })
@@ -28,7 +28,7 @@ test_that("bscmfit$setup values are correct", {
   expect_equal(setup$T_total, 40L)
   expect_true(setup$has_intercept)
   expect_equal(setup$predictors, character(0))
-  expect_null(setup$coef_names)
+  expect_null(setup$beta_names)
   expect_equal(setup$kappa, 0.5)
   expect_equal(length(setup$donors), 30L)
   expect_s3_class(fit1_int$data, "data.frame")
@@ -39,6 +39,14 @@ test_that("bscmfit$setup values are correct", {
   expect_equal(fit1_x$setup$model_type, "bscm_int_x_const")
   expect_equal(fitN_xz$setup$model_type, "bscm_int_x_const")
   expect_equal(get_treated(fitN_xz), c("1", "2", "3"))
+})
+
+test_that("bscmfit$setup with tv() has correct structure", {
+  setup <- fitN_tv$setup
+  expect_equal(setup$model_type, "bscm_int_x_varying")
+  expect_identical(setup$gamma_names, "x")
+  expect_true("x" %in% setup$beta_names)
+  expect_true("z" %in% setup$beta_names)
 })
 
 test_that("bscmfit$call is recorded", {

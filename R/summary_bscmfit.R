@@ -19,11 +19,15 @@
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   
   test_probs(probs)
- 
+  cf <- tau <- NULL
   if (has_predictors(object)) {
-    cf <- coef(object, probs = probs)
-  } else {
-    cf <- NULL
+    cf <- coef(object, probs = probs, type = "beta")$beta |> 
+      mutate("{get_unit(object)}" := NA, .before = 1L)
+    if (has_tv_coefs(object)) {
+      tau <- as_draws(object, "tau") |> 
+        summarise_with_probs(probs) |> 
+        mutate(variable = paste0("tau_", object$setup$gamma_names))
+    }
   }
   s <- sigma(object, probs = probs) |> 
     mutate(variable = "Residual SD")
@@ -34,7 +38,7 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     mutate(variable = "Average treatment effect")
   rmses <- rmse(object, probs = probs, average = TRUE)
   eff <- effective_donors(object, probs = probs, average = TRUE)
-  sumr <- bind_rows(cf, s, r2, att, rmses, eff)
+  sumr <- bind_rows(cf, tau, s, r2, att, rmses, eff)
   class(sumr) <- c("summary_bscmfit", class(sumr))
   sumr
 }

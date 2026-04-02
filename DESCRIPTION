@@ -1,6 +1,6 @@
 Package: bscm
 Title: Bayesian Synthetic Control Models
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Jouni", "Helske", email = "jouni.helske@iki.fi", 
     role = c("aut", "cre"),
@@ -8,8 +8,9 @@ Authors@R:
 Description: Bayesian treatment of synthetic control method with posterior 
     uncertainty estimates of treatment effects and other quantities of 
     interest, as well as various model evaluation and comparison 
-    methods. Models support both time-invariant and time-varying covariates 
-    with possibly time-varying effects. Posterior sampling uses Markov chain 
+    methods. Models support time-varying covariates with possibly 
+    time-varying effects. Single and multiple treated units with staggered 
+    treatment times are supported. Posterior sampling uses Markov chain 
     Monte Carlo via Stan. 
 License: GPL (>= 3)
 Encoding: UTF-8

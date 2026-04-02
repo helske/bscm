@@ -9,26 +9,29 @@ data {
 
 transformed data {
 #include transformed_data/base.stan
-#include transformed_data/center_z.stan
+#include transformed_data/z_means.stan
 }
 
 parameters {
 #include parameters/base.stan
-#include parameters/alpha.stan
+#include parameters/a.stan
+}
+transformed parameters {
+#include transformed_parameters/alpha_z.stan
 }
 model {
 #include model/base.stan
-#include model/alpha.stan
+#include model/a.stan
   for (i in 1:N) {
-    y[1:T_pre[i], i] ~ normal_id_glm(Z_c[1:T_pre[i]], a[i], omega[i],  sigma[i]);
+    int Ti = T_pre[i];
+    head(y[i], Ti) ~ normal_id_glm(
+      Z[1:Ti], alpha[i], omega[i], sigma[i]
+      );
   }
 }
 generated quantities {
-  // actual intercept
-  vector[N] alpha;
   matrix[T, N] y_mean;
   for (i in 1:N) {
-    alpha[i] = a[i] - Z_mean * omega[i];
     y_mean[, i] = alpha[i] + Z * omega[i];
   }
 #include generated_quantities/base.stan

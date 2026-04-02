@@ -5,10 +5,14 @@
 \alias{coef}
 \title{Extract regression coefficients of a Bayesian synthetic control model}
 \usage{
-\method{coef}{bscmfit}(object, probs = c(0.025, 0.975), ...)
+\method{coef}{bscmfit}(object, type = c("alpha", "beta", "gamma"), probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
+
+\item{type}{[\code{character()}]\cr Type of coefficients to return. Should be
+one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
+\code{"gamma"} (time-varying regression coefficients).}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}

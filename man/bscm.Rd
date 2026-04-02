@@ -29,7 +29,15 @@ RHS, e.g., \code{outcome ~ 0} or \code{outcome ~ 0 + x + z} (equivalently, you
 can use \code{-1} in place of \code{0}). Formula does not need to contain the
 variable defining the treatment, which is defined separately using the
 argument \code{treatment}. In case the variable is present also in the
-formula, it is automatically removed.}
+formula, it is automatically removed.
+
+To specify predictors with time-varying coefficients, wrap them in
+\code{tv()}, e.g., \code{outcome ~ x + tv(~ z)} defines a model where \code{x} has
+a time-constant coefficient and \code{z} has a time-varying coefficient.
+Terms inside \code{tv()} are automatically also included in the
+time-constant part of the model, since the time-varying coefficients
+are defined to have zero mean. Possible time-varying intercept is omitted as
+it would cancel out in the linear predictor.}
 
 \item{data}{[\code{data.frame} or an object coercible to one]\cr
 The long format data that contains the model variables.}
@@ -118,7 +126,8 @@ therefore corresponds to prior where the effective number donors is
 
 The output of \code{bscm()} contains posterior samples of various derived
 quantities such as effect estimates. To access these after model
-estimation, use \code{\link[=summary.bscmfit]{summary.bscmfit()}} method on the output of bscm()`.
+estimation, use methods such as \code{\link[=treatment_effect]{treatment_effect()}} \code{\link[=coef]{coef()}}, and
+\code{\link[=summary.bscmfit]{summary.bscmfit()}} on the output of \code{bscm()}.
 }
 \examples{
 fit <- bscm(
@@ -129,6 +138,5 @@ fit
 
 }
 \seealso{
-\code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}},
-\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
+\code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
 }

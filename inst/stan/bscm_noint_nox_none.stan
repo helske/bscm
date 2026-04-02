@@ -14,7 +14,10 @@ parameters {
 model {
 #include model/base.stan
   for (i in 1:N) {
-    y[1:T_pre[i], i] ~ normal_id_glm(Z[1:T_pre[i]], 0, omega[i], sigma[i]);
+    int Ti = T_pre[i];
+    head(y[i], Ti) ~ normal_id_glm(
+      Z[1:Ti], 0, omega[i], sigma[i]
+      );
   }
 }
 generated quantities {
