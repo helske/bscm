@@ -71,32 +71,34 @@
 #' @param data \[`data.frame` or an object coercible to one]\cr
 #'   The long format data that contains the model variables.
 #' @param treatment  \[`character(1)`]\cr Name of the treatment indicator 
-#' variable in `data`.
+#'   variable in `data`.
 #' @param time \[`character(1)`]\cr Name of the time index variable in
 #'   `data`.
 #' @param unit \[`character(1)`]\cr Name of the variable in `data`
 #'   identifying different units.
 #' @param priors \[`list()` or `character(1)`]\cr List of prior definitions 
-#' or `"default"` which is a default and only supported option at the
-#' moment. See details on the prior definitions.
+#'   or `"default"` which is a default and only supported option at the
+#'   moment. See details on the prior definitions.
 #' @param kappa \[`numeric(1)`]\cr A positive number defining the
-#' concentration parameter \eqn{\kappa} of symmetric Dirichlet prior of
-#' the donor weights. Ignored if the argument `effective_donors` is
-#' non-NULL. Note that small values of \eqn{\kappa}  can lead to
-#' divergences in sampling.
+#'   concentration parameter \eqn{\kappa} of symmetric Dirichlet prior of
+#'   the donor weights. Ignored if the argument `effective_donors` is
+#'   non-NULL. Note that small values of \eqn{\kappa}  can lead to
+#'   divergences in sampling.
 #' @param effective_donors \[`integer(1)`]\cr Integer for alternative 
-#' definition of the prior for the donor weights. See details.
+#'   definition of the prior for the donor weights. See details.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the 
-#' output of [bscm()] includes the results of MCMC diagnostics checks
-#' performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
-#' of the value of `mcmc_diagnostics`, [rstan::sampling()] can still
-#' generate warnings regarding convergence and other sampling issues.
+#'   output of [bscm()] includes the results of MCMC diagnostics checks
+#'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
+#'   of the value of `mcmc_diagnostics`, [rstan::sampling()] can still
+#'   generate warnings regarding convergence and other sampling issues.
 #' @param save_data \[`logical(1)`]\cr If `TRUE` (the default), `bscmfit` 
-#' object returned by  [bscm()] includes the input `data.frame` 
-#' (argument `data`), after dropping unused factor levels and potentially 
-#' rearranging data by `unit` and `time` variables.
+#'   object returned by  [bscm()] includes the input `data.frame` 
+#'   (argument `data`), after dropping unused factor levels and potentially 
+#'   rearranging data by `unit` and `time` variables.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
-#'   adjust the sampling options.
+#'   adjust the sampling options, for example `iter` and `chains`. Note that
+#'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of 
+#'   [rstan::sampling()] (which are 2000 and 1000 respectively).   
 #' @return An object of class `bscmfit`.
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
@@ -109,8 +111,7 @@
 #' 
 bscm <- function(formula, data, treatment, time = "time", unit = "id",
                  priors = "default", kappa = 0.5, effective_donors = NULL,
-                 mcmc_diagnostics = TRUE,
-                 save_data = TRUE, ...) {
+                 mcmc_diagnostics = TRUE, save_data = TRUE, ...) {
   
   # local function for creating input data to Stan
   create_standata <- \() {
@@ -153,11 +154,11 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   create_inits <- \() {
     s_y <- pmax(1, sd_y)
     inits <- list(
-      omega_raw = matrix(1, J, N),
+      omega = matrix(1 / J, N, J),
       sigma = array(stats::runif(N, 0.5 * s_y, 2 * s_y))
     )
     if (has_icpt) {
-      inits$a <- array(stats::rnorm(N, mean_y, 0.1))
+      inits$a <- array(stats::rnorm(N, mean_y, 0.5 * s_y))
     }
     if (has_x) {
       s_x <- pmax(1, sd_x)
@@ -165,8 +166,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       pr_sd_beta <- 2 * s_yz / s_x
       inits$beta <- array(stats::rnorm(K, 0, 0.1 * pr_sd_beta))
       if (has_w) {
-        inits$gamma_pre <- matrix(0, L, max(T_pre))
-        inits$gamma_post <- matrix(0, L, T_total - max(T_pre))
+        inits$gamma_raw <- matrix(0, T_total, L)
         inits$tau <- array(stats::runif(L, 0.05, 0.1))
       }
     }
@@ -313,6 +313,10 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   
   stan_args <- list(...)
   stan_args$chains  <- stan_args$chains %||% 4L
+  if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
+    stan_args$iter <- 5000L
+    stan_args$warmup <- 2500L
+  }
   stan_args$data <- create_standata()
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(

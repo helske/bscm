@@ -76,7 +76,9 @@ object returned by  \code{\link[=bscm]{bscm()}} includes the input \code{data.fr
 rearranging data by \code{unit} and \code{time} variables.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
-adjust the sampling options.}
+adjust the sampling options, for example \code{iter} and \code{chains}. Note that
+defaults \code{iter = 5000} and \code{warmup = 2500} differ from the defaults of
+\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively).}
 }
 \value{
 An object of class \code{bscmfit}.
