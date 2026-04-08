@@ -6,17 +6,16 @@ data {
 #include data/base.stan
 #include data/alpha.stan
 }
-
 transformed data {
 #include transformed_data/base.stan
 #include transformed_data/z_means.stan
 }
-
 parameters {
 #include parameters/base.stan
 #include parameters/a.stan
 }
 transformed parameters {
+#include transformed_parameters/base.stan
 #include transformed_parameters/alpha_z.stan
 }
 model {

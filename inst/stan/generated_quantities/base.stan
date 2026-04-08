@@ -28,15 +28,3 @@
   real avg_RMSE_post = mean(RMSE_post);
   real avg_RMSE_ratio = mean(RMSE_ratio);
   real avg_effective_donors = mean(effective_donors);
-  
-  // for leave-one-out cross-validation
-  vector[sum(T_pre)] log_lik;
-  {
-    int idx = 1;
-    for (i in 1:N) {
-      for (t in 1:T_pre[i]) {
-        log_lik[idx] = normal_lpdf(y[i, t] | y_mean[t, i], sigma[i]);
-        idx += 1;
-      }
-    }
-  }

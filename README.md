@@ -40,7 +40,7 @@ Number of donors: 30
 Number of time periods (pre + post): 30 + 10 
 MCMC sampling time: 0.827 seconds
 
-MCMC diagnostics indicate no major issues. 
+MCMC diagnostics indicate no issues. 
 ```
 ```{r}
 > summary(fit)

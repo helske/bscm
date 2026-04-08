@@ -13,6 +13,9 @@ parameters {
 #include parameters/base.stan
 #include parameters/beta.stan
 }
+transformed parameters {
+#include transformed_parameters/base.stan
+}
 model {
 #include model/base.stan
 #include model/beta.stan

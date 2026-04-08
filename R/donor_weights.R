@@ -23,7 +23,7 @@ donor_weights.bscmfit <- function(x, probs = c(0.025, 0.5, 0.975), ...) {
   J <- get_J(x)
   out <- lapply(
     seq_len(N), \(i) {
-      pars <- paste0("omega[", seq_len(J), ",", i, "]")
+      pars <- paste0("omega[", i, ",", seq_len(J), "]")
       as_draws(x, pars) |> 
         summarise_with_probs(probs) |> 
         mutate(

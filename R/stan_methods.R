@@ -61,5 +61,37 @@ posterior_linpred.bscmfit <- function(object, transform = FALSE, ...) {
 #' @export log_lik
 #' @export
 log_lik.bscmfit <- function(object, ...) {
-  as.matrix(get_stanfit(object), pars = "log_lik")
+  stopifnot_(
+    !is.null(object$data),
+    "Computing log-likelihood requires the original data. Refit the model
+    with {.code save_data = TRUE}."
+  )
+  T_total <- get_T_total(object)
+  T_pre <- get_T_pre(object)
+  N <- get_N(object)
+  treated <- get_treated(object)
+  unit <- get_unit(object)
+  outcome <- get_outcome(object)
+  mu_draws <- posterior_epred(object)
+  sigma_draws <- as.matrix(get_stanfit(object), pars = "sigma")
+  n_ll <- sum(T_pre)
+  ll <- matrix(NA_real_, nrow(mu_draws), n_ll)
+  idx <- 0L
+  for (i in seq_len(N)) {
+    id <- treated[i]
+    y_obs <- object$data |>
+      filter(.data[[unit]] == .env$id) |>
+      pull(.data[[outcome]])
+    y_pre <- y_obs[seq_len(T_pre[id])]
+    mu_offset <- (i - 1L) * T_total
+    s <- sigma_draws[, i]
+    for (t in seq_along(y_pre)) {
+      idx <- idx + 1L
+      ll[, idx] <- stats::dnorm(
+        y_pre[t], mu_draws[, mu_offset + t], s, log = TRUE
+      )
+    }
+  }
+  colnames(ll) <- paste0("log_lik[", seq_len(n_ll), "]")
+  ll
 }

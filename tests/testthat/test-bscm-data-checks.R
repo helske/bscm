@@ -101,12 +101,3 @@ test_that("bscm() rejects constant predictor for all units", {
   )
 })
 
-test_that("bscm() validates effective_donors range", {
-  expect_error(
-    bscm(
-      y ~ 1, data = single_treated, treatment = "treatment",
-      effective_donors = 30L
-    ),
-    "Argument `effective_donors` should be between 2 and 29\\."
-  )
-})

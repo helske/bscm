@@ -3,4 +3,5 @@
 *.o
 *.cc
 *.h
+*.dll
 R/stanmodels.R

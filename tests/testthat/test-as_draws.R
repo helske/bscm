@@ -11,7 +11,7 @@ test_that("as_draws returns a draws_array", {
   )
   d <- as_draws(
     fit1_int, 
-    c("omega", "effect", "y_mean", "y_rep", "log_lik"), 
+    c("omega", "effect", "y_mean", "y_rep"), 
     include = FALSE
   )
   expect_equal(

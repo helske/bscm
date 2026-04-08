@@ -3,7 +3,7 @@
 #' @inheritParams bscm
 #' @noRd
 check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 priors, kappa, effective_donors, save_data) {
+                                 priors, kappa, save_data) {
   
   stopifnot_(
     !missing(formula),
@@ -77,20 +77,9 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     priors for intercept and sigma are currently supported."
   )
   stopifnot_(
-    checkmate::test_number(kappa, finite = FALSE, null.ok = TRUE),
+    checkmate::test_number(kappa, finite = FALSE, null.ok = FALSE, lower = 0),
     "Argument {.arg kappa} must be a single positive number defining the 
-    concentration parameter of the Dirichlet prior of weights."
-  )
-  stopifnot_(
-    checkmate::test_integerish(
-      effective_donors, len = 1, lower = 2, null.ok = TRUE),
-    "Argument {.arg effective_donors} must be a single integer > 1 defining the 
-    prior expected number of effective donors."
-  )
-  stopifnot_(
-    !is.null(kappa) || !is.null(effective_donors),
-    "Both {.arg kappa} and {.arg effective_donors} are `NULL`. Please define 
-    either one of them."
+    scale parameter of the logistic normal prior of weights."
   )
   stopifnot_(
     checkmate::test_flag(save_data),

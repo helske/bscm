@@ -11,10 +11,10 @@ bscm(
   time = "time",
   unit = "id",
   priors = "default",
-  kappa = 0.5,
-  effective_donors = NULL,
+  kappa = 1.25,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
+  weight_type = 1,
   ...
 )
 }
@@ -56,13 +56,11 @@ or \code{"default"} which is a default and only supported option at the
 moment. See details on the prior definitions.}
 
 \item{kappa}{[\code{numeric(1)}]\cr A positive number defining the
-concentration parameter \eqn{\kappa} of symmetric Dirichlet prior of
-the donor weights. Ignored if the argument \code{effective_donors} is
-non-NULL. Note that small values of \eqn{\kappa}  can lead to
-divergences in sampling.}
-
-\item{effective_donors}{[\code{integer(1)}]\cr Integer for alternative
-definition of the prior for the donor weights. See details.}
+scale parameter \eqn{\kappa} of logistic normal prior of
+the donor weights. Defaults to 1.25. Larger value encourage more sparse
+weights, but can also cause numerical issues (divergences), which
+typically disappear with when increasing \code{adapt_delta} in controls of
+\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.}
 
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks
@@ -88,6 +86,11 @@ Function \code{bscm} estimates a Bayesian synthetic control models of varying
 types.
 }
 \details{
+The prior for the weight vector \eqn{\omega} is defined as a logistic normal,
+i.e., \eqn{\omega = \textrm{softmax}(\kappa \eta)}, with \eqn{\eta} standard
+normal and \eqn{\kappa} is fixed hyperparameter. The default
+\eqn{\kappa = 1.25} approximates Dirichlet(0.5) prior on \eqn{\omega}.
+
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},
 \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)},
@@ -107,24 +110,9 @@ outcomes of treated unit \eqn{i}.
 
 The default prior for the coefficient \eqn{\beta_k} is
 \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2 * s / sd(x_k)} and s
-is the mean of the variances of the treated and donors' outcomes in the
+is the median of the variances of the treated outcomes in the
 pretreatment period, and \eqn{x_k} is the vector of values of the k-th
 covariate in the pretreatment period over all.
-
-The prior for the weight vector \eqn{\omega} is defined as a symmetric
-Dirichlet distribution with a concentration parameter \eqn{\kappa}. Value
-\eqn{\kappa = 1} corresponds to uniform distribution on a
-simplex. When \eqn{\kappa < 1}, the prior prefers sparse weight vectors,
-while values larger than one put more prior probability mass on solutions
-where \eqn{\omega} is dense. The default is \eqn{\kappa = 0.5}.
-
-Alternatively, argument \code{effective_donors} can be used to define
-\eqn{\kappa} using the approximation of expected number of
-effective donors, defined as \eqn{1 / \sum_{j=1}^J(\omega_j^2)}. More
-specifically, \code{kappa = (effective_donors - 1) / (J - effective_donors)}
-where \eqn{J} is the total number of donors. Default \eqn{\kappa = 0.5}
-therefore corresponds to prior where the effective number donors is
-\eqn{(J + 2) / 3}.
 
 The output of \code{bscm()} contains posterior samples of various derived
 quantities such as effect estimates. To access these after model

@@ -17,6 +17,7 @@ parameters {
 #include parameters/gamma.stan
 }
 transformed parameters {
+#include transformed_parameters/base.stan
 #include transformed_parameters/gamma.stan
 }
 model {

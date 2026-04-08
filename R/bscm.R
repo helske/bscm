@@ -5,6 +5,11 @@
 #' 
 #' @details
 #' 
+#' The prior for the weight vector \eqn{\omega} is defined as a logistic normal, 
+#' i.e., \eqn{\omega = \textrm{softmax}(\kappa \eta)}, with \eqn{\eta} standard 
+#' normal and \eqn{\kappa} is fixed hyperparameter. The default 
+#' \eqn{\kappa = 1.25} approximates Dirichlet(0.5) prior on \eqn{\omega}.
+#' 
 #' When model contains covariates \eqn{X}, their effect is subtracted from 
 #' donors, i.e., for treated unit \eqn{i},
 #' \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)}, 
@@ -24,24 +29,9 @@
 #' 
 #' The default prior for the coefficient \eqn{\beta_k} is  
 #' \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2 * s / sd(x_k)} and s
-#' is the mean of the variances of the treated and donors' outcomes in the 
+#' is the median of the variances of the treated outcomes in the 
 #' pretreatment period, and \eqn{x_k} is the vector of values of the k-th 
 #' covariate in the pretreatment period over all.
-#' 
-#' The prior for the weight vector \eqn{\omega} is defined as a symmetric 
-#' Dirichlet distribution with a concentration parameter \eqn{\kappa}. Value 
-#' \eqn{\kappa = 1} corresponds to uniform distribution on a
-#' simplex. When \eqn{\kappa < 1}, the prior prefers sparse weight vectors, 
-#' while values larger than one put more prior probability mass on solutions 
-#' where \eqn{\omega} is dense. The default is \eqn{\kappa = 0.5}.
-#' 
-#' Alternatively, argument `effective_donors` can be used to define 
-#' \eqn{\kappa} using the approximation of expected number of 
-#' effective donors, defined as \eqn{1 / \sum_{j=1}^J(\omega_j^2)}. More 
-#' specifically, `kappa = (effective_donors - 1) / (J - effective_donors)` 
-#' where \eqn{J} is the total number of donors. Default \eqn{\kappa = 0.5} 
-#' therefore corresponds to prior where the effective number donors is
-#' \eqn{(J + 2) / 3}.
 #' 
 #' The output of `bscm()` contains posterior samples of various derived 
 #' quantities such as effect estimates. To access these after model
@@ -80,12 +70,11 @@
 #'   or `"default"` which is a default and only supported option at the
 #'   moment. See details on the prior definitions.
 #' @param kappa \[`numeric(1)`]\cr A positive number defining the
-#'   concentration parameter \eqn{\kappa} of symmetric Dirichlet prior of
-#'   the donor weights. Ignored if the argument `effective_donors` is
-#'   non-NULL. Note that small values of \eqn{\kappa}  can lead to
-#'   divergences in sampling.
-#' @param effective_donors \[`integer(1)`]\cr Integer for alternative 
-#'   definition of the prior for the donor weights. See details.
+#'   scale parameter \eqn{\kappa} of logistic normal prior of
+#'   the donor weights. Defaults to 1.25. Larger value encourage more sparse 
+#'   weights, but can also cause numerical issues (divergences), which 
+#'   typically disappear with when increasing `adapt_delta` in controls of 
+#'   [rstan::sampling()].
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the 
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -98,7 +87,7 @@
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of 
-#'   [rstan::sampling()] (which are 2000 and 1000 respectively).   
+#'   [rstan::sampling()] (which are 2000 and 1000 respectively). 
 #' @return An object of class `bscmfit`.
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
@@ -110,8 +99,9 @@
 #' fit
 #' 
 bscm <- function(formula, data, treatment, time = "time", unit = "id",
-                 priors = "default", kappa = 0.5, effective_donors = NULL,
-                 mcmc_diagnostics = TRUE, save_data = TRUE, ...) {
+                 priors = "default", kappa = 1.25, mcmc_diagnostics = TRUE, 
+                 save_data = TRUE, 
+                 weight_type = 1, ...) {
   
   # local function for creating input data to Stan
   create_standata <- \() {
@@ -126,8 +116,8 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     )
     if (has_x) {
       s_x <- pmax(1, sd_x)
-      s_yz <- max(1, sqrt(stats::median(c(sd_y, sd_z)^2)))
-      pr_sd_beta <- 2 * s_yz / s_x
+      md_s_y <- max(1, stats::median(sd_y))
+      pr_sd_beta <- 2 * md_s_y / s_x
       standata <- c(
         standata, 
         list(
@@ -137,7 +127,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       )
       if (has_w) {
         s_w <- pmax(1, sd_w)
-        pr_rate_tau <- 5 * s_w / s_yz
+        pr_rate_tau <- 5 * s_w / md_s_y
         standata <- c(
           standata, 
           list(
@@ -154,7 +144,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   create_inits <- \() {
     s_y <- pmax(1, sd_y)
     inits <- list(
-      omega = matrix(1 / J, N, J),
+      eta = matrix(0, N, J),
       sigma = array(stats::runif(N, 0.5 * s_y, 2 * s_y))
     )
     if (has_icpt) {
@@ -162,8 +152,8 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     }
     if (has_x) {
       s_x <- pmax(1, sd_x)
-      s_yz <- max(1, sqrt(mean(c(sd_y, sd_z)^2)))
-      pr_sd_beta <- 2 * s_yz / s_x
+      md_s_y <- max(1, stats::median(sd_y))
+      pr_sd_beta <- 2 * md_s_y / s_x
       inits$beta <- array(stats::rnorm(K, 0, 0.1 * pr_sd_beta))
       if (has_w) {
         inits$gamma_raw <- matrix(0, T_total, L)
@@ -177,7 +167,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   tol <- sqrt(.Machine$double.eps)
   check_bscm_arguments(
     formula, data, treatment, time, unit, 
-    priors, kappa, effective_donors, save_data
+    priors, kappa, save_data
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -293,13 +283,6 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       sd_w <- sd_x[tv_idx]
     }
   }
-  if (!is.null(effective_donors)) {
-    stopifnot_(
-      effective_donors >= 2 && effective_donors < J - 1,
-      "Argument {.arg effective_donors} should be between 2 and {J - 1}."
-    )
-    kappa <- (effective_donors - 1) / (J - effective_donors)
-  }
   icpt <- ifelse(has_icpt, "int", "noint")
   x <- ifelse(has_x, "x", "nox")
   effect <- if (has_w) {
@@ -327,7 +310,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   }
   stan_args$object <- stanmodels[[model_type]]
   stan_args$pars <- c(
-    "omega_raw", 
+    "eta", if (weight_type == 1) "xi",
     if (has_icpt) "a",
     if (has_w) "gamma_raw"
   )

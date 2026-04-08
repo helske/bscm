@@ -14,10 +14,10 @@
 computes more accurate Monte Carlo error estimates at the cost of
 increased computation time.}
 
-\item{...}{Additional arguments to \code{\link[rstan:stanfit-method-loo]{rstan::loo()}}.}
+\item{...}{Additional arguments to \code{\link[loo:loo]{loo::loo()}}.}
 }
 \value{
-An output from \code{\link[rstan:stanfit-method-loo]{rstan::loo()}}.
+An output from \code{\link[loo:loo]{loo::loo()}}.
 }
 \description{
 Approximate leave-One-Out (LOO) cross-validation for Bayesian synthetic control model

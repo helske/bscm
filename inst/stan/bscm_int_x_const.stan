@@ -18,6 +18,7 @@ parameters {
 #include parameters/beta.stan
 }
 transformed parameters {
+#include transformed_parameters/base.stan
 #include transformed_parameters/alpha_z.stan
 #include transformed_parameters/alpha_x.stan
 }

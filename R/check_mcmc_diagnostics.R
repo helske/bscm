@@ -12,9 +12,7 @@
 #' period and/or too many/few donors, units have very different series so that 
 #' the convex hull assumption is not even approximately plausible. Other 
 #' reasons include using priors which are incompatible with the data. 
-#' Especially too small value of `effective_donors` with respect to the total 
-#' number of donors leads to Dirichlet prior of weights with very small 
-#' concentration parameter (e.g., 0.01), which causes numerical issues 
+#' Especially too large value of `kappa` can cause numerical issues 
 #' (divergences) with Stan.
 #' 
 #' @export
@@ -72,7 +70,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
       "y_mean", "y_rep", 
       "effect", "R2", "RMSE_pre", "RMSE_post", "RMSE_ratio", "effective_donors", 
       "avg_effect_pre", "avg_effect_post", "avg_RMSE_pre", "avg_RMSE_post", 
-      "avg_RMSE_ratio", "avg_effective_donors", "log_lik"
+      "avg_RMSE_ratio", "avg_effective_donors"
     )
   }
   sumr <- x |> 
@@ -162,7 +160,7 @@ print.bscmfit_diagnostics <- function(x, print_table = NULL, ...) {
     warning_(c("\nMCMC diagnostics indicate potential problems:", x$messages))
   } else {
     if (is.null(print_table)) print_table <- FALSE
-    cat("\nMCMC diagnostics indicate no major issues. \n")
+    cat("\nMCMC diagnostics indicate no issues. \n")
   }
   if (print_table) {
     print(x$rhat_and_ess)

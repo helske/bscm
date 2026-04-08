@@ -27,8 +27,13 @@ print.bscmfit <- function(x, ...) {
     cat("Number of donors:", J, "\n")
     cat("Number of time periods:", T_total, "\n")
   }
+  n_chains <- nchains(x)
+  n_warmup <- x$stanfit@sim$warmup
+  n_post <- x$stanfit@sim$iter - n_warmup
   cat(
-    "MCMC sampling time:", max(rowSums(x$elapsed_time$sampling)), "seconds\n"
+    "MCMC sampling using", n_chains, "chains, each with", 
+    n_warmup, "+", n_post, "iterations took", 
+    round(max(rowSums(x$elapsed_time$sampling)), 2), "seconds\n"
   )
   if (!is.null(x$converge)) {
     print(x$converge)

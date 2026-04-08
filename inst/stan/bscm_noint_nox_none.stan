@@ -11,6 +11,9 @@ transformed data {
 parameters {
 #include parameters/base.stan
 }
+transformed parameters {
+#include transformed_parameters/base.stan
+}
 model {
 #include model/base.stan
   for (i in 1:N) {

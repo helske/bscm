@@ -29,7 +29,7 @@ test_that("bscmfit$setup values are correct", {
   expect_true(setup$has_intercept)
   expect_equal(setup$predictors, character(0))
   expect_null(setup$beta_names)
-  expect_equal(setup$kappa, 0.5)
+  expect_equal(setup$kappa, 1.25)
   expect_equal(length(setup$donors), 30L)
   expect_s3_class(fit1_int$data, "data.frame")
   expect_equal(get_predictors(fitN_xz), c("x", "z"))
