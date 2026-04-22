@@ -13,9 +13,10 @@ leave_donor_out <- function(x, ...) {
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
-#' @return A list with three elements: `effect`, `rmse`, and `diagnostics`, 
-#' containing the treatment effect estimates, pre- and post-treatment RMSE 
-#' estimates, and MCMC diagnostics for each of the \eqn{J} models.
+#' @return A list with four elements: `effect`, `rmse`, `weights`and 
+#' `diagnostics`, containing the treatment effect estimates, 
+#' pre- and post-treatment RMSE estimates, donor weights,
+#' and MCMC diagnostics for each of the \eqn{J} models.
 #' @rdname leave_donor_out
 #' @aliases leave_donor_out
 #' @export
@@ -35,17 +36,18 @@ leave_donor_out.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   unit <- get_unit(x)
   data <- x$data
   
-  effect <- rmse <- diagnostics <- 
+  effect <- rmse <- weights <- diagnostics <- 
     stats::setNames(vector("list", length(donors)), donors)
   p <- progressr::progressor(along = donors)
   for (donor in donors) {
     p(sprintf(paste0("Estimating the model without donor ", donor, ".")))
     d <- data |> filter(.data[[unit]] != .env$donor)
     fit <- stats::update(
-      x, data = d, mcmc_diagnostics = FALSE, save_data = FALSE, ...
+      x, data = d, refresh = 0, mcmc_diagnostics = FALSE, save_data = FALSE, ...
     )
-    effect[[donor]] <- treatment_effect(fit, probs)
-    rmse[[donor]] <- rmse(fit, probs)
+    effect[[donor]] <- treatment_effect(fit, probs = probs)
+    rmse[[donor]] <- rmse(fit, probs = probs)
+    weights[[donor]] <- donor_weights(weights, probs = probs)
     diagnostics[[donor]] <- check_mcmc_diagnostics(fit, warn = FALSE)
   }
   issues <- lapply(diagnostics, \(x) x$has_issues)
@@ -54,5 +56,7 @@ leave_donor_out.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     "Some of the runs resulted in MCMC diagnostic warnings. Check 
     the `diagnostics` element of the output list for details."
   )
-  list(effect = effect, rmse = rmse, diagnostics = diagnostics)
+  list(
+    effect = effect, rmse = rmse, weights = weights, diagnostics = diagnostics
+  )
 }

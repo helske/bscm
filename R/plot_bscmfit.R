@@ -27,13 +27,15 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   time <- get_time(x)
   unit <- get_unit(x)
   
-  d_effects <- treatment_effect(x, probs, average = FALSE, for_plots = TRUE)
-  d_synth <- synthetic_control(x, probs, for_plots = TRUE)
+  d_effects <- treatment_effect(
+    x, type = "time", average = FALSE, probs = probs, for_plots = TRUE
+  )
+  d_synth <- synthetic_control(x, probs = probs, for_plots = TRUE)
   d_effects$type <- "Treatment effect"
   d_synth$type <- "Synthetic control"
   lookup <- stats::setNames(
     c(unit, time, outcome, paste0("q", 100 * probs)), 
-    c("unit", "time", "y", "ymin", "ymax"))
+    c("unit", "time", "mean", "ymin", "ymax"))
   d_plot <- bind_rows(d_effects, d_synth) |> 
     rename(any_of(lookup))
   
@@ -41,7 +43,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     filter(.data[[unit]] %in% .env$treated) |> 
     select(all_of(c(unit, time, outcome))) |> 
     mutate(type = "Synthetic control") |> 
-    rename(any_of(c(mean = "y", lookup)))
+    rename(any_of(lookup))
   
   dt <- data.frame(yintercept = 0, type = "Treatment effect")
   N <- get_N(x)

@@ -15,7 +15,7 @@ test_that("rmse returns data.frame with RMSEs", {
     d, 
     c("id", "variable", "mean", "sd", "q50", "rhat", "ess_bulk", "ess_tail")
   )
-  expect_equal(d$id, as.character(rep(1:3, each = 3)))
+  expect_equal(d$id, as.character(rep(1:3, times = 3)))
 })
 
 test_that("rmse respects custom probs", {

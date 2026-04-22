@@ -30,7 +30,7 @@ coef.bscmfit <- function(
   )
   
  
-  d_alpha <- d_beta <- d_gamma <- d_tau <- NULL
+  d_alpha <- d_beta <- d_gamma <- d_kappa <- NULL
   if ("alpha" %in% pars) {
     treated <- get_treated(object)
     unit <- get_unit(object)
@@ -52,10 +52,10 @@ coef.bscmfit <- function(
       summarise_with_probs(probs = probs) |> 
       mutate("{time}" := rep(times, each = L), .before = 1L) |> 
       mutate(variable = paste0("gamma_", object$setup$gamma_names))
-    d_tau <- as_draws(object, "tau") |> 
+    d_kappa <- as_draws(object, "kappa") |> 
       summarise_with_probs(probs = probs) |> 
-      mutate(variable = paste0("tau_", object$setup$gamma_names))
+      mutate(variable = paste0("kappa_", object$setup$gamma_names))
   } 
-  list(alpha = d_alpha, beta = d_beta, gamma = d_gamma, tau = d_tau)
+  list(alpha = d_alpha, beta = d_beta, gamma = d_gamma, kappa = d_kappa)
 }
 

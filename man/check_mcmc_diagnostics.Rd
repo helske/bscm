@@ -42,8 +42,8 @@ Typical reasons for sampling issues can be a result of short pre-treatment
 period and/or too many/few donors, units have very different series so that
 the convex hull assumption is not even approximately plausible. Other
 reasons include using priors which are incompatible with the data.
-Especially too large value of \code{kappa} can cause numerical issues
-(divergences) with Stan.
+In addition, too large standard deviation \eqn{kappa} can
+cause numerical issues (divergences) with Stan.
 }
 \references{
 https://mc-stan.org/learn-stan/diagnostics-warnings.html

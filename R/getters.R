@@ -15,6 +15,17 @@ has_predictors <- \(x) length(x$setup$beta_names) > 0L
 has_tv_coefs <- \(x) length(x$setup$gamma_names) > 0L
 get_predictors <- \(x) x$setup$predictors
 
+#' Get the value of kappa
+#' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
+#' @return A value of \eqn{\kappa} used in model estimation.
+get_kappa <- function(x) {
+  stopifnot_(
+    inherits(x, "bscmfit"),
+    "Argument {.arg x} should be an object of class {.cls bscmfit}."
+  )
+  x$setup$kappa
+}
+
 #' Extract the name of the outcome variable from formula object
 #' @noRd
 get_outcome <- function(x) {

@@ -5,9 +5,7 @@ donor_weights <- function(x, ...) {
 }
 #' Extract donor weights of a Bayesian synthetic control model
 #'
-#' @param x \[`bscmfit`]\cr The model fit object.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.5, 0.975)`.
+#' @inheritParams rmse.bscmfit
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the donor weights
 #' @rdname donor_weights

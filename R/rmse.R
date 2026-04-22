@@ -6,17 +6,18 @@ rmse <- function(x, ...) {
 #' Extract root mean squared errors of a Bayesian synthetic control model
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.975)`.
 #' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the 
 #' average RMSEs over treated units in case of multiple treated units. 
-#' If `FALSE`, unit-specific values are returned.
+#' If `FALSE`, unit-specific values are returned. 
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
+#'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the RMSE values.
+#' @return A `data.frame` of posterior summaries of the pre-RMSE, post-RMSE and 
+#' post-RMSE / pre-RMSE values.
 #' @rdname rmse
 #' @aliases rmse
 #' @export
-rmse.bscmfit <- function(x, probs = c(0.025, 0.975), average = TRUE, ...) {
+rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
   
   test_probs(probs)
   stopifnot_(
@@ -24,28 +25,36 @@ rmse.bscmfit <- function(x, probs = c(0.025, 0.975), average = TRUE, ...) {
     "Argument {.arg average} must be a single {.cls logical} value."
   )
   N <- get_N(x)
+  T_pre <- get_T_pre(x)
+  T_total <- get_T_total(x)
+  treated <- get_treated(x)
+  
+  effect <- as_draws_rvars(as_draws(x, "effect"))$effect
+  
+  pre <- post <- ratio <- vector("list", N)
+  for (i in seq_len(N)) {
+    T_ <- T_pre[treated[i]]
+    pre[[i]] <- sqrt(rvar_mean(effect[seq_len(T_), i]^2))
+    post[[i]] <- sqrt(rvar_mean(effect[seq.int(T_ + 1L, T_total), i]^2))
+    ratio[[i]] <- post[[i]] / pre[[i]]
+  }
   if (average && N > 1) {
-    as_draws(x, c("avg_RMSE_pre", "avg_RMSE_post", "avg_RMSE_ratio")) |> 
+    lapply(
+      list(do.call(c, pre), do.call(c, post), do.call(c, ratio)), rvar_mean
+    ) |> 
       summarise_with_probs(probs) |>
       mutate(
-        variable = case_when(
-          startsWith(variable, "avg_RMSE_pre") ~ "Average pre-RMSE",
-          startsWith(variable, "avg_RMSE_post") ~ "Average post-RMSE",
-          startsWith(variable, "avg_RMSE_ratio") ~ "Average RMSE ratio"
+        variable = c(
+          "Average pre-RMSE", "Average post-RMSE", "Average RMSE ratio"
         )
       )
   } else {
     unit <- get_unit(x)
-    treated <- get_treated(x)
-    as_draws(x, c("RMSE_pre", "RMSE_post", "RMSE_ratio")) |> 
+    c(pre, post, ratio) |>
       summarise_with_probs(probs) |>
-      mutate("{unit}" := rep(treated, each = 3), .before = 1L) |> 
+      mutate("{unit}" := rep(treated, times = 3), .before = 1L) |>
       mutate(
-        variable = case_when(
-          startsWith(variable, "RMSE_pre") ~ "Pre-RMSE",
-          startsWith(variable, "RMSE_post") ~ "Post-RMSE",
-          startsWith(variable, "RMSE_ratio") ~ "RMSE ratio"
-        )
+        variable = rep(c("Pre-RMSE", "Post-RMSE", "RMSE ratio"), each = N)
       )
   }
 }

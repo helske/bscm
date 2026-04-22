@@ -3,10 +3,9 @@
 #' `bayes_R2` computes the Bayesian \eqn{R^2} measure of model fit for a 
 #' Bayesian synthetic control model, while `loo_R2` computes a leave-one-out 
 #' adjusted version of the same quantity.
-#'
+#' 
+#' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return `data.frame` of posterior summary of (LOO-adjusted) R-squared values.
 #' @references
@@ -75,12 +74,22 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
 bayes_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   test_probs(probs)
   
-  d <- as_draws(object, "R2")
   N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
-  as_draws(object, "R2") |> 
+  T_pre <- get_T_pre(object)
+  
+  y_mean <- as_draws_rvars(as_draws(object, "y_mean"))$y_mean
+  sigma <- as_draws_rvars(as_draws(object, "sigma"))$sigma
+  
+  r2 <- vector("list", N)
+  for (i in seq_len(N)) {
+    var_fit <- rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
+    r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
+  }
+  
+  r2 |> 
     summarise_with_probs(probs) |>
-    mutate("{unit}" := treated, .before = 1L) |> 
+    mutate("{unit}" := treated, .before = 1L) |>
     mutate(variable = "R2")
 }

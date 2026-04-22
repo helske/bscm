@@ -19,26 +19,26 @@
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   
   test_probs(probs)
-  cf <- tau <- NULL
+  cf <- sigma_gamma <- NULL
   if (has_predictors(object)) {
     cf <- coef(object, probs = probs, type = "beta")$beta |> 
       mutate("{get_unit(object)}" := NA, .before = 1L)
     if (has_tv_coefs(object)) {
-      tau <- as_draws(object, "tau") |> 
+      sigma_gamma <- as_draws(object, "sigma_gamma") |> 
         summarise_with_probs(probs) |> 
-        mutate(variable = paste0("tau_", object$setup$gamma_names))
+        mutate(variable = paste0("SD sigma_gamma_", object$setup$gamma_names))
     }
   }
   s <- sigma(object, probs = probs) |> 
-    mutate(variable = "Residual SD")
+    mutate(variable = "Residual SD (sigma)")
   r2 <- bayes_R2(object, probs = probs) |> 
     mutate(variable = "Bayesian R-squared")
-  att <- as_draws(object, parameters = "avg_effect_post") |> 
-    summarise_with_probs(probs) |> 
-    mutate(variable = "Average treatment effect")
-  rmses <- rmse(object, probs = probs, average = TRUE)
-  eff <- effective_donors(object, probs = probs, average = TRUE)
-  sumr <- bind_rows(cf, tau, s, r2, att, rmses, eff)
+  att <- treatment_effect(
+    object, type = "average", average = TRUE, probs = probs
+  )
+  rmses <- rmse(object, average = TRUE, probs = probs)
+  eff <- effective_donors(object, average = TRUE, probs = probs)
+  sumr <- bind_rows(cf, sigma_gamma, s, r2, att, rmses, eff)
   class(sumr) <- c("summary_bscmfit", class(sumr))
   sumr
 }

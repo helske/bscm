@@ -15,12 +15,6 @@ test_that("as_draws returns a draws_array", {
     include = FALSE
   )
   expect_equal(
-    posterior::variables(d),
-    c(
-      "sigma[1]", "alpha[1]", "R2[1]", 
-      "RMSE_pre[1]", "RMSE_post[1]", "RMSE_ratio[1]", "effective_donors[1]", 
-      "avg_effect_pre", "avg_effect_post", "avg_RMSE_pre", "avg_RMSE_post",
-      "avg_RMSE_ratio", "avg_effective_donors", "lp__"
-    )
+    posterior::variables(d), c("sigma[1]", "alpha[1]", "lp__")
   )
 })

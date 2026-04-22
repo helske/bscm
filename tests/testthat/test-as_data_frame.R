@@ -11,14 +11,14 @@ test_that("as.data.frame returns a data.frame", {
   expect_equal(names(d), c("beta[1]", "lp__"))
   
   d <- as.data.frame(
-    fitN_xz, parameters = c("beta", "y_rep", "effective_donors")
+    fitN_xz, parameters = c("beta", "y_rep")
   )
-  expect_equal(dim(d), c(ndraws(fitN_xz), 125L))
+  expect_equal(dim(d), c(ndraws(fitN_xz), 122L))
   expect_equal(
     names(d), 
     c(paste0("beta[", 1:2, "]"),
-      paste0("y_rep[", seq_len(40), ",", rep(1:3, each = 40), "]"),
-      paste0("effective_donors[", 1:3, "]"))
+      paste0("y_rep[", seq_len(40), ",", rep(1:3, each = 40), "]")
+    )
   )
   
   expect_error(

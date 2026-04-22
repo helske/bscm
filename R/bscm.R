@@ -6,9 +6,14 @@
 #' @details
 #' 
 #' The prior for the weight vector \eqn{\omega} is defined as a logistic normal, 
-#' i.e., \eqn{\omega = \textrm{softmax}(\kappa \eta)}, with \eqn{\eta} standard 
-#' normal and \eqn{\kappa} is fixed hyperparameter. The default 
-#' \eqn{\kappa = 1.25} approximates Dirichlet(0.5) prior on \eqn{\omega}.
+#' i.e., \eqn{\omega = \textrm{softmax}(\eta)}, with 
+#' \eqn{\eta \sim N(0, \kappa^2)}. Standard deviation \eqn{\kappa} controls the 
+#' prior sparsity of the weights. The default value of \eqn{\kappa} is chosen
+#' so that the relative effective number of donors 
+#' \eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.25. You should definitely test 
+#' different values of `kappa`/`r_ess` to assess the sensitivity of the 
+#' results on your choice, and potentially run [bscm::loo()] for 
+#' cross-validation based selection of `kappa`.
 #' 
 #' When model contains covariates \eqn{X}, their effect is subtracted from 
 #' donors, i.e., for treated unit \eqn{i},
@@ -71,10 +76,14 @@
 #'   moment. See details on the prior definitions.
 #' @param kappa \[`numeric(1)`]\cr A positive number defining the
 #'   scale parameter \eqn{\kappa} of logistic normal prior of
-#'   the donor weights. Defaults to 1.25. Larger value encourage more sparse 
+#'   the donor weights. Larger value encourage more sparse 
 #'   weights, but can also cause numerical issues (divergences), which 
-#'   typically disappear with when increasing `adapt_delta` in controls of 
+#'   typically disappear when increasing `adapt_delta` in controls of 
 #'   [rstan::sampling()].
+#' @param r_ess \[`numeric(1)`]\cr A scalar between 0 and 1 defining target 
+#'   effective number donors scaled by the total number of donors. This is 
+#'   internally translated to value of \eqn{\kappa} corresponding to 
+#'   \eqn{median(ESS | \kappa) / J = r_ess}. Ignored if `kappa` is not `NULL`.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the 
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -99,19 +108,19 @@
 #' fit
 #' 
 bscm <- function(formula, data, treatment, time = "time", unit = "id",
-                 priors = "default", kappa = 1.25, mcmc_diagnostics = TRUE, 
-                 save_data = TRUE, 
-                 weight_type = 1, ...) {
+                 kappa = NULL, r_ess = 0.5,  mcmc_diagnostics = TRUE, 
+                 save_data = TRUE, priors = "default", ...) {
   
   # local function for creating input data to Stan
   create_standata <- \() {
     s_y <- pmax(1, sd_y)
+    sd_diff_y <- pmax(1, sd_diff_y)
     standata <- list(
       T = T_total, T_pre = array(T_pre), N = N, J = J, 
       y = t(Y), Z = Z,
-      pr_rate_sigma = array(1 / s_y),
+      pr_rate_sigma = array(1 / sd_diff_y),
       pr_mean_intercept = array(mean_y), 
-      pr_sd_intercept = array(2 * s_y),
+      pr_sd_intercept = array(2 * sd_diff_y),
       kappa = kappa
     )
     if (has_x) {
@@ -127,12 +136,12 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       )
       if (has_w) {
         s_w <- pmax(1, sd_w)
-        pr_rate_tau <- 5 * s_w / md_s_y
+        pr_rate_sigma_gamma <- 5 * s_w / md_s_y
         standata <- c(
           standata, 
           list(
             L = L, tv_idx = array(tv_idx),
-            pr_rate_tau = array(pr_rate_tau)
+            pr_rate_sigma_gamma = array(pr_rate_sigma_gamma)
           )
         )
       }
@@ -143,21 +152,21 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   # local function to create initial values for Stan
   create_inits <- \() {
     s_y <- pmax(1, sd_y)
+    sd_diff_y <- pmax(1, sd_diff_y)
     inits <- list(
       eta = matrix(0, N, J),
-      sigma = array(stats::runif(N, 0.5 * s_y, 2 * s_y))
+      sigma = array(stats::runif(N, 0.5 / sd_diff_y, 1.5 / sd_diff_y))
     )
     if (has_icpt) {
-      inits$a <- array(stats::rnorm(N, mean_y, 0.5 * s_y))
+      inits$a <- array(stats::rnorm(N, mean_y, 0.5 * sd_diff_y))
     }
     if (has_x) {
       s_x <- pmax(1, sd_x)
       md_s_y <- max(1, stats::median(sd_y))
-      pr_sd_beta <- 2 * md_s_y / s_x
-      inits$beta <- array(stats::rnorm(K, 0, 0.1 * pr_sd_beta))
+      inits$beta <- array(stats::rnorm(K, 0, md_s_y / s_x))
       if (has_w) {
         inits$gamma_raw <- matrix(0, T_total, L)
-        inits$tau <- array(stats::runif(L, 0.05, 0.1))
+        inits$sigma_gamma <- array(stats::runif(L, 0.05, 0.1))
       }
     }
     inits
@@ -166,8 +175,8 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   # start the actual function body
   tol <- sqrt(.Machine$double.eps)
   check_bscm_arguments(
-    formula, data, treatment, time, unit, 
-    priors, kappa, save_data
+    formula, data, treatment, time, unit, kappa, r_ess, mcmc_diagnostics, 
+    save_data, priors
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -237,6 +246,9 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     "Outcome variable cannot be constant in the pre-treatment period. 
       Found `sd(z) < sqrt(.Machine$double.eps)`."
   )
+  sd_diff_y <- vapply(
+    seq_len(N), \(i) sd(diff(Y[seq_len(T_pre[i]), i])), numeric(1)
+  )
   beta_names <- gamma_names <- NULL
   if (has_x) {
     X <- stats::model.matrix(formula, data = data)
@@ -283,6 +295,15 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       sd_w <- sd_x[tv_idx]
     }
   }
+  
+  if (is.null(kappa)) {
+    if (is.null(r_ess)) {
+      kappa <- select_kappa(J, 0.25)
+    } else {
+      kappa <- select_kappa(J, r_ess)
+    }
+  }
+  
   icpt <- ifelse(has_icpt, "int", "noint")
   x <- ifelse(has_x, "x", "nox")
   effect <- if (has_w) {
@@ -310,9 +331,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   }
   stan_args$object <- stanmodels[[model_type]]
   stan_args$pars <- c(
-    "eta", if (weight_type == 1) "xi",
-    if (has_icpt) "a",
-    if (has_w) "gamma_raw"
+    "eta", "kappa_aux", if (has_icpt) "a", if (has_w) "gamma_raw"
   )
   stan_args$include <- FALSE
   start_time <- proc.time()
@@ -322,11 +341,9 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   times <- unique(data[[time]])
   priors <- stan_args$data[substr(names(stan_args$data), 1, 3) %in% c("pr_")]
   out$setup <- dplyr::lst(
-    outcome, treatment, treated, donors, unit, time, times, 
-    T_pre, T_total, 
-    has_intercept = has_icpt,
-    predictors, beta_names, gamma_names, kappa,
-    model_type, priors
+    outcome, treatment, treated, donors, unit, time, times, T_pre, T_total, 
+    has_intercept = has_icpt, predictors, beta_names, gamma_names, model_type,
+    priors, kappa = kappa
   )
   class(out) <- "bscmfit"
   if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {

@@ -2,8 +2,9 @@
 #'
 #' @inheritParams bscm
 #' @noRd
-check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 priors, kappa, save_data) {
+check_bscm_arguments <- function(formula, data, treatment, time, unit, 
+                                 kappa, r_ess, mcmc_diagnostics, save_data,
+                                 priors) {
   
   stopifnot_(
     !missing(formula),
@@ -72,14 +73,25 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
   stopifnot_(
+    checkmate::test_number(kappa, lower = 0, finite = TRUE, null.ok = TRUE),
+    "Argument {.arg kappa} should be single positive number defining the 
+      scale parameter of the logistic normal prior of donor weights."
+  )
+  stopifnot_(
+    checkmate::test_number(
+      r_ess, lower = 0, upper = 1, finite = TRUE, null.ok = TRUE
+    ),
+    "Argument {.arg r_ess} should be single number between 0 and 1 defining the 
+      prior relative effective number of donors."
+  )
+  stopifnot_(
+    checkmate::test_flag(mcmc_diagnostics),
+    "Argument {.arg mcmc_diagnostics} must be a single {.cls logical} value."
+  )
+  stopifnot_(
     identical(priors, "default"),
     "Argument {.arg priors} is not equal to {.val 'default'}. Only default 
     priors for intercept and sigma are currently supported."
-  )
-  stopifnot_(
-    checkmate::test_number(kappa, finite = FALSE, null.ok = FALSE, lower = 0),
-    "Argument {.arg kappa} must be a single positive number defining the 
-    scale parameter of the logistic normal prior of weights."
   )
   stopifnot_(
     checkmate::test_flag(save_data),

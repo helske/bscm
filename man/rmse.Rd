@@ -7,19 +7,19 @@
 \usage{
 rmse(x, ...)
 
-\method{rmse}{bscmfit}(x, probs = c(0.025, 0.975), average = TRUE, ...)
+\method{rmse}{bscmfit}(x, average = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
 \item{...}{Ignored.}
 
-\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
-Default is \code{c(0.025, 0.975)}.}
-
 \item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns the
 average RMSEs over treated units in case of multiple treated units.
 If \code{FALSE}, unit-specific values are returned.}
+
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
+Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{data.frame} of posterior summaries of the RMSE values.

@@ -1,9 +1,8 @@
 #' Extract residual standard deviations of a Bayesian synthetic control
 #' model
 #'
+#' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
-#'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the residual standard
 #'   deviations.

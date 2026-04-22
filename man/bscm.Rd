@@ -10,11 +10,11 @@ bscm(
   treatment,
   time = "time",
   unit = "id",
-  priors = "default",
-  kappa = 1.25,
+  kappa = NULL,
+  r_ess = 0.5,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
-  weight_type = 1,
+  priors = "default",
   ...
 )
 }
@@ -51,16 +51,17 @@ variable in \code{data}.}
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data}
 identifying different units.}
 
-\item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
-or \code{"default"} which is a default and only supported option at the
-moment. See details on the prior definitions.}
-
 \item{kappa}{[\code{numeric(1)}]\cr A positive number defining the
 scale parameter \eqn{\kappa} of logistic normal prior of
-the donor weights. Defaults to 1.25. Larger value encourage more sparse
+the donor weights. Larger value encourage more sparse
 weights, but can also cause numerical issues (divergences), which
-typically disappear with when increasing \code{adapt_delta} in controls of
+typically disappear when increasing \code{adapt_delta} in controls of
 \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.}
+
+\item{r_ess}{[\code{numeric(1)}]\cr A scalar between 0 and 1 defining target
+effective number donors scaled by the total number of donors. This is
+internally translated to value of \eqn{\kappa} corresponding to
+\eqn{median(ESS | \kappa) / J = r_ess}. Ignored if \code{kappa} is not \code{NULL}.}
 
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks
@@ -72,6 +73,10 @@ generate warnings regarding convergence and other sampling issues.}
 object returned by  \code{\link[=bscm]{bscm()}} includes the input \code{data.frame}
 (argument \code{data}), after dropping unused factor levels and potentially
 rearranging data by \code{unit} and \code{time} variables.}
+
+\item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
+or \code{"default"} which is a default and only supported option at the
+moment. See details on the prior definitions.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that
@@ -87,9 +92,11 @@ types.
 }
 \details{
 The prior for the weight vector \eqn{\omega} is defined as a logistic normal,
-i.e., \eqn{\omega = \textrm{softmax}(\kappa \eta)}, with \eqn{\eta} standard
-normal and \eqn{\kappa} is fixed hyperparameter. The default
-\eqn{\kappa = 1.25} approximates Dirichlet(0.5) prior on \eqn{\omega}.
+i.e., \eqn{\omega = \textrm{softmax}(\eta)}, with
+\eqn{\eta \sim N(0, \kappa^2)}. Standard deviation \eqn{\kappa} controls the
+prior sparsity of the weights. The default value of \eqn{\kappa} is chosen
+so that the relative effective number of donors
+\eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.5.
 
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},
