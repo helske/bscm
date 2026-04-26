@@ -7,7 +7,7 @@ test_that("as.data.frame returns a data.frame", {
     c("alpha[1]", "sigma[1]", paste0("omega[1,", seq_len(30), "]"))
   )
   d <- as.data.frame(fit1_x, parameters = c("beta", "lp__"))
-  expect_equal(dim(d), c(ndraws(fit1_int), 2L))
+  expect_equal(dim(d), c(ndraws(fit1_x), 2L))
   expect_equal(names(d), c("beta[1]", "lp__"))
   
   d <- as.data.frame(

@@ -27,9 +27,14 @@ should likely use at least \code{L = 10} or so.}
 treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A list with three elements: \code{effect}, \code{rmse}, and \code{diagnostics},
-containing the treatment effect estimates, pre- and post-treatment RMSE
-estimates, and MCMC diagnostics for each placebo run.
+A list with data frames \code{effect}, \code{rmse}, and \code{diagnostics}, and a
+\code{metadata} list. The data frames contain posterior summaries for each run,
+identified by a \code{placebo} column. For \code{type = "donor"}, \code{placebo} is the
+treated unit name for the original fit and the donor name for each placebo
+run. For \code{type = "time"}, \code{placebo} is the assumed treatment start time for
+each run. The \code{metadata} list contains the placebo type, summary
+probabilities, model setup, and the placebo labels used. The result can be
+visualized with \code{\link[=plot_effects]{plot_effects()}}.
 }
 \description{
 For the in-space placebo (\code{type = "donor"}), original model is re-estimated

@@ -99,7 +99,7 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   )
 }
 
-test_probs <- function(probs) {
+sort_probs <- function(probs) {
   stopifnot_(
     checkmate::test_numeric(
       probs,
@@ -111,4 +111,5 @@ test_probs <- function(probs) {
     "Argument {.arg probs} must be a {.cls numeric} vector with values between
      0 and 1."
   )
+  sort(probs)
 }

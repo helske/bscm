@@ -21,7 +21,7 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     "LOO R2 requires the original data. Refit the model with
     {.code save_data = TRUE}."
   )
-  test_probs(probs)
+  probs <- sort_probs(probs)
   old_seed <- .Random.seed
   on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
   set.seed(get_stanfit(object)@stan_args[[1]]$seed)
@@ -72,7 +72,7 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
 #' @export bayes_R2
 #' @export
 bayes_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
-  test_probs(probs)
+  probs <- sort_probs(probs)
   
   N <- get_N(object)
   treated <- get_treated(object)

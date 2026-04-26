@@ -331,7 +331,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   }
   stan_args$object <- stanmodels[[model_type]]
   stan_args$pars <- c(
-    "eta", "kappa_aux", if (has_icpt) "a", if (has_w) "gamma_raw"
+    "eta", if (has_icpt) "a", if (has_w) "gamma_raw"
   )
   stan_args$include <- FALSE
   start_time <- proc.time()

@@ -54,7 +54,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
       ggplot(aes(time, mean)) + 
       geom_hline(
         data = dt, aes(yintercept = yintercept), 
-        linetype = "dashed", colour = "grey50"
+        linetype = "dashed", colour = "grey70"
       ) +
       geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = type), alpha = 0.25) +
       geom_line(aes(colour = type)) +

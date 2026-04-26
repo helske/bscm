@@ -13,7 +13,7 @@ donor_weights <- function(x, ...) {
 #' @export
 donor_weights.bscmfit <- function(x, probs = c(0.025, 0.5, 0.975), ...) {
   
-  test_probs(probs)
+  probs <- sort_probs(probs)
   donors <- get_donors(x)
   unit <- get_unit(x)
   treated <- get_treated(x)

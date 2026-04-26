@@ -3,27 +3,59 @@
 \name{leave_donor_out}
 \alias{leave_donor_out}
 \alias{leave_donor_out.bscmfit}
-\title{Leave-donor-out effects of a Bayesian synthetic control model}
+\title{Leave-out donor sensitivity of a Bayesian synthetic control model}
 \usage{
 leave_donor_out(x, ...)
 
-\method{leave_donor_out}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{leave_donor_out}{bscmfit}(
+  x,
+  order = "descending",
+  cumulative = FALSE,
+  probs = c(0.025, 0.5, 0.975),
+  ...
+)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The output returned by the \code{\link[=bscm]{bscm()}}.}
 
 \item{...}{Additional arguments passed on to \code{\link[=bscm]{bscm()}}.}
 
+\item{order}{[\code{character()} or \code{NULL}]\cr Donor order used for leave-out
+runs. Either a vector of donor names, or \code{"descending"} / \code{"ascending"} to
+rank donors by posterior means of donor weights. Default is \code{"descending"}.
+Use \code{NULL} to use the original donor order.}
+
+\item{cumulative}{[\code{logical(1)}]\cr If \code{FALSE} (the default), omit one donor
+at a time. If \code{TRUE}, omit donors cumulatively following \code{order}.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries of the
 treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A list with three elements: \code{effect}, \code{rmse}, and \code{diagnostics},
-containing the treatment effect estimates, pre- and post-treatment RMSE
-estimates, and MCMC diagnostics for each of the \eqn{J} models.
+An object of class \code{bscm_ldo} with data frames \code{effect},
+\code{rmse}, \code{weights}, and \code{diagnostics}, and a \code{metadata} list. The data
+frames contain posterior summaries for the original fit (\code{step = 0}) and
+for each leave-out run, identified by \code{step}, \code{n_removed}, and
+\code{last_removed}. The \code{metadata} list contains the omitted donors, whether
+donor omission was cumulative, summary probabilities, and model metadata
+needed for plotting. The result can be visualized with \code{\link[=plot_weights]{plot_weights()}} and
+\code{\link[=plot_effects]{plot_effects()}}.
 }
 \description{
-Re-estimates original model \eqn{J} times by removing one of the \eqn{J}
-donors from the data in turn. This can be used to assess how sensitive the
-results are to the inclusion of specific donors.
+\code{leave_donor_out()} re-estimates the original model after omitting donors from
+the donor pool. By default, it removes one donor at a time. Setting
+\code{cumulative = TRUE} instead removes donors cumulatively following the chosen
+order, which can be used to assess how sensitive the results are to the most
+influential donors.
+}
+\details{
+The donor order can always be supplied explicitly. For one-donor leave-out
+runs (\code{cumulative = FALSE}), that order controls the order of the returned
+runs. For cumulative leave-out runs (\code{cumulative = TRUE}), donors are removed
+from the ordered pool one by one. If no order is supplied, one-donor leave-out
+uses the original donor order, while cumulative leave-out orders donors by
+posterior mean donor weight in descending order.
+
+For models with multiple treated units, automatic donor ranking is based on
+the average posterior mean donor weight across treated units.
 }

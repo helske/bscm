@@ -32,7 +32,7 @@ covariate_imbalance.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975),
     checkmate::test_flag(plot),
     "Argument {.arg plot} must be a single {.cls logical} value."
   )
-  test_probs(probs)
+  probs <- sort_probs(probs)
   stopifnot_(
     has_predictors(x),
     "The model does not contain any predictors."

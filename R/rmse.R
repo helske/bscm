@@ -19,7 +19,7 @@ rmse <- function(x, ...) {
 #' @export
 rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
   
-  test_probs(probs)
+  probs <- sort_probs(probs)
   stopifnot_(
     checkmate::test_flag(average),
     "Argument {.arg average} must be a single {.cls logical} value."

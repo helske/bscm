@@ -10,7 +10,7 @@
 #' @export
 sigma.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   
-  test_probs(probs)
+  probs <- sort_probs(probs)
   
   d <- as_draws(object, "sigma")
   N <- get_N(object)

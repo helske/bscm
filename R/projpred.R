@@ -40,23 +40,30 @@ get_refmodel.bscmfit <- function(object, ...) {
   
   stopifnot_(
     !is.null(object$data),
-    "The model fit does not contain the original data. Refit with 
-    {.arg save_data = TRUE}."
+    "The model fit {.arg object} does not contain the original data. Refit the 
+    model with {.arg save_data = FALSE}."
   )
+ 
   stopifnot_(
-    length(object$setup$predictors) == 0,
+    length(get_predictors(object)) == 0L,
     "Reference model construction currently only supports BSCM without
     additional predictors."
   )
-  
+  stopifnot_(
+    get_N(object) == 1L,
+    "Reference model construction currently only supports BSCM with single 
+    treated unit."
+  )
   treated <- get_treated(object)
-  donors <- get_donors(object)
+  donors <- original_donor_names <- get_donors(object)
   unit <- get_unit(object)
   units <- unique(object$data[[unit]])
-  if (!identical(units, make.names(units))) {
-    units <- paste0("unit_", units)
-    treated <- paste0("unit_", treated)
-    donors <- paste0("unit_", donors)
+  safe_names <- make.names(units, unique = TRUE)
+  if (!identical(units, safe_names)) {
+    treated_idx <- which(units == treated)
+    treated <- safe_names[treated_idx]
+    donors <- safe_names[-treated_idx]
+    units <- safe_names
     object$setup$donors <- donors
     object$setup$treated <- treated
   }
@@ -187,7 +194,8 @@ get_refmodel.bscmfit <- function(object, ...) {
          "Use cv_varsel() with cv_method = 'LOO' instead.")
   }
   object$proj <- list(
-    data = proj_data, formula = proj_formula
+    data = proj_data, formula = proj_formula, 
+    original_donor_names = stats::setNames(original_donor_names, donors)
   )
   projpred::init_refmodel(
     object = object,
@@ -203,22 +211,3 @@ get_refmodel.bscmfit <- function(object, ...) {
     ...
   )
 }
-#' Extract Donor Ranking from projpred varsel Object
-#' 
-#' Convenience function to extract the donor ranking from a `vsel` object
-#' returned by [projpred::varsel()] or [projpred::cv_varsel()] when applied to 
-#' a `bscmfit` object.
-#' 
-#' @param x \[`vsel`\] Output from [projpred::varsel()] or 
-#' [projpred::cv_varsel()].
-#' @return Character vector of donor IDs in order of selection.
-#' @export
-donor_ranking <- function(x) {
-  stopifnot_(
-    inherits(x, "vsel"),
-    "{.arg x} must be a 'vsel' object from {.fn projpred::varsel} or 
-    {.fn projpred::cv_varsel}."
-  )
-  projpred::ranking(x)$fulldata
-}
-

@@ -96,7 +96,10 @@ i.e., \eqn{\omega = \textrm{softmax}(\eta)}, with
 \eqn{\eta \sim N(0, \kappa^2)}. Standard deviation \eqn{\kappa} controls the
 prior sparsity of the weights. The default value of \eqn{\kappa} is chosen
 so that the relative effective number of donors
-\eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.5.
+\eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.25. You should definitely test
+different values of \code{kappa}/\code{r_ess} to assess the sensitivity of the
+results on your choice, and potentially run \code{\link[=loo]{loo()}} for
+cross-validation based selection of \code{kappa}.
 
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},

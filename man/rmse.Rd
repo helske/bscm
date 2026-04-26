@@ -22,7 +22,8 @@ If \code{FALSE}, unit-specific values are returned.}
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the RMSE values.
+A \code{data.frame} of posterior summaries of the pre-RMSE, post-RMSE and
+post-RMSE / pre-RMSE values.
 }
 \description{
 Extract root mean squared errors of a Bayesian synthetic control model

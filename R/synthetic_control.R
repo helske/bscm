@@ -14,7 +14,7 @@ synthetic_control <- function(x, ...) {
 #' @aliases synthetic_control
 #' @export
 synthetic_control.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
-  test_probs(probs)
+  probs <- sort_probs(probs)
   time <- get_time(x)
   times <- get_times(x)
   N <- get_N(x)

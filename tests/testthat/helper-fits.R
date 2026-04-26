@@ -7,7 +7,8 @@ tryCatch(
       time = "time",
       unit = "id",
       chains = 2,
-      iter = 200,
+      iter = 1000,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -20,6 +21,7 @@ tryCatch(
       unit = "id",
       chains = 2,
       iter = 200,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -32,6 +34,7 @@ tryCatch(
       unit = "id",
       chains = 2,
       iter = 200,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -44,6 +47,7 @@ tryCatch(
       unit = "id",
       chains = 2,
       iter = 200,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -56,6 +60,7 @@ tryCatch(
       unit = "id",
       chains = 2,
       iter = 200,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -68,6 +73,7 @@ tryCatch(
       unit = "id",
       chains = 2,
       iter = 200,
+      init = 0,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE

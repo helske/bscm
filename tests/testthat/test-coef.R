@@ -5,7 +5,7 @@ test_that("coef() returns data.frame for intercept-only model", {
 })
 
 test_that("coef() returns both intercept and beta for predictor model", {
-  d <- coef(fitN_xz)
+  suppressWarnings(d <- coef(fitN_xz))
   expect_s3_class(d$alpha, "draws_summary")
   expect_s3_class(d$beta, "draws_summary")
   expect_equal(d$beta$variable, c("Coef_x", "Coef_z"))

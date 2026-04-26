@@ -18,7 +18,7 @@
 #' @export
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   
-  test_probs(probs)
+  probs <- sort_probs(probs)
   cf <- sigma_gamma <- NULL
   if (has_predictors(object)) {
     cf <- coef(object, probs = probs, type = "beta")$beta |> 

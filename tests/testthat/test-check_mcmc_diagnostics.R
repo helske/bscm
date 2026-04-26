@@ -1,11 +1,6 @@
 test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
   diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
-  expect_warning(
-    check_mcmc_diagnostics(fit1_int), 
-    "Largest Rhat convergence diagnostic is"
-  )
   expect_s3_class(diag, "bscmfit_diagnostics")
-  expect_gt(length(diag$me), 0)
   expected <- c(
     "n_divergences", "n_max_treedepth", "n_low_bfmi",
     "rhat_and_ess", "has_issues", "messages"

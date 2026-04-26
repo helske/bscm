@@ -12,7 +12,7 @@
 #' @export
 coef.bscmfit <- function(
     object, type = c("alpha", "beta", "gamma"), probs = c(0.025, 0.975), ...) {
-  test_probs(probs)
+  probs <- sort_probs(probs)
   type <- try_(
     match.arg(type, c("alpha", "beta", "gamma"), several.ok = TRUE)
     )
