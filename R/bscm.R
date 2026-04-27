@@ -111,69 +111,6 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
                  kappa = NULL, r_ess = 0.5,  mcmc_diagnostics = TRUE, 
                  save_data = TRUE, priors = "default", ...) {
   
-  # local function for creating input data to Stan
-  create_standata <- \() {
-    s_y <- pmax(1, sd_y)
-    sd_diff_y <- pmax(1, sd_diff_y)
-    standata <- list(
-      T = T_total, T_pre = array(T_pre), N = N, J = J, 
-      y = t(Y), Z = Z,
-      pr_rate_sigma = array(1 / sd_diff_y),
-      pr_mean_intercept = array(mean_y), 
-      pr_sd_intercept = array(2 * sd_diff_y),
-      kappa = kappa
-    )
-    if (has_x) {
-      s_x <- pmax(1, sd_x)
-      md_s_y <- max(1, stats::median(sd_y))
-      pr_sd_beta <- 2 * md_s_y / s_x
-      standata <- c(
-        standata, 
-        list(
-          K = K, X_z = aperm(X_z, c(3, 2, 1)), X_y = X_y,
-          pr_mean_beta = array(0, K), pr_sd_beta = array(pr_sd_beta)
-        )
-      )
-      if (has_w) {
-        s_w <- pmax(1, sd_w)
-        pr_rate_sigma_gamma <- 5 * s_w / md_s_y
-        standata <- c(
-          standata, 
-          list(
-            L = L, tv_idx = array(tv_idx),
-            pr_rate_sigma_gamma = array(pr_rate_sigma_gamma)
-          )
-        )
-      }
-    }
-    standata
-  }
-  
-  # local function to create initial values for Stan
-  create_inits <- \() {
-    s_y <- pmax(1, sd_y)
-    sd_diff_y <- pmax(1, sd_diff_y)
-    inits <- list(
-      eta = matrix(0, N, J),
-      sigma = array(stats::runif(N, 0.5 / sd_diff_y, 1.5 / sd_diff_y))
-    )
-    if (has_icpt) {
-      inits$a <- array(stats::rnorm(N, mean_y, 0.5 * sd_diff_y))
-    }
-    if (has_x) {
-      s_x <- pmax(1, sd_x)
-      md_s_y <- max(1, stats::median(sd_y))
-      inits$beta <- array(stats::rnorm(K, 0, md_s_y / s_x))
-      if (has_w) {
-        inits$gamma_raw <- matrix(0, T_total, L)
-        inits$sigma_gamma <- array(stats::runif(L, 0.05, 0.1))
-      }
-    }
-    inits
-  }
-  
-  # start the actual function body
-  tol <- sqrt(.Machine$double.eps)
   check_bscm_arguments(
     formula, data, treatment, time, unit, kappa, r_ess, mcmc_diagnostics, 
     save_data, priors
@@ -227,28 +164,6 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     "Missing values are not supported."
   )
   J <- ncol(Z)
-  mean_y <- vapply(
-    seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1)
-  )
-  sd_y <- vapply(
-    seq_len(N), \(i) sd(Y[seq_len(T_pre[i]), i]), numeric(1)
-  )
-  stopifnot_(
-    all(sd_y > tol),
-    "Outcome variable cannot be constant in the pre-treatment period. 
-      Found `sd(y) < sqrt(.Machine$double.eps)`."
-  )
-  min_T_pre <- min(T_pre)
-  sd_z <- apply(Z[seq_len(min_T_pre), , drop = FALSE], 2, sd)
-  mean_z <- colMeans(Z[seq_len(min_T_pre), , drop = FALSE])
-  stopifnot_(
-    any(sd_z > tol),
-    "Outcome variable cannot be constant in the pre-treatment period. 
-      Found `sd(z) < sqrt(.Machine$double.eps)`."
-  )
-  sd_diff_y <- vapply(
-    seq_len(N), \(i) sd(diff(Y[seq_len(T_pre[i]), i])), numeric(1)
-  )
   beta_names <- gamma_names <- NULL
   if (has_x) {
     X <- stats::model.matrix(formula, data = data)
@@ -264,10 +179,13 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
       lapply(seq_len(K), \(k) matrix(X[, k], n_units, T_total, TRUE))
     )
     sd_x_by_unit <- apply(
-      X[, seq_len(min_T_pre), , drop = FALSE], c(1, 3), sd
+      X[, seq_len(min(T_pre)), , drop = FALSE], c(1, 3), sd
     )
     constant_sd <- which(
-      stats::setNames(apply(sd_x_by_unit, 2, max) < tol, beta_names)
+      stats::setNames(
+        apply(sd_x_by_unit, 2, max) < sqrt(.Machine$double.eps), 
+        beta_names
+      )
     )
     warnifnot_(
       length(constant_sd) == 0 || !has_icpt,
@@ -277,7 +195,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
         i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
       )
     )
-    sd_x <- apply(sd_x_by_unit, 2, stats::median)
+    
     donor_idx <- which(!colnames(treatment_table) %in% treated)
     X_z <- X[donor_idx, , , drop = FALSE]
     X_y <- X[treated_idx, , , drop = FALSE]
@@ -292,7 +210,6 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
         "Column mismatch between time-varying and full predictor matrices."
       )
       L <- length(tv_idx)
-      sd_w <- sd_x[tv_idx]
     }
   }
   
@@ -321,19 +238,23 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     stan_args$iter <- 5000L
     stan_args$warmup <- 2500L
   }
-  stan_args$data <- create_standata()
-  if (is.null(stan_args$init)) {
-    stan_args$init <- replicate(
-      stan_args$chains, 
-      create_inits(),
-      simplify = FALSE
-    )
-  }
   stan_args$object <- stanmodels[[model_type]]
   stan_args$pars <- c(
     "eta", if (has_icpt) "a", if (has_w) "gamma_raw"
   )
   stan_args$include <- FALSE
+  
+  input_stats <- bscm_stats(Y, Z, T_pre, X = if (has_x) X)
+  stan_args$data <- create_standata(
+    input_stats, T_pre, Y, Z, has_icpt, kappa, 
+    X_y = if (has_x) X_y, X_z = if (has_x) X_z, tv_idx = if (has_w) tv_idx
+  )
+  if (is.null(stan_args$init)) {
+    stan_args$init <- replicate(
+      stan_args$chains, create_inits(stan_args$data), simplify = FALSE
+    )
+  }
+ 
   start_time <- proc.time()
   fit <- do.call(sampling, stan_args)
   out <- list(stanfit = fit)

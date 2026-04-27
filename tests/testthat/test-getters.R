@@ -13,7 +13,7 @@ test_that("get_stanfit.default extracts stanfit from list", {
 
 test_that("ndraws returns a positive integer", {
   nd <- ndraws(fit1_int)
-  expect_identical(nd, 1000L)
+  expect_identical(nd, 2000L)
 })
 
 test_that("nchains returns the correct integer", {

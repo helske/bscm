@@ -7,8 +7,7 @@ tryCatch(
       time = "time",
       unit = "id",
       chains = 2,
-      iter = 1000,
-      init = 0,
+      iter = 2000,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE

@@ -56,6 +56,7 @@ coef.bscmfit <- function(
       summarise_with_probs(probs = probs) |> 
       mutate(variable = paste0("kappa_", object$setup$gamma_names))
   } 
-  list(alpha = d_alpha, beta = d_beta, gamma = d_gamma, kappa = d_kappa)
+  out <- list(alpha = d_alpha, beta = d_beta, gamma = d_gamma, kappa = d_kappa)
+  out[lengths(out) > 0]
 }
 
