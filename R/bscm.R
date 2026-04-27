@@ -233,7 +233,10 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   model_type <- paste("bscm", icpt, x, effect, sep = "_")
   
   stan_args <- list(...)
-  stan_args$chains  <- stan_args$chains %||% 4L
+  stan_args$chains <- stan_args$chains %||% 4L
+  if (is.null(stan_args$control$adapt_delta)) {
+    stan_args$control$adapt_delta <- 0.95
+  }
   if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
     stan_args$iter <- 5000L
     stan_args$warmup <- 2500L
