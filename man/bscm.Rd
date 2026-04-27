@@ -10,8 +10,7 @@ bscm(
   treatment,
   time = "time",
   unit = "id",
-  kappa = NULL,
-  r_ess = 0.5,
+  omega_prior = logistic_normal(r_ess = 0.25),
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
@@ -51,17 +50,11 @@ variable in \code{data}.}
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data}
 identifying different units.}
 
-\item{kappa}{[\code{numeric(1)}]\cr A positive number defining the
-scale parameter \eqn{\kappa} of logistic normal prior of
-the donor weights. Larger value encourage more sparse
-weights, but can also cause numerical issues (divergences), which
-typically disappear when increasing \code{adapt_delta} in controls of
-\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.}
-
-\item{r_ess}{[\code{numeric(1)}]\cr A scalar between 0 and 1 defining target
-effective number donors scaled by the total number of donors. This is
-internally translated to value of \eqn{\kappa} corresponding to
-\eqn{median(ESS | \kappa) / J = r_ess}. Ignored if \code{kappa} is not \code{NULL}.}
+\item{omega_prior}{[\code{omega_prior}]\cr Prior for the donor weight vector
+\eqn{\omega}, created by \code{\link[=logistic_normal]{logistic_normal()}} or \code{\link[=dirichlet]{dirichlet()}}. Each
+constructor accepts either \code{kappa} (scale/concentration/ parameter) or
+\code{r_ess} (target prior median relative effective number of donors).
+Defaults to \code{logistic_normal(r_ess = 0.25)}.}
 
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks
@@ -76,7 +69,7 @@ rearranging data by \code{unit} and \code{time} variables.}
 
 \item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
 or \code{"default"} which is a default and only supported option at the
-moment. See details on the prior definitions.}
+moment for parameters other than weight vector \eqn{\omega}. See details.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that
@@ -91,15 +84,24 @@ Function \code{bscm} estimates a Bayesian synthetic control models of varying
 types.
 }
 \details{
-The prior for the weight vector \eqn{\omega} is defined as a logistic normal,
-i.e., \eqn{\omega = \textrm{softmax}(\eta)}, with
-\eqn{\eta \sim N(0, \kappa^2)}. Standard deviation \eqn{\kappa} controls the
-prior sparsity of the weights. The default value of \eqn{\kappa} is chosen
-so that the relative effective number of donors
-\eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.25. You should definitely test
-different values of \code{kappa}/\code{r_ess} to assess the sensitivity of the
-results on your choice, and potentially run \code{\link[=loo]{loo()}} for
-cross-validation based selection of \code{kappa}.
+The prior for the weight vector \eqn{\omega} is controlled by the
+\code{omega_prior} argument. Two families are supported:
+\itemize{
+\item \strong{Logistic normal} (\code{\link[=logistic_normal]{logistic_normal()}}): \eqn{\omega =
+  \textrm{softmax}(\eta)} with \eqn{\eta \sim N(0, \kappa^2 I)} constrained
+to sum to zero. Larger \eqn{\kappa} induces sparser weights.
+\item \strong{Symmetric Dirichlet} (\code{\link[=dirichlet]{dirichlet()}}): \eqn{\omega \sim
+  \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
+concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
+the center of the simplex. \eqn{\kappa = 1} corresponds to uniform prior
+over simplex.
+}
+
+The default prior is \code{logistic_normal(r_ess = 0.25)}, where the
+concentration \eqn{\kappa} is chosen so that the prior median relative
+effective number of donors \eqn{r_{ESS} = (\sum \omega^2)^{-1} / J} equals
+0.25. You should test different values to assess sensitivity of results,
+and potentially run \code{\link[=loo]{loo()}} for cross-validation based selection.
 
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},

@@ -2,8 +2,8 @@
 #'
 #' @inheritParams bscm
 #' @noRd
-check_bscm_arguments <- function(formula, data, treatment, time, unit, 
-                                 kappa, r_ess, mcmc_diagnostics, save_data,
+check_bscm_arguments <- function(formula, data, treatment, time, unit,
+                                 omega_prior, mcmc_diagnostics, save_data,
                                  priors) {
   
   stopifnot_(
@@ -73,16 +73,9 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
   stopifnot_(
-    checkmate::test_number(kappa, lower = 0, finite = TRUE, null.ok = TRUE),
-    "Argument {.arg kappa} should be single positive number defining the 
-      scale parameter of the logistic normal prior of donor weights."
-  )
-  stopifnot_(
-    checkmate::test_number(
-      r_ess, lower = 0, upper = 1, finite = TRUE, null.ok = TRUE
-    ),
-    "Argument {.arg r_ess} should be single number between 0 and 1 defining the 
-      prior relative effective number of donors."
+    inherits(omega_prior, "omega_prior"),
+    "Argument {.arg omega_prior} must be an {.cls omega_prior} object created
+    by {.fn logistic_normal} or {.fn dirichlet}."
   )
   stopifnot_(
     checkmate::test_flag(mcmc_diagnostics),

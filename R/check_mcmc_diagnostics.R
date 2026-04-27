@@ -18,12 +18,6 @@
 #' @export
 #' @rdname check_mcmc_diagnostics
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param check_all \[`logical(1)`]\cr If `FALSE` (the default), 
-#' variable-specific diagnostics are computed only for the model parameters and 
-#' the treatment effect estimates, but not for the other generated quantities 
-#' (e.g., RMSE estimates, pointwise log-likelihood values).
-#' If `TRUE`, diagnostics are computed for all output variables. Note that you 
-#' get these  also with [summary.bscmfit()].
 #' @param warn \[`logical(1)`]\cr If `TRUE` (the default), generates and 
 #' (typically) prints out a warning in a case of problematic results. Setting 
 #' this to `FALSE` silently returns the check results. 
@@ -35,12 +29,8 @@ check_mcmc_diagnostics <- function(x, ...) {
 }
 #' @export
 #' @rdname check_mcmc_diagnostics
-check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE, 
-                                           warn = TRUE, ...) {
-  stopifnot_(
-    checkmate::test_flag(check_all),
-    "Argument {.arg check_all} must be a single {.cls logical}."
-  )
+check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
+ 
   stopifnot_(
     checkmate::test_flag(warn),
     "Argument {.arg warn} must be a single {.cls logical}."
@@ -62,19 +52,8 @@ check_mcmc_diagnostics.bscmfit <- function(x, check_all = FALSE,
   max_td <- get_stanfit(x)@stan_args[[1L]]$control$max_treedepth %||% 10
   n_low_bfmi <- sum(rstan::get_bfmi(get_stanfit(x)) < 0.2)
   
-  # omega_raw and a already excluded in stanfit
-  if (check_all) {
-    exclude_these <- "log_lik"
-  } else {
-    exclude_these <- c(
-      "y_mean", "y_rep", 
-      "effect", "R2", "RMSE_pre", "RMSE_post", "RMSE_ratio", "effective_donors", 
-      "avg_effect_pre", "avg_effect_post", "avg_RMSE_pre", "avg_RMSE_post", 
-      "avg_RMSE_ratio", "avg_effective_donors"
-    )
-  }
   sumr <- x |> 
-    as_draws(parameters = exclude_these, include = FALSE) |> 
+    as_draws(parameters = c("y_mean", "y_rep"), include = FALSE) |> 
     summarise_draws(posterior::default_convergence_measures())
   idx <- c(
     which.max(sumr$rhat), which.min(sumr$ess_bulk), which.min(sumr$ess_tail)

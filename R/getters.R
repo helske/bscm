@@ -15,6 +15,18 @@ has_predictors <- \(x) length(x$setup$beta_names) > 0L
 has_tv_coefs <- \(x) length(x$setup$gamma_names) > 0L
 get_predictors <- \(x) x$setup$predictors
 
+#' @noRd
+get_stan_y <- function(x) {
+  unit <- get_unit(x)
+  treated <- get_treated(x)
+  outcome <- get_outcome(x)
+  T_total <- get_T_total(x)
+  x$data |>
+    filter(.data[[unit]] %in% .env$treated) |>
+    pull(.data[[outcome]]) |>
+    matrix(nrow = T_total)
+}
+
 #' Extract the name of the outcome variable from formula object
 #' @noRd
 get_outcome <- function(x) {

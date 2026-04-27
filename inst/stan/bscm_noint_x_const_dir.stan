@@ -1,25 +1,23 @@
 // Bayesian SCM
 // No intercept
 // Covariates with constant effects
+// Dirichlet prior on omega
 
 data {
 #include data/base.stan
 #include data/beta.stan
 }
 transformed data {
-#include transformed_data/omega_logistic_normal.stan
+#include transformed_data/omega_dirichlet.stan
 }
 parameters {
 #include parameters/base.stan
-#include parameters/omega_logistic_normal.stan
+#include parameters/omega_dirichlet.stan
 #include parameters/beta.stan
-}
-transformed parameters {
-#include transformed_parameters/omega_logistic_normal.stan
 }
 model {
 #include model/base.stan
-#include model/omega_logistic_normal.stan
+#include model/omega_dirichlet.stan
 #include model/beta.stan
   {
     matrix[T, K] X;

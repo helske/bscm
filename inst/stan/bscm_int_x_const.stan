@@ -8,22 +8,24 @@ data {
 #include data/beta.stan
 }
 transformed data {
-#include transformed_data/base.stan
+#include transformed_data/omega_logistic_normal.stan
 #include transformed_data/z_means.stan
 #include transformed_data/x_means.stan
 }
 parameters {
 #include parameters/base.stan
+#include parameters/omega_logistic_normal.stan
 #include parameters/a.stan
 #include parameters/beta.stan
 }
 transformed parameters {
-#include transformed_parameters/base.stan
+#include transformed_parameters/omega_logistic_normal.stan
 #include transformed_parameters/alpha_z.stan
 #include transformed_parameters/alpha_x.stan
 }
 model {
 #include model/base.stan
+#include model/omega_logistic_normal.stan
 #include model/a.stan
 #include model/beta.stan
   {

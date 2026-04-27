@@ -11,10 +11,6 @@ test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
     c("Largest Rhat", "Smallest bulk-ESS", "Smallest tail-ESS")
   )
   expect_error(
-    check_mcmc_diagnostics(fit1_int, check_all = "yes"),
-    "Argument `check_all` must be a single <logical>\\."
-  )
-  expect_error(
     check_mcmc_diagnostics(fit1_int, warn = "yes"),
     "Argument `warn` must be a single <logical>\\."
   )

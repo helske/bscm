@@ -83,7 +83,9 @@ leave_donor_out.bscmfit <- function(x,
   weights[[1]] <- donor_weights(x, probs = probs)
   diagnostics[[1]] <- check_mcmc_diagnostics(x, warn = FALSE)
   
-  kappa <- get_kappa(x)
+  omega_prior <- x$setup$omega_prior
+  omega_prior$kappa <- get_kappa(x)
+  omega_prior$r_ess <- NULL
   p <- progressr::progressor(along = removed_donors)
   for (i in seq_along(removed_donors)) {
     p(paste0("Removing donor ", donor_order[i + 1]))
@@ -91,7 +93,7 @@ leave_donor_out.bscmfit <- function(x,
       filter(!(.data[[unit]] %in% .env$removed_donors[[i]]))
     fit <- stats::update(
       x, data = d, refresh = 0, mcmc_diagnostics = FALSE, save_data = FALSE,
-      kappa = kappa,  ...
+      omega_prior = omega_prior,  ...
     )
     effects[[i + 1]] <- treatment_effect(fit, probs = probs)
     rmses[[i + 1]] <- rmse(fit, probs = probs)

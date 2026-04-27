@@ -29,7 +29,8 @@ rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
   T_total <- get_T_total(x)
   treated <- get_treated(x)
   
-  effect <- as_draws_rvars(as_draws(x, "effect"))$effect
+  y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
+  effect <- get_stan_y(x) - y_rep
   
   pre <- post <- ratio <- vector("list", N)
   for (i in seq_len(N)) {

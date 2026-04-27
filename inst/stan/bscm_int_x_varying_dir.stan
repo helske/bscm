@@ -1,6 +1,7 @@
 // Bayesian SCM
 // Intercept
 // Covariates with varying effects
+// Dirichlet prior on omega
 
 data {
 #include data/base.stan
@@ -9,27 +10,26 @@ data {
 #include data/gamma.stan
 }
 transformed data {
-#include transformed_data/omega_logistic_normal.stan
+#include transformed_data/omega_dirichlet.stan
 #include transformed_data/z_means.stan
 #include transformed_data/x_means.stan
 #include transformed_data/gamma.stan
 }
 parameters {
 #include parameters/base.stan
-#include parameters/omega_logistic_normal.stan
+#include parameters/omega_dirichlet.stan
 #include parameters/a.stan
 #include parameters/beta.stan
 #include parameters/gamma.stan
 }
 transformed parameters {
-#include transformed_parameters/omega_logistic_normal.stan
 #include transformed_parameters/alpha_z.stan
 #include transformed_parameters/alpha_x.stan
 #include transformed_parameters/gamma.stan
 }
 model {
 #include model/base.stan
-#include model/omega_logistic_normal.stan
+#include model/omega_dirichlet.stan
 #include model/a.stan
 #include model/beta.stan
 #include model/gamma.stan

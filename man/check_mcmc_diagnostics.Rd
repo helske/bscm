@@ -7,19 +7,12 @@
 \usage{
 check_mcmc_diagnostics(x, ...)
 
-\method{check_mcmc_diagnostics}{bscmfit}(x, check_all = FALSE, warn = TRUE, ...)
+\method{check_mcmc_diagnostics}{bscmfit}(x, warn = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
 \item{...}{Ignored.}
-
-\item{check_all}{[\code{logical(1)}]\cr If \code{FALSE} (the default),
-variable-specific diagnostics are computed only for the model parameters and
-the treatment effect estimates, but not for the other generated quantities
-(e.g., RMSE estimates, pointwise log-likelihood values).
-If \code{TRUE}, diagnostics are computed for all output variables. Note that you
-get these  also with \code{\link[=summary.bscmfit]{summary.bscmfit()}}.}
 
 \item{warn}{[\code{logical(1)}]\cr If \code{TRUE} (the default), generates and
 (typically) prints out a warning in a case of problematic results. Setting

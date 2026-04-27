@@ -5,16 +5,24 @@
 #' 
 #' @details
 #' 
-#' The prior for the weight vector \eqn{\omega} is defined as a logistic normal, 
-#' i.e., \eqn{\omega = \textrm{softmax}(\eta)}, with 
-#' \eqn{\eta \sim N(0, \kappa^2)}. Standard deviation \eqn{\kappa} controls the 
-#' prior sparsity of the weights. The default value of \eqn{\kappa} is chosen
-#' so that the relative effective number of donors 
-#' \eqn{r_ess = (\sum \omega^2)^{-1} / J} is 0.25. You should definitely test 
-#' different values of `kappa`/`r_ess` to assess the sensitivity of the 
-#' results on your choice, and potentially run [bscm::loo()] for 
-#' cross-validation based selection of `kappa`.
+#' The prior for the weight vector \eqn{\omega} is controlled by the
+#' `omega_prior` argument. Two families are supported:
 #' 
+#' - **Logistic normal** ([logistic_normal()]): \eqn{\omega =
+#'   \textrm{softmax}(\eta)} with \eqn{\eta \sim N(0, \kappa^2 I)} constrained
+#'   to sum to zero. Larger \eqn{\kappa} induces sparser weights.
+#' - **Symmetric Dirichlet** ([dirichlet()]): \eqn{\omega \sim
+#'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
+#'   concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
+#'   the center of the simplex. \eqn{\kappa = 1} corresponds to uniform prior 
+#'   over simplex.
+#' 
+#' The default prior is `logistic_normal(r_ess = 0.25)`, where the
+#' concentration \eqn{\kappa} is chosen so that the prior median relative
+#' effective number of donors \eqn{r_{ESS} = (\sum \omega^2)^{-1} / J} equals
+#' 0.25. You should test different values to assess sensitivity of results,
+#' and potentially run [bscm::loo()] for cross-validation based selection.
+#'
 #' When model contains covariates \eqn{X}, their effect is subtracted from 
 #' donors, i.e., for treated unit \eqn{i},
 #' \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)}, 
@@ -73,17 +81,12 @@
 #'   identifying different units.
 #' @param priors \[`list()` or `character(1)`]\cr List of prior definitions 
 #'   or `"default"` which is a default and only supported option at the
-#'   moment. See details on the prior definitions.
-#' @param kappa \[`numeric(1)`]\cr A positive number defining the
-#'   scale parameter \eqn{\kappa} of logistic normal prior of
-#'   the donor weights. Larger value encourage more sparse 
-#'   weights, but can also cause numerical issues (divergences), which 
-#'   typically disappear when increasing `adapt_delta` in controls of 
-#'   [rstan::sampling()].
-#' @param r_ess \[`numeric(1)`]\cr A scalar between 0 and 1 defining target 
-#'   effective number donors scaled by the total number of donors. This is 
-#'   internally translated to value of \eqn{\kappa} corresponding to 
-#'   \eqn{median(ESS | \kappa) / J = r_ess}. Ignored if `kappa` is not `NULL`.
+#'   moment for parameters other than weight vector \eqn{\omega}. See details.
+#' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
+#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()]. Each
+#'   constructor accepts either `kappa` (scale/concentration/ parameter) or 
+#'   `r_ess` (target prior median relative effective number of donors). 
+#'    Defaults to `logistic_normal(r_ess = 0.25)`.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the 
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -108,11 +111,12 @@
 #' fit
 #' 
 bscm <- function(formula, data, treatment, time = "time", unit = "id",
-                 kappa = NULL, r_ess = 0.5,  mcmc_diagnostics = TRUE, 
-                 save_data = TRUE, priors = "default", ...) {
+                 omega_prior = logistic_normal(r_ess = 0.25), 
+                 mcmc_diagnostics = TRUE, save_data = TRUE, 
+                 priors = "default", ...) {
   
   check_bscm_arguments(
-    formula, data, treatment, time, unit, kappa, r_ess, mcmc_diagnostics, 
+    formula, data, treatment, time, unit, omega_prior, mcmc_diagnostics,
     save_data, priors
   )
   outcome <- get_outcome(formula)
@@ -213,14 +217,6 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     }
   }
   
-  if (is.null(kappa)) {
-    if (is.null(r_ess)) {
-      kappa <- select_kappa(J, 0.25)
-    } else {
-      kappa <- select_kappa(J, r_ess)
-    }
-  }
-  
   icpt <- ifelse(has_icpt, "int", "noint")
   x <- ifelse(has_x, "x", "nox")
   effect <- if (has_w) {
@@ -230,7 +226,13 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   } else {
     "none"
   }
-  model_type <- paste("bscm", icpt, x, effect, sep = "_")
+  
+  kappa <- resolve_kappa(omega_prior, J)
+  omega_prior_type <- omega_prior$distribution
+  model_type <- paste(
+    c("bscm", icpt, x, effect, if (omega_prior_type == "dirichlet") "dir"),
+    collapse = "_"
+  )
   
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
@@ -242,10 +244,17 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
     stan_args$warmup <- 2500L
   }
   stan_args$object <- stanmodels[[model_type]]
-  stan_args$pars <- c(
-    "eta", if (has_icpt) "a", if (has_w) "gamma_raw"
-  )
-  stan_args$include <- FALSE
+  if (is.null(stan_args$pars) && is.null(stan_args$include)) {
+    excl <- c(
+      if (omega_prior_type == "logistic_normal") "eta",
+      if (has_icpt) "a",
+      if (has_w) "gamma_raw"
+    )
+    if (length(excl) > 0L) {
+      stan_args$pars <- excl
+      stan_args$include <- FALSE
+    }
+  }
   
   input_stats <- bscm_stats(Y, Z, T_pre, X = if (has_x) X)
   stan_args$data <- create_standata(
@@ -254,10 +263,11 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   )
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
-      stan_args$chains, create_inits(stan_args$data), simplify = FALSE
+      stan_args$chains, create_inits(stan_args$data, omega_prior),
+      simplify = FALSE
     )
   }
- 
+  
   start_time <- proc.time()
   fit <- do.call(sampling, stan_args)
   out <- list(stanfit = fit)
@@ -267,7 +277,7 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   out$setup <- dplyr::lst(
     outcome, treatment, treated, donors, unit, time, times, T_pre, T_total, 
     has_intercept = has_icpt, predictors, beta_names, gamma_names, model_type,
-    priors, kappa = kappa
+    priors, omega_prior, kappa
   )
   class(out) <- "bscmfit"
   if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {

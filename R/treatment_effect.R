@@ -45,7 +45,8 @@ treatment_effect.bscmfit <- function(x,
   treated <- get_treated(x)
   
   for_plots <- list(...)$for_plots %||% FALSE
-  effect <- as_draws_rvars(as_draws(x, "effect"))$effect
+  y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
+  effect <- get_stan_y(x) - y_rep
   
   if (type == "average") {
     pre <- vector("list", N)
