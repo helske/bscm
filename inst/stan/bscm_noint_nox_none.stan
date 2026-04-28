@@ -1,7 +1,9 @@
 // Bayesian SCM
 // No intercept
 // No covariates
-
+functions {
+#include functions/omega_logistic_normal.stan
+}
 data {
 #include data/base.stan
 }

@@ -29,7 +29,7 @@ fit <- bscm(
 ```
 Basic summary of the estimated model:
 ``` r
-> fit
+fit
 Call:
 bscm(formula = y ~ x, data = single_treated, treatment = "treatment", 
     time = "time", unit = "id")
@@ -38,23 +38,22 @@ Bayesian synthetic control model y ~ x
 Treated unit: 1 
 Number of donors: 30 
 Number of time periods (pre + post): 30 + 10 
-MCMC sampling time: 0.827 seconds
+MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 1.54 seconds
 
 MCMC diagnostics indicate no issues. 
 ```
 ```{r}
-> summary(fit)
-
-  id    variable                   mean     sd   q2.5  q97.5  rhat ess_bulk ess_tail
-1 1     Intercept                 2.46  0.571  1.27    3.51  1.00     4759.    3529.
-2 NA    Coef_x                    1.05  0.429  0.214   1.91  1.000    4406.    2924.
-3 1     Residual SD               0.521 0.0753 0.399   0.691 1.00     3748.    2729.
-4 1     Bayesian R-squared        0.811 0.0484 0.700   0.886 1.00     4003.    2937.
-5 NA    Average treatment effect  5.97  0.281  5.43    6.55  1.00     4124.    3851.
-6 1     Pre-RMSE                  0.721 0.105  0.540   0.951 1.000    3993.    3770.
-7 1     Post-RMSE                 6.69  0.306  6.11    7.32  1.00     4143.    3647.
-8 1     RMSE ratio                0.108 0.0163 0.0794  0.143 1.000    3873.    3630.
-9 1     Effective donors         11.7   2.35   7.10   16.3   1.00     2394.    3315.
+summary(fit)
+  id    variable                   mean     sd    q2.5  q97.5  rhat ess_bulk ess_tail
+1 NA    Coef_x                0.995     0.447   0.0884  1.84  1.000    9158.    7341.
+2 1     Residual SD (sigma)   0.512     0.0781  0.384   0.690 1.00     9895.    6800.
+3 1     Bayesian R-squared    0.818     0.0499  0.699   0.894 1.00     9740.    7562.
+4 1     Pre-treatment effect  0.0000376 0.133  -0.269   0.259 1.000   11252.    8803.
+5 1     Post-treatment effect 5.92      0.300   5.34    6.51  1.000    9545.    9055.
+6 1     Pre-RMSE              0.711     0.106   0.528   0.936 1.00     8220.    8255.
+7 1     Post-RMSE             6.64      0.322   6.03    7.29  1.000    9248.    8696.
+8 1     RMSE ratio            9.54      1.45    6.97   12.7   1.00     8437.    8577.
+9 1     Effective donors      8.40      3.13    2.81   14.7   1.00     8730.    8809.
 ```
 And default visualization:
 ``` r

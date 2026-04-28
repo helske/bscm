@@ -1,7 +1,9 @@
 // Bayesian SCM
 // Intercept
 // Covariates with varying effects
-
+functions {
+#include functions/omega_logistic_normal.stan
+}
 data {
 #include data/base.stan
 #include data/alpha.stan
