@@ -245,13 +245,13 @@ bscm <- function(formula, data, treatment, time = "time", unit = "id",
   }
   stan_args$object <- stanmodels[[model_type]]
   if (is.null(stan_args$pars) && is.null(stan_args$include)) {
-    excl <- c(
+    exclude_these <- c(
       if (omega_prior_type == "logistic_normal") "eta",
       if (has_icpt) "a",
       if (has_w) "gamma_raw"
     )
-    if (length(excl) > 0L) {
-      stan_args$pars <- excl
+    if (length(exclude_these) > 0L) {
+      stan_args$pars <- exclude_these
       stan_args$include <- FALSE
     }
   }

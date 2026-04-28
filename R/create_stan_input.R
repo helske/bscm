@@ -77,16 +77,13 @@ create_standata <- function(
 }
 
 create_inits <- function(x, omega_prior) {
-  if (inherits(omega_prior, "omega_prior") && omega_prior$distribution == "logistic_normal") {
-    inits <- list(
-      eta = matrix(0, x$N, x$J),
-      sigma = array(stats::runif(x$N, 0.9, 1.1) / x$pr_rate_sigma)
-    )
+  inits <- list(
+    sigma = array(stats::runif(x$N, 0.9, 1.1) / x$pr_rate_sigma)
+  )
+  if (omega_prior$distribution == "logistic_normal") {
+    inits$eta <- matrix(0, x$N, x$J - 1)
   } else {
-    inits <- list(
-      omega = lapply(seq_len(x$N), \(i) rep(1 / x$J, x$J)),
-      sigma = array(stats::runif(x$N, 0.9, 1.1) / x$pr_rate_sigma)
-    )
+    inits$omega <- matrix(1 / x$J, x$N, x$J)
   }
   if (!is.null(x$pr_mean_intercept)) {
     inits$a <- array(
