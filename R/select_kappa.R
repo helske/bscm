@@ -1,23 +1,23 @@
 #' Find a value for kappa by matching it to target median relative ESS
-#' 
-#' Given a number of donors \eqn{J} and a target value for relative effective number 
-#' of donors, \eqn{rESS = 1 / \sum(\omega^2)}, function `select_kappa()` returns 
-#' a value of \eqn{\kappa} such that the prior median of  rESS given 
-#' \eqn{\kappa} matches the target rESS. This is based on on a lookup table 
+#'
+#' Given a number of donors \eqn{J} and a target value for relative effective number
+#' of donors, \eqn{rESS = 1 / \sum(\omega^2)}, function `select_kappa()` returns
+#' a value of \eqn{\kappa} such that the prior median of  rESS given
+#' \eqn{\kappa} matches the target rESS. This is based on on a lookup table
 #' from Monte Carlo simulations.
 #'
-#' For reverse, function `get_ess()` returns the prior ESS (not relative) 
+#' For reverse, function `get_ess()` returns the prior ESS (not relative)
 #' value based on \eqn{J} and \eqn{\kappa}.
 #'
-#' Function `get_kappa()` returns the value of \eqn{\kappa} used in the model 
+#' Function `get_kappa()` returns the value of \eqn{\kappa} used in the model
 #' estimation.
 #'
 #' @param J \[`integer(1)`]\cr Number of donors.
 #' @param target \[`numeric(1)`]\cr Target value of relative ESS.
 #' @param kappa \[`numeric(1)`]\cr Value of \eqn{\kappa}.
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
-#' @return For `select_kappa` and `get_kappa`, a value of \eqn{\kappa}. 
-#' For `get_ess()`, value of relative ESS. 
+#' @return For `select_kappa` and `get_kappa`, a value of \eqn{\kappa}.
+#' For `get_ess()`, value of relative ESS.
 #' @rdname kappa
 #' @export
 select_kappa <- function(J, target) {
@@ -37,7 +37,10 @@ select_kappa <- function(J, target) {
   )
   d <- kappa_lookup |> filter(J == .env$J)
   kappa <- stats::approx(
-    d$rESS, d$kappa, xout = target, ties = "ordered",
+    d$rESS,
+    d$kappa,
+    xout = target,
+    ties = "ordered",
     rule = 2
   )$y
   round(kappa, 3)
@@ -68,7 +71,10 @@ get_ess <- function(J, kappa) {
   )
   d <- kappa_lookup |> filter(J == .env$J) |> arrange(kappa)
   r_ess <- stats::approx(
-    d$kappa, d$rESS, xout = kappa, ties = "ordered",
+    d$kappa,
+    d$rESS,
+    xout = kappa,
+    ties = "ordered",
     rule = 2
   )$y
   round(J * r_ess, 2)

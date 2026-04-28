@@ -9,22 +9,24 @@ treatment_effect <- function(x, ...) {
 #' @param type \[`character(1)`]\cr Type of treatment effect to compute.
 #'   `"time"` (the default) returns effects at each time point.
 #'   `"average"` returns the average pre- and post-treatment effects.
-#'   `"cumulative"` returns the cumulative average effects over the 
+#'   `"cumulative"` returns the cumulative average effects over the
 #'   post-treatment period.
-#' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the 
-#' average effects over treated units in case of 
-#' multiple treated units. If `FALSE`, unit-specific effects are returned. 
+#' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the
+#' average effects over treated units in case of
+#' multiple treated units. If `FALSE`, unit-specific effects are returned.
 #' Currently not applicable to `type = "cumulative"`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of the treatment effects.
 #' @rdname treatment_effect
 #' @aliases treatment_effect
 #' @export
-treatment_effect.bscmfit <- function(x,
-                                     type = "time",
-                                     average = TRUE, 
-                                     probs = c(0.025, 0.975), ...) {
-  
+treatment_effect.bscmfit <- function(
+  x,
+  type = "time",
+  average = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   probs <- sort_probs(probs)
   stopifnot_(
     checkmate::test_flag(average),
@@ -43,11 +45,11 @@ treatment_effect.bscmfit <- function(x,
   N <- get_N(x)
   unit <- get_unit(x)
   treated <- get_treated(x)
-  
+
   for_plots <- list(...)$for_plots %||% FALSE
   y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
   effect <- get_stan_y(x) - y_rep
-  
+
   if (type == "average") {
     pre <- vector("list", N)
     post <- vector("list", N)
@@ -58,50 +60,57 @@ treatment_effect.bscmfit <- function(x,
     }
     if (average && N > 1) {
       out <- lapply(
-        list(do.call(c, pre), do.call(c, post)), rvar_mean
-      ) |> 
+        list(do.call(c, pre), do.call(c, post)),
+        rvar_mean
+      ) |>
         summarise_with_probs(probs, for_plots) |>
         mutate(
           variable = c(
-            "Average pre-treatment effect", "Average post-treatment effect"
+            "Average pre-treatment effect",
+            "Average post-treatment effect"
           )
         )
     } else {
-      out <- c(pre, post) |> 
+      out <- c(pre, post) |>
         summarise_with_probs(probs, for_plots) |>
         mutate(
-          "{unit}" := rep(treated, times = 2), .before = 1L
+          "{unit}" := rep(treated, times = 2),
+          .before = 1L
         ) |>
         mutate(
           variable = rep(
-            c("Pre-treatment effect", "Post-treatment effect"), each = N
+            c("Pre-treatment effect", "Post-treatment effect"),
+            each = N
           )
         )
     }
   }
   if (type == "cumulative") {
-    cumavg <-  vector("list", N)
+    cumavg <- vector("list", N)
     for (i in seq_len(N)) {
       T_ <- T_pre[treated[i]]
       cumavg[[i]] <- rvar_apply(
-        effect[seq.int(T_ + 1L, T_total), i], 2, cumsum
+        effect[seq.int(T_ + 1L, T_total), i],
+        2,
+        cumsum
       )
     }
     out <- lapply(seq_len(N), \(i) {
-      cumavg[[i]] |> summarise_with_probs(probs, for_plots) |>
+      cumavg[[i]] |>
+        summarise_with_probs(probs, for_plots) |>
         mutate(
           "{unit}" := treated[i],
           "{time}" := times[seq.int(T_ + 1L, T_total)],
           .before = 1L
         )
-    }) |> 
-      bind_rows() |> 
+    }) |>
+      bind_rows() |>
       mutate(variable = "Cumulative post-treatment effect")
   }
   if (type == "time") {
     if (average && N > 1) {
-      out <- effect |> 
-        rvar_apply(1, rvar_mean) |> 
+      out <- effect |>
+        rvar_apply(1, rvar_mean) |>
         summarise_with_probs(probs, for_plots) |>
         mutate(
           "{time}" := times,
@@ -115,7 +124,7 @@ treatment_effect.bscmfit <- function(x,
           "{unit}" := rep(treated, each = length(times)),
           "{time}" := rep(times, times = length(treated)),
           .before = 1L
-        ) |> 
+        ) |>
         mutate(variable = "Treatment effect")
     }
   }

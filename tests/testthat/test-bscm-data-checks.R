@@ -9,9 +9,13 @@ test_that("bscm() rejects unbalanced panel data", {
   d <- d[d$time != 10 | d$id > 30, ]
   expect_error(
     fit <- bscm(
-      y ~ x, data = d, 
-      treatment = "treatment", algorithm = "Fixed_param", 
-      chains = 1, refresh = 0, iter = 2
+      y ~ x,
+      data = d,
+      treatment = "treatment",
+      algorithm = "Fixed_param",
+      chains = 1,
+      refresh = 0,
+      iter = 2
     ),
     "Data is not balanced"
   )
@@ -29,8 +33,13 @@ test_that("bscm() rejects gaps in treatment variable", {
 test_that("bscm() accepts multiple treated units", {
   expect_error(
     bscm(
-      y ~ 1, data = multiple_treated, treatment = "treatment", 
-      algorithm = "Fixed_param", chains = 1, refresh = 0, iter = 2
+      y ~ 1,
+      data = multiple_treated,
+      treatment = "treatment",
+      algorithm = "Fixed_param",
+      chains = 1,
+      refresh = 0,
+      iter = 2
     ),
     NA
   )
@@ -39,14 +48,18 @@ test_that("bscm() accepts multiple treated units", {
   d$treatment[d$id == 1] <- 0
   expect_error(
     fit <- bscm(
-      y ~ 1, data = d, 
-      treatment = "treatment", algorithm = "Fixed_param", 
-      chains = 1, refresh = 0, iter = 2
+      y ~ 1,
+      data = d,
+      treatment = "treatment",
+      algorithm = "Fixed_param",
+      chains = 1,
+      refresh = 0,
+      iter = 2
     ),
     NA
   )
   expect_equal(
-    get_donors(fit), 
+    get_donors(fit),
     as.character(setdiff(seq_len(max(d$id)), c(2:3, 6)))
   )
 })
@@ -75,9 +88,13 @@ test_that("bscm() accepts gaps in time", {
   d <- d[d$time != 5, ]
   expect_error(
     fit <- bscm(
-      y ~ x, data = d, 
-      treatment = "treatment", algorithm = "Fixed_param", 
-      chains = 1, refresh = 0, iter = 2
+      y ~ x,
+      data = d,
+      treatment = "treatment",
+      algorithm = "Fixed_param",
+      chains = 1,
+      refresh = 0,
+      iter = 2
     ),
     NA
   )
@@ -95,9 +112,15 @@ test_that("bscm() rejects constant predictor for all units", {
   d <- single_treated
   d$x <- 1
   expect_warning(
-    bscm(y ~ x, data = d, treatment = "treatment", 
-         algorithm = "Fixed_param", chains = 1, iter = 1, refresh = 0),
+    bscm(
+      y ~ x,
+      data = d,
+      treatment = "treatment",
+      algorithm = "Fixed_param",
+      chains = 1,
+      iter = 1,
+      refresh = 0
+    ),
     "Model has unit-specific intercepts and predictors which do not vary"
   )
 })
-

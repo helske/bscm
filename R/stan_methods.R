@@ -1,13 +1,13 @@
 #' Posterior Predictive Distribution of Bayesian Synthetic Control Model
-#' 
-#' Returns draws from the posterior predictive distribution of the Bayesian 
-#' synthetic control. Note that this function does not simulate new 
-#' realizations from this distribution, but rather returns the posterior draws 
+#'
+#' Returns draws from the posterior predictive distribution of the Bayesian
+#' synthetic control. Note that this function does not simulate new
+#' realizations from this distribution, but rather returns the posterior draws
 #' computed during the model estimation.
-#' 
+#'
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
-#' @return A matrix of posterior predictive draws of the synthetic control, 
+#' @return A matrix of posterior predictive draws of the synthetic control,
 #' where rows correspond to posterior draws and columns to time periods.
 #' @aliases posterior_predict
 #' @export posterior_predict
@@ -50,7 +50,7 @@ posterior_linpred.bscmfit <- function(object, transform = FALSE, ...) {
 }
 #' Posterior draws of pointwise log-likelihood
 #'
-#' Returns draws of log-likelihood values of the treated unit in the 
+#' Returns draws of log-likelihood values of the treated unit in the
 #' time points corresponding to the pre-treatment period.
 #'
 #' @param object \[`bscmfit`]\cr The model fit object.
@@ -88,7 +88,10 @@ log_lik.bscmfit <- function(object, ...) {
     for (t in seq_along(y_pre)) {
       idx <- idx + 1L
       ll[, idx] <- stats::dnorm(
-        y_pre[t], mu_draws[, mu_offset + t], s, log = TRUE
+        y_pre[t],
+        mu_draws[, mu_offset + t],
+        s,
+        log = TRUE
       )
     }
   }

@@ -2,7 +2,7 @@
 #'
 #' Returns a `data.frame` representation of the posterior sample of the model
 #' parameters.
-#' 
+#'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param parameters \[`character()`]\cr Vector of parameter names.
 #' @param row.names Ignored.
@@ -12,8 +12,13 @@
 #' @seealso [as_draws.bscmfit()].
 #' @aliases as.data.frame
 #' @export
-as.data.frame.bscmfit <- function(x, row.names = NULL, optional = FALSE, 
-                                  parameters = NULL, ...) {
+as.data.frame.bscmfit <- function(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  parameters = NULL,
+  ...
+) {
   all_pars <- setdiff(get_stanfit(x)@model_pars, c("omega_raw", "a"))
   if (is.null(parameters)) {
     parameters <- c("alpha", "beta", "sigma", "omega")

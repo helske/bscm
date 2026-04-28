@@ -13,14 +13,15 @@ bscm_stats <- function(Y, Z, T_pre, X = NULL) {
     "Outcome variable cannot be constant in the pre-treatment period. 
     Found `sd(z) < sqrt(.Machine$double.eps)`."
   )
-  
+
   mean_y <- vapply(seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1))
   # residual SD with uniform donor weights (ignoring predictors)
   mean_sc <- rowMeans(Z)
   sd_e <- vapply(
-    seq_len(N), \(i) {
+    seq_len(N),
+    \(i) {
       sd(Y[seq_len(T_pre[i]), i] - mean_sc[seq_len(T_pre[i])])
-    }, 
+    },
     numeric(1)
   )
   out <- list(
@@ -36,13 +37,26 @@ bscm_stats <- function(Y, Z, T_pre, X = NULL) {
 }
 
 create_standata <- function(
-    x, T_pre, Y, Z, icpt, kappa, X_y = NULL, X_z = NULL, tv_idx = NULL) {
+  x,
+  T_pre,
+  Y,
+  Z,
+  icpt,
+  kappa,
+  X_y = NULL,
+  X_z = NULL,
+  tv_idx = NULL
+) {
   N <- ncol(Y)
   T_total <- nrow(Y)
   J <- ncol(Z)
   standata <- list(
-    T = T_total, T_pre = array(T_pre), N = N, J = J,
-    y = t(Y), Z = Z,
+    T = T_total,
+    T_pre = array(T_pre),
+    N = N,
+    J = J,
+    y = t(Y),
+    Z = Z,
     pr_rate_sigma = array(1 / x$sd_e),
     kappa = kappa
   )
@@ -56,8 +70,11 @@ create_standata <- function(
     standata <- c(
       standata,
       list(
-        K = K, X_y = X_y, X_z = aperm(X_z, c(3, 2, 1)), 
-        pr_mean_beta = array(0, K), pr_sd_beta = array(pr_sd_beta)
+        K = K,
+        X_y = X_y,
+        X_z = aperm(X_z, c(3, 2, 1)),
+        pr_mean_beta = array(0, K),
+        pr_sd_beta = array(pr_sd_beta)
       )
     )
     if (!is.null(tv_idx)) {
@@ -67,7 +84,8 @@ create_standata <- function(
       standata <- c(
         standata,
         list(
-          L = L, tv_idx = array(tv_idx),
+          L = L,
+          tv_idx = array(tv_idx),
           pr_rate_sigma_gamma = array(pr_rate_sigma_gamma)
         )
       )

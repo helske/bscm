@@ -74,7 +74,11 @@ check_omega_prior_args <- function(kappa, r_ess) {
   )
   stopifnot_(
     checkmate::test_number(
-      r_ess, lower = 0, upper = 1, finite = TRUE, null.ok = TRUE
+      r_ess,
+      lower = 0,
+      upper = 1,
+      finite = TRUE,
+      null.ok = TRUE
     ),
     "Argument {.arg r_ess} must be a single number strictly between 0 and 1."
   )
@@ -89,10 +93,14 @@ check_omega_prior_args <- function(kappa, r_ess) {
 # is set. For dirichlet(), kappa selection via r_ess is not yet implemented.
 resolve_kappa <- function(prior, J) {
   if (prior$distribution == "logistic_normal") {
-    if (!is.null(prior$kappa)) return(prior$kappa)
+    if (!is.null(prior$kappa)) {
+      return(prior$kappa)
+    }
     select_kappa(J, prior$r_ess %||% 0.25)
   } else {
-    if (!is.null(prior$kappa)) return(prior$kappa)
+    if (!is.null(prior$kappa)) {
+      return(prior$kappa)
+    }
     stopifnot_(
       FALSE,
       c(

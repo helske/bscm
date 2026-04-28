@@ -1,7 +1,12 @@
 test_that("bscm() returns a bscmfit object ", {
   expect_s3_class(fit1_int, "bscmfit")
   expected_names <- c(
-    "stanfit", "data", "setup", "converge", "elapsed_time", "call"
+    "stanfit",
+    "data",
+    "setup",
+    "converge",
+    "elapsed_time",
+    "call"
   )
   expect_true(all(expected_names %in% names(fit1_int)))
 })
@@ -10,9 +15,21 @@ test_that("bscmfit$setup has correct structure", {
   setup <- fit1_int$setup
   expect_type(setup, "list")
   expected_fields <- c(
-    "outcome", "treatment", "treated", "donors", "unit", "time", "times",
-    "T_pre", "T_total", "has_intercept", "predictors", "beta_names", 
-    "gamma_names", "model_type", "priors"
+    "outcome",
+    "treatment",
+    "treated",
+    "donors",
+    "unit",
+    "time",
+    "times",
+    "T_pre",
+    "T_total",
+    "has_intercept",
+    "predictors",
+    "beta_names",
+    "gamma_names",
+    "model_type",
+    "priors"
   )
   expect_true(all(expected_fields %in% names(setup)))
 })

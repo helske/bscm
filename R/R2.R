@@ -1,9 +1,9 @@
 #' Bayesian R-squared value
 #'
-#' `bayes_R2` computes the Bayesian \eqn{R^2} measure of model fit for a 
-#' Bayesian synthetic control model, while `loo_R2` computes a leave-one-out 
+#' `bayes_R2` computes the Bayesian \eqn{R^2} measure of model fit for a
+#' Bayesian synthetic control model, while `loo_R2` computes a leave-one-out
 #' adjusted version of the same quantity.
-#' 
+#'
 #' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
@@ -25,7 +25,7 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   old_seed <- .Random.seed
   on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
   set.seed(get_stanfit(object)@stan_args[[1]]$seed)
-  
+
   T_pre <- get_T_pre(object)
   unit <- get_unit(object)
   time <- get_time(object)
@@ -39,7 +39,8 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   idx1 <- stats::setNames(1L + c(0L, cs[-N]), treated)
   idx2 <- stats::setNames(cs, treated)
   r2 <- lapply(
-    treated, \(id) {
+    treated,
+    \(id) {
       y <- object$data |>
         filter(.data[[unit]] == .env$id) |>
         pull(.data[[outcome]])
@@ -48,7 +49,9 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
       lr <- log_ratios[, idx, drop = FALSE]
       psis_object <- loo::psis(lr)
       mu_y_loo <- loo::E_loo(
-        mu_y[, idx, drop = FALSE], psis_object, log_ratios = lr
+        mu_y[, idx, drop = FALSE],
+        psis_object,
+        log_ratios = lr
       )$value
       e_loo <- mu_y_loo - y
       # Dirichlet weights for Bayesian bootstrap
@@ -61,10 +64,11 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
       r2 <- 1 - ss_e_loo / ss_y
       r2[r2 < -1] <- -1
       r2[r2 > 1] <- 1
-      posterior::draws_array(R2 = r2) |> 
+      posterior::draws_array(R2 = r2) |>
         summarise_with_probs(probs)
     }
-  ) |> stats::setNames(treated)
+  ) |>
+    stats::setNames(treated)
   bind_rows(r2, .id = unit)
 }
 #' @rdname R2
@@ -73,22 +77,22 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
 #' @export
 bayes_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   probs <- sort_probs(probs)
-  
+
   N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
   T_pre <- get_T_pre(object)
-  
+
   y_mean <- as_draws_rvars(as_draws(object, "y_mean"))$y_mean
   sigma <- as_draws_rvars(as_draws(object, "sigma"))$sigma
-  
+
   r2 <- vector("list", N)
   for (i in seq_len(N)) {
     var_fit <- rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
     r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
   }
-  
-  r2 |> 
+
+  r2 |>
     summarise_with_probs(probs) |>
     mutate("{unit}" := treated, .before = 1L) |>
     mutate(variable = "R2")

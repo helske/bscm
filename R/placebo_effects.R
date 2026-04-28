@@ -4,31 +4,31 @@ placebo_effects <- function(x, ...) {
   UseMethod("placebo_effects", x)
 }
 #' Placebo effects of a Bayesian synthetic control model
-#' 
-#' For the in-space placebo (`type = "donor"`), original model is re-estimated 
-#' using each donor as the treated unit in turn (omitting the original, true 
-#' treated unit). The obtained effect estimates should be around zero, under 
+#'
+#' For the in-space placebo (`type = "donor"`), original model is re-estimated
+#' using each donor as the treated unit in turn (omitting the original, true
+#' treated unit). The obtained effect estimates should be around zero, under
 #' the assumption that the treatment affected only the true treated unit.
-#' 
-#' For the in-time placebo (`type = "time"`) we still 
-#' estimate the treatment effect for the original treated, but move the start 
-#' of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the 
-#' minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the 
-#' true last pre-treatment time point. In all cases, the obtained treatment 
-#' effects should fluctuate around zero for time points before the true 
-#' treatment time, under the assumption of no anticipation effects. 
-#'   
+#'
+#' For the in-time placebo (`type = "time"`) we still
+#' estimate the treatment effect for the original treated, but move the start
+#' of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the
+#' minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the
+#' true last pre-treatment time point. In all cases, the obtained treatment
+#' effects should fluctuate around zero for time points before the true
+#' treatment time, under the assumption of no anticipation effects.
+#'
 #' @export
 #' @rdname placebo_effects
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
-#' @param type \[`character(1)`]\cr Type of the placebo effects to compute. 
-#' Either `"donor"` for in-space placebos, `"time"` for in-time placebos. See 
+#' @param type \[`character(1)`]\cr Type of the placebo effects to compute.
+#' Either `"donor"` for in-space placebos, `"time"` for in-time placebos. See
 #' details.
-#' @param L \[`integer(1)`]\cr If `type = "time`, minimum number of observations 
-#' to use for the in-time placebos, i.e. the number of pre-treatment time points 
-#' for the first fit. For too small `L`, estimation can be unstable, so you 
+#' @param L \[`integer(1)`]\cr If `type = "time`, minimum number of observations
+#' to use for the in-time placebos, i.e. the number of pre-treatment time points
+#' for the first fit. For too small `L`, estimation can be unstable, so you
 #' should likely use at least `L = 10` or so.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
 #' @return A list with data frames `effect`, `rmse`, and `diagnostics`, and a
@@ -39,8 +39,13 @@ placebo_effects <- function(x, ...) {
 #'   each run. The `metadata` list contains the placebo type, summary
 #'   probabilities, model setup, and the placebo labels used. The result can be
 #'   visualized with [plot_effects()].
-placebo_effects.bscmfit <- function(x, type, L = NULL, 
-                                    probs = c(0.025, 0.975), ...) {
+placebo_effects.bscmfit <- function(
+  x,
+  type,
+  L = NULL,
+  probs = c(0.025, 0.975),
+  ...
+) {
   stopifnot_(
     identical(get_N(x), 1L),
     "Placebo effect computation is currently supported only for models with a 
@@ -54,7 +59,7 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
   )
   T_pre <- get_T_pre(x)
   stopifnot_(
-    identical(type, "donor") || 
+    identical(type, "donor") ||
       checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
     "Argument {.arg L} must be a single integer between 2 and {T_pre - 1}, defining 
     the number of time points used for the first fit."
@@ -87,10 +92,12 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
     for (i in seq_along(donors)) {
       donor <- donors[i]
       p(sprintf(paste0("Estimating the model for donor ", donor, ".")))
-      d <- data |> 
+      d <- data |>
         mutate(
           "{treatment}" := ifelse(
-            .data[[unit]] == .env$donor & .data[[time]] > .env$end, 1, 0
+            .data[[unit]] == .env$donor & .data[[time]] > .env$end,
+            1,
+            0
           )
         )
       fit <- stats::update(
@@ -116,11 +123,12 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
       p(sprintf(
         paste0("Estimating the model with data up to time ", times[i], ".")
       ))
-      d <- data |> 
+      d <- data |>
         mutate(
           "{treatment}" := ifelse(
-            .data[[unit]] == .env$treated & .data[[time]] > .env$times[i], 
-            1, 0
+            .data[[unit]] == .env$treated & .data[[time]] > .env$times[i],
+            1,
+            0
           )
         )
       fit <- stats::update(
@@ -146,7 +154,8 @@ placebo_effects.bscmfit <- function(x, type, L = NULL,
     effect = bind_rows(effects, .id = "placebo"),
     rmse = bind_rows(rmses, .id = "placebo"),
     diagnostics = bind_rows(
-      lapply(diagnostics_list, diags2df), .id = "placebo"
+      lapply(diagnostics_list, diags2df),
+      .id = "placebo"
     ),
     metadata = list(
       type = type,

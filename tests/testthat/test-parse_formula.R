@@ -10,7 +10,7 @@ test_that("parse_bscm_formula returns formula unchanged when no tv()", {
 })
 
 test_that("parse_bscm_formula extracts tv() terms", {
-  f <- y ~ x + tv(~ z)
+  f <- y ~ x + tv(~z)
   parsed <- parse_bscm_formula(f)
   expect_identical(parsed$w_terms, "z")
   full_terms <- attr(terms(parsed$x_formula), "term.labels")
@@ -30,8 +30,8 @@ test_that("parse_bscm_formula handles interactions inside tv()", {
 })
 
 test_that("parse_bscm_formula preserves intercept status", {
-  f_int <- y ~ x + tv(~ z)
-  f_noint <- y ~ 0 + x + tv(~ z)
+  f_int <- y ~ x + tv(~z)
+  f_noint <- y ~ 0 + x + tv(~z)
   parsed_int <- parse_bscm_formula(f_int)
   parsed_noint <- parse_bscm_formula(f_noint)
   expect_equal(attr(terms(parsed_int$x_formula), "intercept"), 1L)
@@ -48,9 +48,9 @@ test_that("parse_bscm_formula tv terms are included in full formula", {
 })
 
 test_that("parse_bscm_formula errors on multiple tv() calls", {
-  f <- y ~ tv(~ x) + tv(~ z)
+  f <- y ~ tv(~x) + tv(~z)
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "Multiple `tv\\(\\)` terms are not supported"
   )
 })
@@ -58,7 +58,7 @@ test_that("parse_bscm_formula errors on multiple tv() calls", {
 test_that("parse_bscm_formula errors on non-formula tv() argument", {
   f <- y ~ tv(x)
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "The argument to `tv\\(\\)` must be a one-sided formula"
   )
 })
@@ -66,7 +66,7 @@ test_that("parse_bscm_formula errors on non-formula tv() argument", {
 test_that("parse_bscm_formula errors on two-sided tv() formula", {
   f <- y ~ tv(a ~ x)
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "The argument to `tv\\(\\)` must be a one-sided formula"
   )
 })
@@ -74,20 +74,20 @@ test_that("parse_bscm_formula errors on two-sided tv() formula", {
 test_that("parse_bscm_formula errors on empty tv()", {
   f <- y ~ tv(~ -1)
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "The formula inside `tv\\(\\)` must contain at least one term"
   )
   f <- y ~ tv(~1)
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "The formula inside `tv\\(\\)` must contain at least one term"
   )
 })
 
 test_that("parse_bscm_formula errors on nested tv()", {
-  f <- y ~ tv(~ tv(~ x))
+  f <- y ~ tv(~ tv(~x))
   expect_error(
-    parse_bscm_formula(f), 
+    parse_bscm_formula(f),
     "Nested `tv\\(\\)` terms are not supported"
   )
 })

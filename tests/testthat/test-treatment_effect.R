@@ -3,12 +3,11 @@ test_that("treatment_effect returns data.frame with correct structure", {
   expect_s3_class(d, "data.frame")
   expect_identical(names(d)[1:4], c("id", "time", "variable", "mean"))
   expect_equal(nrow(d), get_T_total(fit1_noint))
-  
-  
+
   d <- treatment_effect(fitN_int)
   expect_equal(d$time, get_times(fitN_int))
   expect_identical(d$variable[1], "Average treatment effect")
-  
+
   d <- treatment_effect(fitN_int, average = FALSE)
   expect_equal(d$time, rep(get_times(fitN_int), 3))
   expect_equal(d$id, rep(get_treated(fitN_int), each = get_T_total(fitN_int)))

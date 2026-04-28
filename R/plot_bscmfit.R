@@ -1,10 +1,10 @@
 #' Visualize BSCM estimates
-#' 
-#' A plot of the posterior mean and posterior interval of the treatment effect 
+#'
+#' A plot of the posterior mean and posterior interval of the treatment effect
 #' and synthetic control over time.
-#' 
+#'
 #' @param x \[`bscmfit`]\cr object.
-#' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of 
+#' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of
 #' the posterior interval. Default is `c(0.025, 0.975)`.
 #' @param ... Ignored
 #' @aliases plot
@@ -26,35 +26,42 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   treated <- get_treated(x)
   time <- get_time(x)
   unit <- get_unit(x)
-  
+
   d_effects <- treatment_effect(
-    x, type = "time", average = FALSE, probs = probs, for_plots = TRUE
+    x,
+    type = "time",
+    average = FALSE,
+    probs = probs,
+    for_plots = TRUE
   )
   d_synth <- synthetic_control(x, probs = probs, for_plots = TRUE)
   d_effects$type <- "Treatment effect"
   d_synth$type <- "Synthetic control"
   lookup <- stats::setNames(
-    c(unit, time, outcome, paste0("q", 100 * probs)), 
-    c("unit", "time", "mean", "ymin", "ymax"))
-  d_plot <- bind_rows(d_effects, d_synth) |> 
+    c(unit, time, outcome, paste0("q", 100 * probs)),
+    c("unit", "time", "mean", "ymin", "ymax")
+  )
+  d_plot <- bind_rows(d_effects, d_synth) |>
     rename(any_of(lookup))
-  
-  dy <- x$data |> 
-    filter(.data[[unit]] %in% .env$treated) |> 
-    select(all_of(c(unit, time, outcome))) |> 
-    mutate(type = "Synthetic control") |> 
+
+  dy <- x$data |>
+    filter(.data[[unit]] %in% .env$treated) |>
+    select(all_of(c(unit, time, outcome))) |>
+    mutate(type = "Synthetic control") |>
     rename(any_of(lookup))
-  
+
   dt <- data.frame(yintercept = 0, type = "Treatment effect")
   N <- get_N(x)
   plots <- stats::setNames(vector("list", length = N), treated)
   for (i in treated) {
-    plots[[i]] <- d_plot |> 
-      filter(unit == i) |> 
-      ggplot(aes(time, mean)) + 
+    plots[[i]] <- d_plot |>
+      filter(unit == i) |>
+      ggplot(aes(time, mean)) +
       geom_hline(
-        data = dt, aes(yintercept = yintercept), 
-        linetype = "dashed", colour = "grey70"
+        data = dt,
+        aes(yintercept = yintercept),
+        linetype = "dashed",
+        colour = "grey70"
       ) +
       geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = type), alpha = 0.25) +
       geom_line(aes(colour = type)) +
@@ -63,7 +70,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
       scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +
       scale_fill_manual(values = c("#EECC66", "#77AADD")) +
       guides(fill = "none", colour = "none") +
-      facet_wrap(~ type, ncol = 1, scales = "free_y", strip.position = "left") +
+      facet_wrap(~type, ncol = 1, scales = "free_y", strip.position = "left") +
       theme_bw()
   }
   if (N == 1L) plots[[1]] else plots

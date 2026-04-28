@@ -2,10 +2,17 @@
 #'
 #' @inheritParams bscm
 #' @noRd
-check_bscm_arguments <- function(formula, data, treatment, time, unit,
-                                 omega_prior, mcmc_diagnostics, save_data,
-                                 priors) {
-  
+check_bscm_arguments <- function(
+  formula,
+  data,
+  treatment,
+  time,
+  unit,
+  omega_prior,
+  mcmc_diagnostics,
+  save_data,
+  priors
+) {
   stopifnot_(
     !missing(formula),
     "Argument {.arg formula} is missing."
@@ -42,10 +49,16 @@ check_bscm_arguments <- function(formula, data, treatment, time, unit,
   )
   stopifnot_(
     (checkmate::test_integerish(
-      data[[treatment]], lower = 0, upper = 1, any.missing = FALSE
-    ) || checkmate::test_logical(
-      data[[treatment]], any.missing = FALSE
-    )) && length(unique(data[[treatment]])) == 2L,
+      data[[treatment]],
+      lower = 0,
+      upper = 1,
+      any.missing = FALSE
+    ) ||
+      checkmate::test_logical(
+        data[[treatment]],
+        any.missing = FALSE
+      )) &&
+      length(unique(data[[treatment]])) == 2L,
     "Variable {.arg {treatment}} in {.arg data} should contain either logical 
     or binary values indicating the pre- and post-treatment time points."
   )

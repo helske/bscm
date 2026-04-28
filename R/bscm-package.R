@@ -1,9 +1,9 @@
 #' The 'bscm' package
 #'
-#' @description Bayesian synthetic control models for causal inference. Based on a 
-#' Bayesian model-based version of classic synthetic control approach. 
-#' Supports single or multiple treated units with staggered treatment times 
-#' and automatic uncertainty quantification based on posterior samples. The 
+#' @description Bayesian synthetic control models for causal inference. Based on a
+#' Bayesian model-based version of classic synthetic control approach.
+#' Supports single or multiple treated units with staggered treatment times
+#' and automatic uncertainty quantification based on posterior samples. The
 #' fast estimation uses Markov chain Monte Carlo via Stan.
 #'
 #' @name bscm-package

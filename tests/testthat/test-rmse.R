@@ -2,17 +2,17 @@ test_that("rmse returns data.frame with RMSEs", {
   d <- rmse(fit1_int)
   expect_s3_class(d, "data.frame")
   expect_equal(d$variable, c("Pre-RMSE", "Post-RMSE", "RMSE ratio"))
-  
+
   d <- rmse(fitN_xz, probs = numeric(0))
   expect_s3_class(d, "data.frame")
   expect_named(
-    d, 
+    d,
     c("variable", "mean", "sd", "rhat", "ess_bulk", "ess_tail")
   )
   d <- rmse(fitN_xz, probs = 0.5, average = FALSE)
   expect_s3_class(d, "data.frame")
   expect_named(
-    d, 
+    d,
     c("id", "variable", "mean", "sd", "q50", "rhat", "ess_bulk", "ess_tail")
   )
   expect_equal(d$id, as.character(rep(1:3, times = 3)))

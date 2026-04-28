@@ -6,7 +6,7 @@ synthetic_control <- function(x, ...) {
 #' Extract synthetic control series of a Bayesian synthetic control model
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries of synthetic controls.

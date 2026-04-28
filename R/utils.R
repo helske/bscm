@@ -1,7 +1,7 @@
 #' Stop if condition is not true
-#' 
+#'
 #' @noRd
-stopifnot_ <- function (cond, message, ..., call = rlang::caller_env()) {
+stopifnot_ <- function(cond, message, ..., call = rlang::caller_env()) {
   if (!cond) {
     cli::cli_abort(message, ..., .envir = parent.frame(), call = call)
   }
@@ -23,9 +23,9 @@ warning_ <- function(message, ...) {
   cli::cli_warn(message, ..., .envir = parent.frame())
 }
 #' Silent version of `try`
-#' 
+#'
 #' Same as [base::try] but with `silent = TRUE`.
-#' 
+#'
 #' @param x Expression to evaluate silently.
 #' @noRd
 try_ <- function(expr) {
@@ -44,7 +44,8 @@ summarise_with_probs <- function(x, probs, for_plots = FALSE) {
   } else {
     summarise_draws(
       x,
-      mean, sd, 
+      mean,
+      sd,
       if (length(probs) > 0) ~ quantile2(.x, probs = probs),
       default_convergence_measures()
     )

@@ -9,15 +9,13 @@
 #' @aliases sigma
 #' @export
 sigma.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
-  
   probs <- sort_probs(probs)
-  
   d <- as_draws(object, "sigma")
   N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
-  as_draws(object, "sigma") |> 
+  as_draws(object, "sigma") |>
     summarise_with_probs(probs) |>
-    mutate("{unit}" := treated, .before = 1L) |> 
+    mutate("{unit}" := treated, .before = 1L) |>
     mutate(variable = "sigma")
 }

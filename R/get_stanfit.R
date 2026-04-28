@@ -1,7 +1,7 @@
 #' Extract the `stanfit` object from the `bscmfit` object
-#' 
+#'
 #' This function returns the output (`stanfit` object) from [rstan::sampling()].
-#' 
+#'
 #' @export
 #' @rdname get_stanfit
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
@@ -34,8 +34,10 @@ get_stanfit.bscmfit <- function(x, ...) {
 #' @export ndraws
 #' @export
 ndraws.bscmfit <- function(x) {
-  as.integer((x$stanfit@sim$n_save[1L] - x$stanfit@sim$warmup2[1L]) * 
-               x$stanfit@sim$chains)
+  as.integer(
+    (x$stanfit@sim$n_save[1L] - x$stanfit@sim$warmup2[1L]) *
+      x$stanfit@sim$chains
+  )
 }
 #' Return the number of chains of `bscmfit` object
 #' @param x \[`bscmfit`]\cr The model fit object.

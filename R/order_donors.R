@@ -1,11 +1,11 @@
 #' Donor ranking
-#' 
+#'
 #' Returns ranking of donors either using posterior means of donor weights from
 #' `bscmfit` object, or ranking from a `vsel` object
-#' returned by [projpred::varsel()] or [projpred::cv_varsel()] when applied to 
+#' returned by [projpred::varsel()] or [projpred::cv_varsel()] when applied to
 #' a `bscmfit` object.
-#' 
-#' @param x \[`vsel`] or \[`bscmfit`]\cr Output from [bscm()], [projpred::varsel()] or 
+#'
+#' @param x \[`vsel`] or \[`bscmfit`]\cr Output from [bscm()], [projpred::varsel()] or
 #' [projpred::cv_varsel()].
 #' @return Character vector of donor IDs in order of selection.
 #' @export
@@ -25,9 +25,8 @@ donor_ranking <- function(x) {
   }
 }
 
-
 #' Return donor ordering for leave one out and placebo runs
-#' @noRd 
+#' @noRd
 order_donors <- function(x, order = NULL, weights = NULL) {
   donors <- get_donors(x)
   # original order
@@ -41,7 +40,7 @@ order_donors <- function(x, order = NULL, weights = NULL) {
       weights <- donor_weights(x, probs = numeric(0))
     }
     ranked <- weights |>
-      summarise(mean = mean(mean), .by = {{unit}}) |> 
+      summarise(mean = mean(mean), .by = {{ unit }}) |>
       arrange(if (order == "descending") desc(mean) else mean)
     return(ranked[[unit]])
   }

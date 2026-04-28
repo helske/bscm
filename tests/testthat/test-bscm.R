@@ -8,7 +8,7 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
     "Can't find outcome variable `r` in `data`\\."
   )
   expect_error(
-    bscm( ~ 1, data = single_treated, treatment = "treatment"),
+    bscm(~1, data = single_treated, treatment = "treatment"),
     "Argument `formula` must be a <formula> object with an outcome variable on the left-hand side\\."
   )
   expect_error(
@@ -63,11 +63,11 @@ test_that("bscm_stats() computes correct summary statistics", {
     lapply(seq_len(K), \(k) matrix(rnorm((N + J) * T_total), N + J, T_total))
   )
   x <- bscm_stats(Y, Z, T_pre, X)
-  
+
   expect_equal(x$mean_y[1], mean(Y[seq_len(T_pre[1]), 1]))
   expect_equal(x$mean_y[2], mean(Y[seq_len(T_pre[2]), 2]))
   expect_equal(
-    x$sd_e[1], 
+    x$sd_e[1],
     sd(Y[seq_len(T_pre[1]), 1] - rowMeans(Z[seq_len(T_pre[1]), ]))
   )
   expect_true(all(x$sd_e >= 1))
@@ -87,11 +87,21 @@ test_that("create_standata() returns correct list structure", {
   Z <- matrix(rnorm(T_total * J), T_total, J)
   x <- bscm_stats(Y, Z, T_pre)
   d <- create_standata(x, T_pre, Y, Z, icpt = TRUE, kappa)
- 
+
   expect_named(
     d,
-    c("T", "T_pre", "N", "J", "y", "Z",
-      "pr_rate_sigma", "kappa",  "pr_mean_intercept", "pr_sd_intercept")
+    c(
+      "T",
+      "T_pre",
+      "N",
+      "J",
+      "y",
+      "Z",
+      "pr_rate_sigma",
+      "kappa",
+      "pr_mean_intercept",
+      "pr_sd_intercept"
+    )
   )
   expect_equal(d$T, T_total)
   expect_equal(d$N, N)
@@ -113,17 +123,17 @@ test_that("create_inits() returns correct list structure", {
   x <- bscm_stats(Y, Z, T_pre)
   d <- create_standata(x, T_pre, Y, Z, icpt = FALSE, kappa)
   inits <- create_inits(d, logistic_normal())
-  expect_named(inits, c("eta", "sigma"))
-  expect_equal(dim(inits$eta), c(N, J))
+  expect_named(inits, c("sigma", "eta"))
+  expect_equal(dim(inits$eta), c(N, J - 1L))
   expect_length(inits$sigma, N)
   d <- create_standata(x, T_pre, Y, Z, icpt = TRUE, kappa)
   inits <- create_inits(d, logistic_normal())
-  expect_named(inits, c("eta", "sigma", "a"))
-  expect_equal(dim(inits$eta), c(N, J))
+  expect_named(inits, c("sigma", "eta", "a"))
+  expect_equal(dim(inits$eta), c(N, J - 1L))
   expect_length(inits$sigma, N)
   expect_length(inits$a, N)
   inits_dir <- create_inits(d, dirichlet(kappa = 1))
-  expect_named(inits_dir, c("omega", "sigma", "a"))
-  expect_length(inits_dir$omega, N)
-  expect_equal(inits_dir$omega[[1]], rep(1 / J, J))
+  expect_named(inits_dir, c("sigma", "omega", "a"))
+  expect_equal(dim(inits_dir$omega), c(N, J))
+  expect_equal(inits_dir$omega, matrix(1 / J, N, J))
 })

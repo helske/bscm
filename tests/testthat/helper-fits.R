@@ -65,7 +65,7 @@ tryCatch(
       save_warmup = FALSE
     )
     fitN_tv <- bscm(
-      y ~ z + tv(~ x),
+      y ~ z + tv(~x),
       data = multiple_treated,
       treatment = "treatment",
       time = "time",

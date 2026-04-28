@@ -1,10 +1,10 @@
 #' Simulated example data with multiple treated units
 #'
-#' This simulated data is generated based on a latent factor model with two 
-#' factors, 40 time points and 53 units. For the first three units, 
-#' a "treatment" \eqn{\tau = 1 + t} for the last 5 time points 
+#' This simulated data is generated based on a latent factor model with two
+#' factors, 40 time points and 53 units. For the first three units,
+#' a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
 #' \eqn{t=0,\ldots,4} is added to an outcome `y`.
-#' To see exactly how the data was generated, see `data-raw` folder on the 
+#' To see exactly how the data was generated, see `data-raw` folder on the
 #' Github repository of the package.
 #'
 #' @docType data

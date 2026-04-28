@@ -4,7 +4,7 @@ leave_donor_out <- function(x, ...) {
   UseMethod("leave_donor_out", x)
 }
 #' Leave-out donor sensitivity of a Bayesian synthetic control model
-#' 
+#'
 #' `leave_donor_out()` re-estimates the original model after omitting donors from
 #' the donor pool. By default, it removes one donor at a time. Setting
 #' `cumulative = TRUE` instead removes donors cumulatively following the chosen
@@ -20,15 +20,15 @@ leave_donor_out <- function(x, ...) {
 #'
 #' For models with multiple treated units, automatic donor ranking is based on
 #' the average posterior mean donor weight across treated units.
-#'   
+#'
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].
 #' @param order \[`character()` or `NULL`]\cr Donor order used for leave-out
 #'   runs. Either a vector of donor names, or `"descending"` / `"ascending"` to
-#'   rank donors by posterior means of donor weights. Default is `"descending"`. 
+#'   rank donors by posterior means of donor weights. Default is `"descending"`.
 #'   Use `NULL` to use the original donor order.
 #' @param cumulative \[`logical(1)`]\cr If `FALSE` (the default), omit one donor
 #'   at a time. If `TRUE`, omit donors cumulatively following `order`.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the 
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
 #' @return An object of class `bscm_ldo` with data frames `effect`,
@@ -42,12 +42,13 @@ leave_donor_out <- function(x, ...) {
 #' @rdname leave_donor_out
 #' @aliases leave_donor_out
 #' @export
-leave_donor_out.bscmfit <- function(x,
-                                    order = "descending",
-                                    cumulative = FALSE,
-                                    probs = c(0.025, 0.5, 0.975),
-                                    ...) {
-  
+leave_donor_out.bscmfit <- function(
+  x,
+  order = "descending",
+  cumulative = FALSE,
+  probs = c(0.025, 0.5, 0.975),
+  ...
+) {
   probs <- sort_probs(probs)
   stopifnot_(
     checkmate::test_flag(cumulative),
@@ -73,27 +74,32 @@ leave_donor_out.bscmfit <- function(x,
     )
   }
   unit <- get_unit(x)
-  effects <- weights <- rmses <- diagnostics <- 
+  effects <- weights <- rmses <- diagnostics <-
     stats::setNames(
-      vector("list", length(removed_donors) + 1L), 
+      vector("list", length(removed_donors) + 1L),
       c("none", names(removed_donors))
     )
   effects[[1]] <- treatment_effect(x, probs = probs)
   rmses[[1]] <- rmse(x, probs = probs)
   weights[[1]] <- donor_weights(x, probs = probs)
   diagnostics[[1]] <- check_mcmc_diagnostics(x, warn = FALSE)
-  
+
   omega_prior <- x$setup$omega_prior
   omega_prior$kappa <- get_kappa(x)
   omega_prior$r_ess <- NULL
   p <- progressr::progressor(along = removed_donors)
   for (i in seq_along(removed_donors)) {
     p(paste0("Removing donor ", donor_order[i + 1]))
-    d <- x$data |> 
+    d <- x$data |>
       filter(!(.data[[unit]] %in% .env$removed_donors[[i]]))
     fit <- stats::update(
-      x, data = d, refresh = 0, mcmc_diagnostics = FALSE, save_data = FALSE,
-      omega_prior = omega_prior,  ...
+      x,
+      data = d,
+      refresh = 0,
+      mcmc_diagnostics = FALSE,
+      save_data = FALSE,
+      omega_prior = omega_prior,
+      ...
     )
     effects[[i + 1]] <- treatment_effect(fit, probs = probs)
     rmses[[i + 1]] <- rmse(fit, probs = probs)
@@ -101,7 +107,9 @@ leave_donor_out.bscmfit <- function(x,
     diagnostics[[i + 1]] <- check_mcmc_diagnostics(fit, warn = FALSE)
   }
   issues <- vapply(
-    diagnostics[-1L], \(x) x$has_issues, logical(1)
+    diagnostics[-1L],
+    \(x) x$has_issues,
+    logical(1)
   )
   warnifnot_(
     all(!issues),
@@ -113,7 +121,7 @@ leave_donor_out.bscmfit <- function(x,
     rmse = bind_rows(rmses, .id = "removed_donor"),
     weights = bind_rows(weights, .id = "removed_donor"),
     diagnostics = bind_rows(
-      lapply(diagnostics, diags2df), 
+      lapply(diagnostics, diags2df),
       .id = "removed_donor"
     ),
     metadata = list(

@@ -30,23 +30,23 @@ get_stan_y <- function(x) {
 #' Extract the name of the outcome variable from formula object
 #' @noRd
 get_outcome <- function(x) {
-  
   if (inherits(x, "bscmfit")) {
     return(x$setup$outcome)
   }
   stopifnot_(
-    inherits(x, "formula"), 
+    inherits(x, "formula"),
     "Argument {.arg formula} must be a {.cls formula} object."
   )
   stopifnot_(
-    identical(length(x), 3L), 
+    identical(length(x), 3L),
     "Argument {.arg formula} must be a {.cls formula} object with an outcome 
     variable on the left-hand side."
   )
   y <- all.vars(x[[2]])
   stopifnot_(
-    identical(length(y), 1L), 
+    identical(length(y), 1L),
     "Argument {.arg formula} must be a {.cls formula} object with one outcome 
-    variable on the left-hand side.")
+    variable on the left-hand side."
+  )
   y
 }

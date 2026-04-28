@@ -28,7 +28,10 @@ test_that("omega_prior constructors reject invalid arguments", {
 
 test_that("format.omega_prior produces correct strings", {
   expect_equal(format(logistic_normal(kappa = 2)), "logistic_normal(kappa = 2)")
-  expect_equal(format(logistic_normal(r_ess = 0.1)), "logistic_normal(r_ess = 0.1)")
+  expect_equal(
+    format(logistic_normal(r_ess = 0.1)),
+    "logistic_normal(r_ess = 0.1)"
+  )
   expect_equal(format(logistic_normal()), "logistic_normal()")
   expect_equal(format(dirichlet(kappa = 0.5)), "dirichlet(kappa = 0.5)")
 })

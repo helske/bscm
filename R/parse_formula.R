@@ -15,7 +15,7 @@ parse_bscm_formula <- function(formula) {
   xt <- stats::terms(formula, specials = "tv")
   tv_idx <- attr(xt, "specials")$tv
   icpt <- as.logical(attr(xt, "intercept"))
-  
+
   if (is.null(tv_idx)) {
     predictors <- all.vars(formula[-2L])
     return(
@@ -33,10 +33,10 @@ parse_bscm_formula <- function(formula) {
     "Multiple {.code tv()} terms are not supported. Combine all
     time-varying terms into a single {.code tv()} call."
   )
-  
+
   xt_vars <- attr(xt, "variables")
   xt_terms <- attr(xt, "term.labels")
-  
+
   tv_call <- xt_vars[[tv_idx + 1L]]
   stopifnot_(
     length(tv_call) == 2L,
@@ -50,7 +50,7 @@ parse_bscm_formula <- function(formula) {
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "The argument to {.code tv()} must be a one-sided formula."
   )
-  
+
   tv_terms_obj <- stats::terms(tv_formula, specials = "tv")
   nested_tv <- attr(tv_terms_obj, "specials")$tv
   stopifnot_(
@@ -62,14 +62,14 @@ parse_bscm_formula <- function(formula) {
     length(tv_term_labels) > 0L,
     "The formula inside {.code tv()} must contain at least one term."
   )
-  
+
   # Drop the tv() term from the original formula
   tv_deparse <- deparse1(xt_vars[[tv_idx + 1L]])
   tv_drop_idx <- which(xt_terms == tv_deparse)
   main_xt <- stats::drop.terms(xt, dropx = tv_drop_idx)
   main_terms <- attr(stats::terms(main_xt), "term.labels")
   response <- xt_vars[[2L]]
-  
+
   # union of main and tv terms
   all_terms <- union(main_terms, tv_term_labels)
   full_formula <- stats::reformulate(
@@ -77,16 +77,16 @@ parse_bscm_formula <- function(formula) {
     response = response,
     intercept = icpt
   )
-  
+
   # tv terms only
   tv_formula <- stats::reformulate(
     termlabels = tv_term_labels,
     response = response,
     intercept = icpt
   )
-  
+
   predictors <- all.vars(full_formula[-2L])
-  
+
   list(
     icpt = icpt,
     predictors = predictors,

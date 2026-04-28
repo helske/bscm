@@ -1,10 +1,10 @@
 #' Simulated example data with single treated unit
 #'
-#' This simulated data is generated based on a latent factor model with two 
-#' factors, 40 time points and 31 units. For the first unit (`id = 1`), 
-#' a "treatment" \eqn{\tau = 1 + t} for the last 10 time points 
+#' This simulated data is generated based on a latent factor model with two
+#' factors, 40 time points and 31 units. For the first unit (`id = 1`),
+#' a "treatment" \eqn{\tau = 1 + t} for the last 10 time points
 #' \eqn{t=0,\ldots,9} is added to an outcome `y`.
-#' To see exactly how the data was generated, see `data-raw` folder on the 
+#' To see exactly how the data was generated, see `data-raw` folder on the
 #' Github repository of the package.
 #'
 #' @docType data
@@ -24,11 +24,11 @@
 #' @name single_treated
 #' @examples
 #' head(single_treated)
-#' single_treated |> 
-#'   ggplot2::ggplot(ggplot2::aes(time, y, group = id)) + 
-#'   ggplot2::geom_line(alpha = 0.3) + 
+#' single_treated |>
+#'   ggplot2::ggplot(ggplot2::aes(time, y, group = id)) +
+#'   ggplot2::geom_line(alpha = 0.3) +
 #'   ggplot2::geom_line(
 #'     data = single_treated |> dplyr::filter(id == 1), colour = "tomato"
-#'   ) + 
+#'   ) +
 #'   ggplot2::theme_bw()
 NULL

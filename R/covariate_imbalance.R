@@ -5,20 +5,20 @@ covariate_imbalance <- function(x, ...) {
 }
 #' Covariate imbalance of Bayesian synthetic control model
 #'
-#' For models with covariates, returns and optionally visualizes the 
+#' For models with covariates, returns and optionally visualizes the
 #' covariate imbalances
 #' \deqn{\delta_{t} = \sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \sum_{j=1}^J \omega_j x_{k, j, t})^2},}
-#' \eqn{t=1,\ldots,T}, \eqn{x_{k,0,t}} is the value of \eqn{k}th covariate of 
-#' a treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}. This 
-#' is computed separately for each treated unit in case of multiple treated 
+#' \eqn{t=1,\ldots,T}, \eqn{x_{k,0,t}} is the value of \eqn{k}th covariate of
+#' a treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}. This
+#' is computed separately for each treated unit in case of multiple treated
 #' units.
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param plot \[`logical(1)`]\cr If `TRUE` (the default), plots the posterior 
+#' @param plot \[`logical(1)`]\cr If `TRUE` (the default), plots the posterior
 #' mean and interval of the synthetic covariate distances over time.
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries. 
-#' Default is `c(0.025, 0.975)`. If length of `probs` less than 2, no posterior 
-#' intervals are drawn, and if length of `probs` is larger than two, the most 
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
+#' Default is `c(0.025, 0.975)`. If length of `probs` less than 2, no posterior
+#' intervals are drawn, and if length of `probs` is larger than two, the most
 #' extreme values are used for the posterior intervals.
 #' @param ... Optional arguments passed to [ggplot2::facet_wrap()].
 #' @return A `data.frame` of posterior summaries of synthetic covariate
@@ -26,8 +26,12 @@ covariate_imbalance <- function(x, ...) {
 #' @rdname covariate_imbalance
 #' @aliases covariate_imbalance
 #' @export
-covariate_imbalance.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975),
-                                        ...) {
+covariate_imbalance.bscmfit <- function(
+  x,
+  plot = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   stopifnot_(
     checkmate::test_flag(plot),
     "Argument {.arg plot} must be a single {.cls logical} value."
@@ -42,9 +46,10 @@ covariate_imbalance.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975),
   treated <- get_treated(x)
   unit <- get_unit(x)
   delta <- lapply(
-    seq_len(N), \(i) covariate_imbalance_unit(x, i, X, probs)
-  ) |> 
-    stats::setNames(treated) |> 
+    seq_len(N),
+    \(i) covariate_imbalance_unit(x, i, X, probs)
+  ) |>
+    stats::setNames(treated) |>
     bind_rows(.id = unit)
   if (plot) {
     time <- get_time(x)
@@ -52,7 +57,8 @@ covariate_imbalance.bscmfit <- function(x, plot = TRUE, probs = c(0.025, 0.975),
     upr <- paste0("q", 100 * max(probs))
     ribbon <- if (lwr != upr) {
       geom_ribbon(
-        aes(ymin = .data[[lwr]], ymax = .data[[upr]]), alpha = 0.25
+        aes(ymin = .data[[lwr]], ymax = .data[[upr]]),
+        alpha = 0.25
       )
     }
     facet <- if (N > 1L) {
@@ -77,20 +83,22 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
   T_total <- get_T_total(x)
   J <- get_J(x)
   K <- length(get_predictors(x))
-  
+
   pars <- paste0("omega[", unit, ",", seq_len(J), "]")
   omega <- rvar(as_draws(x, pars), with_chains = TRUE)
-  
+
   X_y <- X$X_y[unit, , , drop = FALSE]
   dim(X_y) <- c(T_total, K)
   delta_tk <- lapply(
-    seq_len(K), \(k) {
-      (X_y[, k] - c(omega %*% X$X_z[, , k]))^2
+    seq_len(K),
+    \(k) {
+      (X_y[, k] - c(omega %*% X$X_z[,, k]))^2
     }
   )
-  sqrt(Reduce(`+`, delta_tk) / K) |> 
+  sqrt(Reduce(`+`, delta_tk) / K) |>
     summarise_draws(
-      mean, ~ quantile2(.x, probs = probs)
+      mean,
+      ~ quantile2(.x, probs = probs)
     ) |>
     mutate("{time}" := .env$times, .before = variable) |>
     select(-variable)
@@ -98,7 +106,9 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
 
 get_Xs <- function(x) {
   X <- stats::model.matrix(stats::formula(x), data = x$data)
-  if (has_intercept(x)) X <- X[, -1L, drop = FALSE]
+  if (has_intercept(x)) {
+    X <- X[, -1L, drop = FALSE]
+  }
   K <- ncol(X)
   T_total <- get_T_total(x)
   N <- get_N(x)

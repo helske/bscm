@@ -2,11 +2,11 @@
 #'
 #' `plot_effects()` plots the posterior mean and posterior interval of the
 #' treatment effect over time. For the output of
-#' [leave_donor_out()] or [placebo_effects()], it additionally overlays the 
+#' [leave_donor_out()] or [placebo_effects()], it additionally overlays the
 #' posterior mean of the treatment effect from each leave-out or placebo fit.
 #'
 #' For models with multiple treated units, `plot_effects.bscmfit()` returns a
-#' named list of per-unit plots, while methods for leave-out or placebo outputs 
+#' named list of per-unit plots, while methods for leave-out or placebo outputs
 #' return a signle plot of the average treatment effect.
 #'
 #' @param x \[`bscmfit`, `bscm_ldo`, or `bscm_placebo_effects`]\cr Object from
@@ -42,16 +42,20 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   time <- get_time(x)
   unit <- get_unit(x)
   N <- get_N(x)
-  
+
   d_effects <- treatment_effect(
-    x, type = "time", average = FALSE, probs = probs, for_plots = TRUE
+    x,
+    type = "time",
+    average = FALSE,
+    probs = probs,
+    for_plots = TRUE
   )
   lookup <- stats::setNames(
     c(unit, time, paste0("q", 100 * probs)),
     c("unit", "time", "ymin", "ymax")
   )
   d_plot <- d_effects |> rename(any_of(lookup))
-  
+
   plots <- stats::setNames(vector("list", N), treated)
   for (i in treated) {
     plots[[i]] <- d_plot |>
@@ -59,11 +63,13 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
       ggplot(aes(time, mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
       geom_ribbon(
-        aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25
+        aes(ymin = ymin, ymax = ymax),
+        fill = "#EECC66",
+        alpha = 0.25
       ) +
       geom_line(colour = "#DDAA33") +
       labs(
-        x = time, 
+        x = time,
         y = paste0("Treatment effect", if (N > 1L) paste0(" for ", i))
       ) +
       theme_bw()
@@ -76,7 +82,7 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
   ymin <- ymax <- NULL
   if (is.null(probs)) {
     probs <- range(x$metadata$probs)
-  } 
+  }
   stopifnot_(
     checkmate::test_numeric(
       probs,
@@ -95,7 +101,7 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
     c(
       "Quantile columns matching {.arg probs} are not in the effect data.",
       i = paste0(
-        "Re-run {.fun leave_donor_out} with {.arg probs} that include", 
+        "Re-run {.fun leave_donor_out} with {.arg probs} that include",
         "{.val {c(min(probs), max(probs))}}."
       )
     )
@@ -108,15 +114,15 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
     c(unit, time, ymin_col, ymax_col),
     c("unit", "time", "ymin", "ymax")
   )
-  
+
   d_base <- x$effect |>
     filter(.data$removed_donor == "none") |>
     rename(any_of(lookup))
-  
+
   d_ldo <- x$effect |>
     filter(removed_donor != "none") |>
     rename(any_of(lookup))
-  
+
   if (N > 1L) {
     ylab <- "Average treatment effect"
   } else {
@@ -126,7 +132,9 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
     ggplot(aes(time, mean)) +
     geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
     geom_ribbon(
-      aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25
+      aes(ymin = ymin, ymax = ymax),
+      fill = "#EECC66",
+      alpha = 0.25
     ) +
     geom_line(data = d_ldo, colour = "grey50", alpha = 0.5) +
     geom_line(colour = "#DDAA33") +
@@ -163,42 +171,47 @@ plot_effects.bscm_placebo_effects <- function(x, probs = NULL, ...) {
       )
     )
   )
-  
+
   type <- x$metadata$type
   time <- x$metadata$setup$time
   unit <- x$metadata$setup$unit
   treated <- x$metadata$setup$treated
-  
+
   lookup <- stats::setNames(
-    c(time, ymin_col, ymax_col), c("time", "ymin", "ymax")
+    c(time, ymin_col, ymax_col),
+    c("time", "ymin", "ymax")
   )
   if (identical(type, "donor")) {
-    d_base <- x$effect |> 
-      filter(placebo == .env$treated) |> 
+    d_base <- x$effect |>
+      filter(placebo == .env$treated) |>
       rename(any_of(lookup))
     d_placebo <- x$effect |>
-      filter(placebo != .env$treated) |> 
+      filter(placebo != .env$treated) |>
       rename(any_of(lookup))
   } else {
     T_pre <- x$metadata$setup$T_pre
-    d_base <- x$effect |> 
-      filter(placebo == .env$T_pre) |> 
+    d_base <- x$effect |>
+      filter(placebo == .env$T_pre) |>
       rename(any_of(lookup))
     d_placebo <- x$effect |>
-      filter(placebo != .env$T_pre) |> 
+      filter(placebo != .env$T_pre) |>
       rename(any_of(lookup))
   }
   d_base |>
     ggplot(aes(time, mean)) +
     geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
     geom_line(
-      data = d_placebo, aes(group = placebo), colour = "grey50", alpha = 0.5
+      data = d_placebo,
+      aes(group = placebo),
+      colour = "grey50",
+      alpha = 0.5
     ) +
     geom_ribbon(
-      aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25
+      aes(ymin = ymin, ymax = ymax),
+      fill = "#EECC66",
+      alpha = 0.25
     ) +
     geom_line(colour = "#DDAA33") +
     labs(x = time, y = "Treatment effect") +
     theme_bw()
 }
-
