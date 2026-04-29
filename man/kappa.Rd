@@ -6,16 +6,19 @@
 \alias{get_ess}
 \title{Find a value for kappa by matching it to target median relative ESS}
 \usage{
-select_kappa(J, target)
+select_kappa(J, target, distribution)
 
 get_kappa(x)
 
-get_ess(J, kappa)
+get_ess(J, kappa, distribution)
 }
 \arguments{
 \item{J}{[\code{integer(1)}]\cr Number of donors.}
 
 \item{target}{[\code{numeric(1)}]\cr Target value of relative ESS.}
+
+\item{distribution}{[\code{character(1)}]\cr Prior distribution of omega for
+which the \eqn{\kappa} corresponds to. Either \code{"dirichlet"} or \code{"logistic_normal"}.}
 
 \item{x}{[\code{bscmfit}]\cr The output returned by the \code{\link[=bscm]{bscm()}}.}
 
@@ -28,9 +31,9 @@ For \code{get_ess()}, value of relative ESS.
 \description{
 Given a number of donors \eqn{J} and a target value for relative effective number
 of donors, \eqn{rESS = 1 / \sum(\omega^2)}, function \code{select_kappa()} returns
-a value of \eqn{\kappa} such that the prior median of  rESS given
+a value of \eqn{\kappa} such that the prior median of rESS given
 \eqn{\kappa} matches the target rESS. This is based on on a lookup table
-from Monte Carlo simulations.
+\code{kappa_lookup} from Monte Carlo simulations.
 }
 \details{
 For reverse, function \code{get_ess()} returns the prior ESS (not relative)
