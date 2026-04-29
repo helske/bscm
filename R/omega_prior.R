@@ -89,27 +89,9 @@ check_omega_prior_args <- function(kappa, r_ess) {
 }
 
 # Resolves the numeric kappa for the omega prior given J (number of donors).
-# For logistic_normal(), falls back to r_ess = 0.25 if neither kappa nor r_ess
-# is set. For dirichlet(), kappa selection via r_ess is not yet implemented.
 resolve_kappa <- function(prior, J) {
-  if (prior$distribution == "logistic_normal") {
-    if (!is.null(prior$kappa)) {
-      return(prior$kappa)
-    }
-    select_kappa(J, prior$r_ess %||% 0.25)
-  } else {
-    if (!is.null(prior$kappa)) {
-      return(prior$kappa)
-    }
-    stopifnot_(
-      FALSE,
-      c(
-        paste0(
-          "Kappa selection via {.arg r_ess} for {.fn dirichlet} ",
-          "is not yet implemented."
-        ),
-        i = "Provide {.arg kappa} directly: {.code dirichlet(kappa = value)}."
-      )
-    )
+  if (!is.null(prior$kappa)) {
+    return(prior$kappa)
   }
+  select_kappa(J, prior$r_ess %||% 0.25, prior$distribution)
 }

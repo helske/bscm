@@ -41,15 +41,21 @@ test_that("resolve_kappa() resolves kappa correctly", {
   expect_equal(resolve_kappa(logistic_normal(kappa = 3), J), 3)
   expect_equal(
     resolve_kappa(logistic_normal(r_ess = 0.25), J),
-    select_kappa(J, 0.25)
+    select_kappa(J, 0.25, "logistic_normal")
   )
   expect_equal(
     resolve_kappa(logistic_normal(), J),
-    select_kappa(J, 0.25)
+    select_kappa(J, 0.25, "logistic_normal")
   )
   expect_equal(resolve_kappa(dirichlet(kappa = 1), J), 1)
-  expect_error(resolve_kappa(dirichlet(r_ess = 0.3), J), "not yet implemented")
-  expect_error(resolve_kappa(dirichlet(), J), "not yet implemented")
+  expect_equal(
+    resolve_kappa(dirichlet(r_ess = 0.5), J),
+    select_kappa(J, 0.5, "dirichlet")
+  )
+  expect_equal(
+    resolve_kappa(dirichlet(), J),
+    select_kappa(J, 0.25, "dirichlet")
+  )
 })
 
 test_that("bscm() rejects invalid omega_prior", {

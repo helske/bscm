@@ -10,7 +10,7 @@ bscm(
   treatment,
   time = "time",
   unit = "id",
-  omega_prior = logistic_normal(r_ess = 0.25),
+  omega_prior = logistic_normal(kappa = 2),
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
@@ -52,9 +52,9 @@ identifying different units.}
 
 \item{omega_prior}{[\code{omega_prior}]\cr Prior for the donor weight vector
 \eqn{\omega}, created by \code{\link[=logistic_normal]{logistic_normal()}} or \code{\link[=dirichlet]{dirichlet()}}. Each
-constructor accepts either \code{kappa} (scale/concentration/ parameter) or
+constructor accepts either \code{kappa} (scale/concentration parameter) or
 \code{r_ess} (target prior median relative effective number of donors).
-Defaults to \code{logistic_normal(r_ess = 0.25)}.}
+Defaults to \code{logistic_normal(kappa = 2)}. See details.}
 
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks
@@ -94,14 +94,18 @@ to sum to zero. Larger \eqn{\kappa} induces sparser weights.
   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
 concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
 the center of the simplex. \eqn{\kappa = 1} corresponds to uniform prior
-over simplex.
+over probability simplices.
 }
 
-The default prior is \code{logistic_normal(r_ess = 0.25)}, where the
-concentration \eqn{\kappa} is chosen so that the prior median relative
-effective number of donors \eqn{r_{ESS} = (\sum \omega^2)^{-1} / J} equals
-0.25. You should test different values to assess sensitivity of results,
+You should test different values to assess sensitivity of results,
 and potentially run \code{\link[=loo]{loo()}} for cross-validation based selection.
+One way to define the prior for the weight vector is to consider the effect of
+\eqn{\kappa} on the effective number of donors
+\eqn{ESS = (\sum \omega^2)^{-1}}. With the default prior
+\code{logistic_normal(kappa = 2)} the prior median of ESS varies from 3 to 11 when
+the number of donors \eqn{J} increases from 10 to 100. These are based on the data
+\code{kappa_lookup} which is also used to define \eqn{\kappa} via
+relative ESS argument \code{r_ess} of the \code{omega_prior} object.
 
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},
@@ -133,7 +137,7 @@ estimation, use methods such as \code{\link[=treatment_effect]{treatment_effect(
 }
 \examples{
 fit <- bscm(
-  y ~ 1, single_treated, "treatment", "time", "id", 
+  y ~ 1, single_treated, "treatment", "time", "id",
   chains = 1, cores = 1, refresh = 0
 )
 fit

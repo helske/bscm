@@ -15,13 +15,17 @@
 #'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
 #'   concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
 #'   the center of the simplex. \eqn{\kappa = 1} corresponds to uniform prior
-#'   over simplex.
-#'
-#' The default prior is `logistic_normal(r_ess = 0.25)`, where the
-#' concentration \eqn{\kappa} is chosen so that the prior median relative
-#' effective number of donors \eqn{r_{ESS} = (\sum \omega^2)^{-1} / J} equals
-#' 0.25. You should test different values to assess sensitivity of results,
+#'   over probability simplices.
+#' 
+#' You should test different values to assess sensitivity of results,
 #' and potentially run [bscm::loo()] for cross-validation based selection.
+#' One way to define the prior for the weight vector is to consider the effect of 
+#' \eqn{\kappa} on the effective number of donors 
+#' \eqn{ESS = (\sum \omega^2)^{-1}}. With the default prior 
+#' `logistic_normal(kappa = 2)` the prior median of ESS varies from 3 to 11 when 
+#' the number of donors \eqn{J} increases from 10 to 100. These are based on the data 
+#' `kappa_lookup` which is also used to define \eqn{\kappa} via 
+#' relative ESS argument `r_ess` of the `omega_prior` object.
 #'
 #' When model contains covariates \eqn{X}, their effect is subtracted from
 #' donors, i.e., for treated unit \eqn{i},
@@ -84,9 +88,9 @@
 #'   moment for parameters other than weight vector \eqn{\omega}. See details.
 #' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
 #'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()]. Each
-#'   constructor accepts either `kappa` (scale/concentration/ parameter) or
+#'   constructor accepts either `kappa` (scale/concentration parameter) or
 #'   `r_ess` (target prior median relative effective number of donors).
-#'    Defaults to `logistic_normal(r_ess = 0.25)`.
+#'    Defaults to `logistic_normal(kappa = 2)`. See details.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -116,7 +120,7 @@ bscm <- function(
   treatment,
   time = "time",
   unit = "id",
-  omega_prior = logistic_normal(r_ess = 0.25),
+  omega_prior = logistic_normal(kappa = 2),
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",

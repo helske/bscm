@@ -29,12 +29,12 @@ Github repository of the package.
 }
 \examples{
 head(single_treated)
-single_treated |> 
-  ggplot2::ggplot(ggplot2::aes(time, y, group = id)) + 
-  ggplot2::geom_line(alpha = 0.3) + 
+single_treated |>
+  ggplot2::ggplot(ggplot2::aes(time, y, group = id)) +
+  ggplot2::geom_line(alpha = 0.3) +
   ggplot2::geom_line(
     data = single_treated |> dplyr::filter(id == 1), colour = "tomato"
-  ) + 
+  ) +
   ggplot2::theme_bw()
 }
 \keyword{datasets}

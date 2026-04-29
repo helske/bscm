@@ -42,7 +42,7 @@ plot(vs, stats = c("elpd", "rmse"), alpha = 0.05)
 predictions <- projpred::proj_predict(vs)
 # posterior mean of the predictions
 colMeans(predictions)
-} 
+}
 }
 \seealso{
 \code{\link[projpred:varsel]{projpred::varsel()}}, \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}
