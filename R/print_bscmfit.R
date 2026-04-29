@@ -42,7 +42,7 @@ print.bscmfit <- function(x, ...) {
     n_post,
     "iterations took",
     round(max(rowSums(x$elapsed_time$sampling)), 2),
-    "seconds\n"
+    "seconds for the slowest chain\n"
   )
   if (!is.null(x$converge)) {
     print(x$converge)
