@@ -1,4 +1,4 @@
-#' Approximate leave-One-Out (LOO) cross-validation for Bayesian synthetic control model
+#' Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic control models
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param r_eff \[`logical(1)`]\cr If `TRUE` (the default), [loo::loo()]

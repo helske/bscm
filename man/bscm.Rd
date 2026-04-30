@@ -14,6 +14,7 @@ bscm(
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
+  compute_predictions = TRUE,
   ...
 )
 }
@@ -70,6 +71,15 @@ rearranging data by \code{unit} and \code{time} variables.}
 \item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
 or \code{"default"} which is a default and only supported option at the
 moment for parameters other than weight vector \eqn{\omega}. See details.}
+
+\item{compute_predictions}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
+posterior predictive draws (\code{y_rep}) are computed during sampling. Set to
+\code{FALSE} to skip this computation and reduce memory usage; this is used
+internally by \code{\link[=lfo]{lfo()}} when refitting the model repeatedly. Note that
+setting this to \code{FALSE} will cause \code{\link[=treatment_effect]{treatment_effect()}},
+\code{\link[=synthetic_control]{synthetic_control()}}, \code{\link[=posterior_predict]{posterior_predict()}}, \code{\link[=rmse]{rmse()}}, \code{\link[=summary]{summary()}}, and
+other methods that rely on posterior predictions to fail, so you rarely
+want to set this to \code{FALSE}.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that

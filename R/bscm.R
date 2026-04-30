@@ -100,6 +100,14 @@
 #'   object returned by  [bscm()] includes the input `data.frame`
 #'   (argument `data`), after dropping unused factor levels and potentially
 #'   rearranging data by `unit` and `time` variables.
+#' @param compute_predictions \[`logical(1)`]\cr If `TRUE` (the default),
+#'   posterior predictive draws (`y_rep`) are computed during sampling. Set to
+#'   `FALSE` to skip this computation and reduce memory usage; this is used
+#'   internally by [lfo()] when refitting the model repeatedly. Note that
+#'   setting this to `FALSE` will cause [treatment_effect()],
+#'   [synthetic_control()], [posterior_predict()], [rmse()], [summary()], and
+#'   other methods that rely on posterior predictions to fail, so you rarely 
+#'   want to set this to `FALSE`.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
@@ -124,6 +132,7 @@ bscm <- function(
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
+  compute_predictions = TRUE,
   ...
 ) {
   check_bscm_arguments(
@@ -135,7 +144,8 @@ bscm <- function(
     omega_prior,
     mcmc_diagnostics,
     save_data,
-    priors
+    priors,
+    compute_predictions
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -288,7 +298,8 @@ bscm <- function(
     kappa,
     X_y = if (has_x) X_y,
     X_z = if (has_x) X_z,
-    tv_idx = if (has_w) tv_idx
+    tv_idx = if (has_w) tv_idx,
+    cv = as.integer(!compute_predictions)
   )
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(

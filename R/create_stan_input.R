@@ -45,7 +45,8 @@ create_standata <- function(
   kappa,
   X_y = NULL,
   X_z = NULL,
-  tv_idx = NULL
+  tv_idx = NULL,
+  cv = 0L
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -58,7 +59,8 @@ create_standata <- function(
     y = t(Y),
     Z = Z,
     pr_rate_sigma = array(1 / x$sd_e),
-    kappa = kappa
+    kappa = kappa,
+    cv = cv
   )
   if (icpt) {
     standata$pr_mean_intercept <- array(x$mean_y)

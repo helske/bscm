@@ -51,3 +51,12 @@ summarise_with_probs <- function(x, probs, for_plots = FALSE) {
     )
   }
 }
+
+log_sum_exp <- function(x) {
+  max_x <- max(x)
+  max_x + log(sum(exp(x - max_x)))
+}
+
+log_mean_exp <- function(x) {
+  log_sum_exp(x) - log(length(x))
+}

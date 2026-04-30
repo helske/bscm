@@ -6,3 +6,4 @@
   matrix[T, J] Z;                         // donors
   vector<lower = 0>[N] pr_rate_sigma;     // sigma ~ exponential()
   real<lower = 0> kappa;
+  int<lower=0, upper=1> cv;               // skip computing y_rep if 1

@@ -40,3 +40,17 @@ test_that("log_lik has correct dimensions", {
   ll <- log_lik(fitN_int)
   expect_equal(dim(ll), c(ndraws(fitN_int), sum(get_T_pre(fitN_int))))
 })
+
+test_that("log_lik with T_works", {
+  times <- get_times(fit1_int)
+  t_val <- times[10L]
+  N <- get_N(fit1_int)
+  ll <- log_lik(fit1_int, T_end = t_val)
+  expect_equal(dim(ll), c(ndraws(fit1_int), N * 10L))
+  expect_true(all(is.finite(ll)))
+})
+
+test_that("log_lik T_end validates its argument", {
+  expect_error(log_lik(fit1_int, T_end = -999), "must be a value of the time variable")
+  expect_error(log_lik(fit1_int, T_end = "not_a_time"), "must be a value of the time variable")
+})

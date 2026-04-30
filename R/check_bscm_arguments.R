@@ -11,7 +11,8 @@ check_bscm_arguments <- function(
   omega_prior,
   mcmc_diagnostics,
   save_data,
-  priors
+  priors,
+  compute_predictions
 ) {
   stopifnot_(
     !missing(formula),
@@ -102,6 +103,10 @@ check_bscm_arguments <- function(
   stopifnot_(
     checkmate::test_flag(save_data),
     "Argument {.arg save_data} must be a single {.cls logical} value."
+  )
+  stopifnot_(
+    checkmate::test_flag(compute_predictions),
+    "Argument {.arg compute_predictions} must be a single {.cls logical} value."
   )
 }
 
