@@ -41,7 +41,7 @@ plot_weights.bscmfit <- function(
   x,
   point_estimate = "median",
   order = NULL,
-  coverage = c(0.5, 0.95),
+  coverage = c(0.05, 0.95),
   linewidth = 1,
   point_size = 2,
   reverse = NULL,
@@ -88,7 +88,6 @@ plot_weights.bscmfit <- function(
     plots[[i]] <- weights |>
       filter(.data$treated_unit == i) |>
       weight_plot(
-        unit,
         coverage,
         point_estimate,
         donors,
