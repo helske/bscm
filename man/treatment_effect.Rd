@@ -11,6 +11,7 @@ treatment_effect(x, ...)
   x,
   type = "time",
   average = TRUE,
+  summary = TRUE,
   probs = c(0.025, 0.975),
   ...
 )
@@ -31,11 +32,17 @@ average effects over treated units in case of
 multiple treated units. If \code{FALSE}, unit-specific effects are returned.
 Currently not applicable to \code{type = "cumulative"}.}
 
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior samples instead.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the treatment effects.
+A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{
 Treatment effect estimates of a Bayesian synthetic control model

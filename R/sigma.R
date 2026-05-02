@@ -4,18 +4,25 @@
 #' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the residual standard
-#'   deviations.
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases sigma
 #' @export
-sigma.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
+sigma.bscmfit <- function(object, summary = TRUE, 
+                          probs = c(0.025, 0.975), ...) {
+  test_summary(summary)
   probs <- sort_probs(probs)
-  d <- as_draws(object, "sigma")
-  N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
-  as_draws(object, "sigma") |>
-    summarise_with_probs(probs) |>
-    mutate("{unit}" := treated, .before = 1L) |>
-    mutate(variable = "sigma")
+  format_posterior_output(
+    as_draws(object, "sigma"),
+    summary = summary,
+    probs = probs,
+    variable = "sigma"
+  ) |>
+    add_output_column(
+      name = unit,
+      values = treated,
+      summary = summary
+    )
 }

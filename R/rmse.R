@@ -9,15 +9,21 @@ rmse <- function(x, ...) {
 #' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the
 #' average RMSEs over treated units in case of multiple treated units.
 #' If `FALSE`, unit-specific values are returned.
+#' @param summary \[`logical(1)`]\cr If `TRUE` (the default), returns posterior
+#'   mean, standard deviation, posterior quantiles (as defined by the
+#'   `probs` argument), and MCMC convergence measures. 
+#'   If `FALSE`, returns the posterior samples instead.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the pre-RMSE, post-RMSE and
-#' post-RMSE / pre-RMSE values.
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname rmse
 #' @aliases rmse
 #' @export
-rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
+rmse.bscmfit <- function(
+    x, average = TRUE, summary = TRUE, probs = c(0.025, 0.975), ...) {
+  test_summary(summary)
   probs <- sort_probs(probs)
   stopifnot_(
     checkmate::test_flag(average),
@@ -27,10 +33,10 @@ rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
   T_pre <- get_T_pre(x)
   T_total <- get_T_total(x)
   treated <- get_treated(x)
-
+  
   y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
   effect <- get_stan_y(x) - y_rep
-
+  
   pre <- post <- ratio <- vector("list", N)
   for (i in seq_len(N)) {
     T_ <- T_pre[treated[i]]
@@ -39,25 +45,32 @@ rmse.bscmfit <- function(x, average = TRUE, probs = c(0.025, 0.975), ...) {
     ratio[[i]] <- post[[i]] / pre[[i]]
   }
   if (average && N > 1) {
-    lapply(
+    vars <- c("Average pre-RMSE", "Average post-RMSE", "Average RMSE ratio")
+    values <- lapply(
       list(do.call(c, pre), do.call(c, post), do.call(c, ratio)),
       rvar_mean
-    ) |>
-      summarise_with_probs(probs) |>
-      mutate(
-        variable = c(
-          "Average pre-RMSE",
-          "Average post-RMSE",
-          "Average RMSE ratio"
-        )
-      )
+    )
+    format_posterior_output(
+      values,
+      summary = summary,
+      probs = probs,
+      variable = vars
+    )
   } else {
     unit <- get_unit(x)
-    c(pre, post, ratio) |>
-      summarise_with_probs(probs) |>
-      mutate("{unit}" := rep(treated, times = 3), .before = 1L) |>
-      mutate(
-        variable = rep(c("Pre-RMSE", "Post-RMSE", "RMSE ratio"), each = N)
+    values <- c(pre, post, ratio)
+    vars <- rep(c("Pre-RMSE", "Post-RMSE", "RMSE ratio"), each = N)
+    units <- rep(treated, times = 3)
+    format_posterior_output(
+      values,
+      summary = summary,
+      probs = probs,
+      variable = vars
+    ) |>
+      add_output_column(
+        name = unit,
+        values = units,
+        summary = summary
       )
   }
 }

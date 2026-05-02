@@ -5,7 +5,13 @@
 \alias{coef}
 \title{Extract regression coefficients of a Bayesian synthetic control model}
 \usage{
-\method{coef}{bscmfit}(object, type = c("alpha", "beta", "gamma"), probs = c(0.025, 0.975), ...)
+\method{coef}{bscmfit}(
+  object,
+  type = c("alpha", "beta", "gamma"),
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
@@ -14,13 +20,19 @@
 one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
 \code{"gamma"} (time-varying regression coefficients).}
 
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior samples instead.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 
 \item{...}{Ignored.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the model coefficients.
+A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{
 Extract regression coefficients of a Bayesian synthetic control model

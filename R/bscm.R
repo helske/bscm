@@ -14,19 +14,15 @@
 #' - **Symmetric Dirichlet** ([dirichlet()]): \eqn{\omega \sim
 #'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
 #'   concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
-#'   the center of the simplex. \eqn{\kappa = 1} corresponds to uniform prior
-#'   over probability simplices.
-#' 
+#'   the center of the simplex. The default prior is 
+#'   \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over 
+#'   probability simplices.
+#'    
 #' You should test different values to assess sensitivity of results,
-#' and potentially run [bscm::loo()] for cross-validation based selection.
-#' One way to define the prior for the weight vector is to consider the effect of 
-#' \eqn{\kappa} on the effective number of donors 
-#' \eqn{ESS = (\sum \omega^2)^{-1}}. With the default prior 
-#' `logistic_normal(kappa = 2)` the prior median of ESS varies from 3 to 11 when 
-#' the number of donors \eqn{J} increases from 10 to 100. These are based on the data 
-#' `kappa_lookup` which is also used to define \eqn{\kappa} via 
-#' relative ESS argument `r_ess` of the `omega_prior` object.
-#'
+#' and potentially run [bscm::loo()] or [bscm::lfo()] for cross-validation 
+#' based selection (although it can be inconclusive for small and moderate 
+#' number of pre-treatment time points and/or donors).
+#' 
 #' When model contains covariates \eqn{X}, their effect is subtracted from
 #' donors, i.e., for treated unit \eqn{i},
 #' \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)},
@@ -87,10 +83,10 @@
 #'   or `"default"` which is a default and only supported option at the
 #'   moment for parameters other than weight vector \eqn{\omega}. See details.
 #' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
-#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()]. Each
-#'   constructor accepts either `kappa` (scale/concentration parameter) or
-#'   `r_ess` (target prior median relative effective number of donors).
-#'    Defaults to `logistic_normal(kappa = 2)`. See details.
+#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()], where both 
+#'   constructors take argument `kappa` which defines the scale and 
+#'   concentration parameter of the corresponding distribution.
+#'   Defaults to `dirichlet(kappa = 1)`. See details.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -128,7 +124,7 @@ bscm <- function(
   treatment,
   time = "time",
   unit = "id",
-  omega_prior = logistic_normal(kappa = 2),
+  omega_prior = dirichlet(kappa = 1),
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
@@ -259,7 +255,7 @@ bscm <- function(
     "none"
   }
 
-  kappa <- resolve_kappa(omega_prior, J)
+  kappa <- omega_prior$kappa
   omega_prior_type <- omega_prior$distribution
   model_type <- paste(
     c("bscm", icpt, x, effect, if (omega_prior_type == "dirichlet") "dir"),
@@ -333,8 +329,7 @@ bscm <- function(
     gamma_names,
     model_type,
     priors,
-    omega_prior,
-    kappa
+    omega_prior
   )
   class(out) <- "bscmfit"
   if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {

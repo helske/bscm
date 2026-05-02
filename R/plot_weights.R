@@ -110,7 +110,7 @@ plot_weights.bscm_ldo <- function(
   reverse = TRUE,
   ...
 ) {
-  removed_donor <- NULL
+  removed_donor <- treated_unit <- NULL
   type <- try_(match.arg(type, c("weight", "rank")))
   stopifnot_(
     !inherits(type, "try-error"),

@@ -3,23 +3,25 @@
 \name{logistic_normal}
 \alias{logistic_normal}
 \alias{dirichlet}
+\alias{get_omega_prior}
 \title{Prior distribution for the donor weight vector}
 \usage{
-logistic_normal(kappa = NULL, r_ess = NULL)
+logistic_normal(kappa)
 
-dirichlet(kappa = NULL, r_ess = NULL)
+dirichlet(kappa)
+
+get_omega_prior(x)
 }
 \arguments{
-\item{kappa}{[\code{numeric(1)}]\cr Positive concentration parameter
-\eqn{\kappa}. Cannot be combined with \code{r_ess}.}
+\item{kappa}{[\code{numeric(1)}]\cr Positive concentration parameter of
+symmetric Dirichlet distribution or positive scale parameter of logistic
+normal distribution.}
 
-\item{r_ess}{[\code{numeric(1)}]\cr Target prior median relative effective
-number of donors, a number strictly between 0 and 1. Cannot be combined
-with \code{kappa}.}
+\item{x}{[\code{bscmfit}]\cr The output returned by the \code{\link[=bscm]{bscm()}}.}
 }
 \value{
-An \code{omega_prior} object (a list with fields \code{distribution},
-\code{kappa}, and \code{r_ess}).
+An \code{omega_prior} object (a list with elements \code{distribution} and
+\code{kappa}).
 }
 \description{
 \code{logistic_normal()} and \code{dirichlet()} specify the prior on the
@@ -35,15 +37,9 @@ For the \strong{symmetric Dirichlet} prior,
 Values \eqn{\kappa < 1} concentrate weight on few donors;
 \eqn{\kappa = 1} is uniform over the simplex; \eqn{\kappa > 1}
 pulls weights toward the center of the simplex.
-
-Instead of supplying \eqn{\kappa} directly, a target prior median relative
-effective sample size \eqn{r_{ESS} \in (0, 1)} can be supplied via
-\code{r_ess}. Kappa selection via \code{r_ess} for the Dirichlet prior is not yet
-implemented; provide \code{kappa} directly.
 }
 \examples{
 logistic_normal(kappa = 2)
-logistic_normal(r_ess = 0.1)
 dirichlet(kappa = 0.5)
 }
 \seealso{

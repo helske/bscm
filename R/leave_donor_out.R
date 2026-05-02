@@ -84,9 +84,7 @@ leave_donor_out.bscmfit <- function(
   weights[[1]] <- donor_weights(x, probs = probs)
   diagnostics[[1]] <- check_mcmc_diagnostics(x, warn = FALSE)
 
-  omega_prior <- x$setup$omega_prior
-  omega_prior$kappa <- get_kappa(x)
-  omega_prior$r_ess <- NULL
+  omega_prior <- get_omega_prior(x)
   p <- progressr::progressor(along = removed_donors)
   for (i in seq_along(removed_donors)) {
     p(paste0("Removing donor ", donor_order[i + 1]))

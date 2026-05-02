@@ -7,7 +7,13 @@
 \usage{
 effective_donors(x, ...)
 
-\method{effective_donors}{bscmfit}(x, average = TRUE, probs = c(0.025, 0.975), ...)
+\method{effective_donors}{bscmfit}(
+  x,
+  average = TRUE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
@@ -18,12 +24,17 @@ effective_donors(x, ...)
 average effective donors over treated units in case of
 multiple treated units.}
 
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior samples instead.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of the estimated effective
-donors.
+A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{
 Effective donors is defined as \eqn{1 / \sum_{j=1}^J \omega_j^2},

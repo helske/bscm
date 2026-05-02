@@ -15,12 +15,14 @@
 #' @aliases loo_R2
 #' @export loo_R2
 #' @export
-loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
+loo_R2.bscmfit <- function(object, 
+                           summary = TRUE, probs = c(0.025, 0.975), ...) {
   stopifnot_(
     !is.null(object$data),
     "LOO R2 requires the original data. Refit the model with
     {.code save_data = TRUE}."
   )
+  test_summary(summary)
   probs <- sort_probs(probs)
   old_seed <- .Random.seed
   on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
@@ -64,8 +66,12 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
       r2 <- 1 - ss_e_loo / ss_y
       r2[r2 < -1] <- -1
       r2[r2 > 1] <- 1
-      posterior::draws_array(R2 = r2) |>
-        summarise_with_probs(probs)
+      format_posterior_output(
+        posterior::draws_array(R2 = r2),
+        summary = summary,
+        probs = probs,
+        variable = "R2"
+      )
     }
   ) |>
     stats::setNames(treated)
@@ -75,9 +81,10 @@ loo_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
 #' @aliases bayes_R2
 #' @export bayes_R2
 #' @export
-bayes_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
+bayes_R2.bscmfit <- function(object, 
+                             summary = TRUE, probs = c(0.025, 0.975), ...) {
+  test_summary(summary)
   probs <- sort_probs(probs)
-
   N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
@@ -91,9 +98,16 @@ bayes_R2.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     var_fit <- rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
     r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
   }
-
-  r2 |>
-    summarise_with_probs(probs) |>
-    mutate("{unit}" := treated, .before = 1L) |>
-    mutate(variable = "R2")
+  
+  format_posterior_output(
+    r2,
+    summary = summary,
+    probs = probs,
+    variable = "R2"
+  ) |>
+    add_output_column(
+      name = unit,
+      values = treated,
+      summary = summary
+    )
 }

@@ -7,18 +7,24 @@
 \usage{
 synthetic_control(x, ...)
 
-\method{synthetic_control}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{synthetic_control}{bscmfit}(x, summary = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
 \item{...}{Ignored.}
 
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior samples instead.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of synthetic controls.
+A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{
 Extract synthetic control series of a Bayesian synthetic control model

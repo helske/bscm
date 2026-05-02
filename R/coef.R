@@ -1,21 +1,23 @@
 #' Extract regression coefficients of a Bayesian synthetic control model
-#'
+#' 
+#' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
-#' one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
-#' `"gamma"` (time-varying regression coefficients).
-#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
-#'   Default is `c(0.025, 0.975)`.
+#'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
+#'   `"gamma"` (time-varying regression coefficients).
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the model coefficients.
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases coef
 #' @export
 coef.bscmfit <- function(
   object,
   type = c("alpha", "beta", "gamma"),
+  summary = TRUE,
   probs = c(0.025, 0.975),
   ...
 ) {
+  test_summary(summary)
   probs <- sort_probs(probs)
   type <- try_(
     match.arg(type, c("alpha", "beta", "gamma"), several.ok = TRUE)
@@ -37,27 +39,60 @@ coef.bscmfit <- function(
   if ("alpha" %in% pars) {
     treated <- get_treated(object)
     unit <- get_unit(object)
-    d_alpha <- as_draws(object, "alpha") |>
-      summarise_with_probs(probs = probs) |>
-      mutate("{unit}" := treated, .before = 1L) |>
-      mutate(variable = "Intercept")
+    d_alpha <- format_posterior_output(
+      as_draws(object, "alpha"),
+      summary = summary,
+      probs = probs,
+      variable = "Intercept"
+    ) |>
+      add_output_column(
+        name = unit,
+        values = treated,
+        summary = summary
+      )
   }
   if ("beta" %in% pars) {
-    d_beta <- as_draws(object, "beta") |>
-      summarise_with_probs(probs = probs) |>
-      mutate(variable = paste0("Coef_", object$setup$beta_names))
+    d_beta <- format_posterior_output(
+      as_draws(object, "beta"),
+      summary = summary,
+      probs = probs,
+      variable = paste0("Coef_", object$setup$beta_names)
+    )
   }
   if ("gamma" %in% pars) {
     time <- get_time(object)
     times <- get_times(object)
     L <- length(object$setup$gamma_names)
-    d_gamma <- as_draws(object, "gamma") |>
-      summarise_with_probs(probs = probs) |>
-      mutate("{time}" := rep(times, each = L), .before = 1L) |>
-      mutate(variable = paste0("gamma_", object$setup$gamma_names))
-    d_sigma_gamma <- as_draws(object, "sigma_gamma") |>
-      summarise_with_probs(probs = probs) |>
-      mutate(variable = paste0("sigma_gamma_", object$setup$gamma_names))
+    gamma_names <- object$setup$gamma_names
+    gamma_vars <- rep(paste0("gamma_", gamma_names), times = length(times))
+    gamma_times <- rep(times, each = L)
+    d_gamma <- format_posterior_output(
+      as_draws(object, "gamma"),
+      summary = summary,
+      probs = probs,
+      variable = gamma_vars
+    )
+    d_gamma <- if (summary) {
+      add_output_column(
+        d_gamma,
+        name = time,
+        values = gamma_times,
+        summary = summary
+      )
+    } else {
+      add_output_column(
+        d_gamma,
+        name = time,
+        values = gamma_times,
+        summary = summary
+      )
+    }
+    d_sigma_gamma <- format_posterior_output(
+      as_draws(object, "sigma_gamma"),
+      summary = summary,
+      probs = probs,
+      variable = paste0("sigma_gamma_", gamma_names)
+    )
   }
   out <- list(
     alpha = d_alpha,

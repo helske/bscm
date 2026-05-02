@@ -107,7 +107,7 @@ create_inits <- function(x, omega_prior) {
   }
   if (!is.null(x$pr_mean_intercept)) {
     inits$a <- array(
-      stats::rnorm(x$N, x$pr_mean_intercept, 0.5 * x$pr_sd_intercept)
+      stats::rnorm(x$N, x$pr_mean_intercept, 0.1 * x$pr_sd_intercept)
     )
   }
   if (!is.null(x$pr_mean_beta)) {

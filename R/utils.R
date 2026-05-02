@@ -52,6 +52,102 @@ summarise_with_probs <- function(x, probs, for_plots = FALSE) {
   }
 }
 
+#' Convert posterior draws to a long data frame
+#'
+#' @param x A `draws_array` object.
+#' @param variable Optional variable names. If supplied, must have length 1 or
+#'   equal the number of variables in `x`.
+#' @noRd
+draws_to_long <- function(x, variable = NULL) {
+  d <- as_draws_df(x)
+  vars <- posterior::variables(d)
+  if (!is.null(variable)) {
+    stopifnot_(
+      length(variable) %in% c(1L, length(vars)),
+      "Argument {.arg variable} must have length 1 or match the number of variables."
+    )
+    variable <- rep(variable, length.out = length(vars))
+  } else {
+    variable <- vars
+  }
+  lapply(
+    seq_along(vars),
+    \(i) {
+      var <- vars[i]
+      data.frame(
+        variable = variable[i],
+        value = d[[var]],
+        .chain = d$.chain,
+        .draw = d$.draw,
+        .iteration = d$.iteration
+      )
+    }
+  ) |>
+    bind_rows()
+}
+
+#' Return posterior output either as summary or long format data frame of draws
+#'
+#' @param values Posterior values.
+#' @param summary Whether to return summaries.
+#' @param probs Probabilities for summaries.
+#' @param variable Optional variable names.
+#' @param for_plots Whether to omit sd/rhat/ess summaries.
+#' @noRd
+format_posterior_output <- function(
+    values,
+    summary,
+    probs,
+    variable = NULL,
+    for_plots = FALSE
+) {
+  if (summary) {
+    out <- summarise_with_probs(values, probs, for_plots)
+    if (!is.null(variable)) {
+      stopifnot_(
+        length(variable) %in% c(1L, nrow(out)),
+        "Argument {.arg variable} must have length 1 or match the number of rows."
+      )
+      out <- out |>
+        mutate(variable = rep(.env$variable, length.out = nrow(out)))
+    }
+    return(out)
+  }
+  draws_to_long(as_draws_array(values), variable = variable)
+}
+
+#' Add a unit/time column to summary or draws output
+#'
+#' @param d A data.frame from ´format_posterior_output()`.
+#' @param name Output column name.
+#' @param values Column values.
+#' @param summary Whether `d` is summary output.
+#' @param before Column before which to insert.
+#' @param after Column after which to insert.
+#' @noRd
+add_output_column <- function(
+    d,
+    name,
+    values,
+    summary,
+    before = 1L
+) {
+  if (summary) {
+    stopifnot_(
+      length(values) %in% c(1L, nrow(d)),
+      "Length of {.arg values} must be 1 or match output rows."
+    )
+    vals <- rep(values, length.out = nrow(d))
+  } else {
+    stopifnot_(
+      length(values) > 0L && nrow(d) %% length(values) == 0L,
+      "Draw rows are not compatible with {.arg values} length."
+    )
+    vals <- rep(values, each = nrow(d) / length(values))
+  }
+  mutate(d, "{name}" := vals, .before = .env$before)
+}
+
 log_sum_exp <- function(x) {
   max_x <- max(x)
   max_x + log(sum(exp(x - max_x)))

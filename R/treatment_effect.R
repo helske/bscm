@@ -16,18 +16,24 @@ treatment_effect <- function(x, ...) {
 #' multiple treated units. If `FALSE`, unit-specific effects are returned.
 #' Currently not applicable to `type = "cumulative"`.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the treatment effects.
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname treatment_effect
 #' @aliases treatment_effect
 #' @export
 treatment_effect.bscmfit <- function(
-  x,
-  type = "time",
-  average = TRUE,
-  probs = c(0.025, 0.975),
-  ...
+    x,
+    type = "time",
+    average = TRUE,
+    summary = TRUE,
+    probs = c(0.025, 0.975),
+    ...
 ) {
   probs <- sort_probs(probs)
+  stopifnot_(
+    checkmate::test_flag(summary),
+    "Argument {.arg summary} must be a single {.cls logical} value."
+  )
   stopifnot_(
     checkmate::test_flag(average),
     "Argument {.arg average} must be a single {.cls logical} value."
@@ -45,11 +51,12 @@ treatment_effect.bscmfit <- function(
   N <- get_N(x)
   unit <- get_unit(x)
   treated <- get_treated(x)
-
+  
   for_plots <- list(...)$for_plots %||% FALSE
   y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
   effect <- get_stan_y(x) - y_rep
-
+  
+  
   if (type == "average") {
     pre <- vector("list", N)
     post <- vector("list", N)
@@ -59,29 +66,36 @@ treatment_effect.bscmfit <- function(
       post[[i]] <- rvar_mean(effect[seq.int(T_ + 1L, T_total), i])
     }
     if (average && N > 1) {
-      out <- lapply(
+      vars <- c(
+        "Average pre-treatment effect",
+        "Average post-treatment effect"
+      )
+      values <- lapply(
         list(do.call(c, pre), do.call(c, post)),
         rvar_mean
-      ) |>
-        summarise_with_probs(probs, for_plots) |>
-        mutate(
-          variable = c(
-            "Average pre-treatment effect",
-            "Average post-treatment effect"
-          )
-        )
+      )
+      out <- format_posterior_output(
+        values,
+        summary = summary,
+        probs = probs,
+        variable = vars,
+        for_plots = for_plots
+      )
     } else {
-      out <- c(pre, post) |>
-        summarise_with_probs(probs, for_plots) |>
-        mutate(
-          "{unit}" := rep(treated, times = 2),
-          .before = 1L
-        ) |>
-        mutate(
-          variable = rep(
-            c("Pre-treatment effect", "Post-treatment effect"),
-            each = N
-          )
+      values <- c(pre, post)
+      vars <- rep(c("Pre-treatment effect", "Post-treatment effect"), each = N)
+      units <- rep(treated, times = 2)
+      out <- format_posterior_output(
+        values,
+        summary = summary,
+        probs = probs,
+        variable = vars,
+        for_plots = for_plots
+      ) |>
+        add_output_column(
+          name = unit,
+          values = units,
+          summary = summary
         )
     }
   }
@@ -96,36 +110,64 @@ treatment_effect.bscmfit <- function(
       )
     }
     out <- lapply(seq_len(N), \(i) {
-      cumavg[[i]] |>
-        summarise_with_probs(probs, for_plots) |>
-        mutate(
-          "{unit}" := treated[i],
-          "{time}" := times[seq.int(T_ + 1L, T_total)],
-          .before = 1L
-        )
+      T_ <- T_pre[treated[i]]
+      times_i <- times[seq.int(T_ + 1L, T_total)]
+      format_posterior_output(
+        cumavg[[i]],
+        summary = summary,
+        probs = probs,
+        variable = "Cumulative post-treatment effect",
+        for_plots = for_plots
+      ) |>
+        add_output_column(
+          name = time,
+          values = times_i,
+          summary = summary
+        ) |>
+        add_output_column(
+          name = unit,
+          values = treated[i],
+          summary = summary
+        ) 
     }) |>
-      bind_rows() |>
-      mutate(variable = "Cumulative post-treatment effect")
+      bind_rows()
   }
   if (type == "time") {
     if (average && N > 1) {
-      out <- effect |>
-        rvar_apply(1, rvar_mean) |>
-        summarise_with_probs(probs, for_plots) |>
-        mutate(
-          "{time}" := times,
-          .before = 1L
-        ) |>
-        mutate(variable = "Average treatment effect")
+      value <- effect |>
+        rvar_apply(1, rvar_mean)
+      out <- format_posterior_output(
+        value,
+        summary = summary,
+        probs = probs,
+        variable = "Average treatment effect",
+        for_plots = for_plots
+      ) |>
+        add_output_column(
+          name = time,
+          values = times,
+          summary = summary
+        )
     } else {
-      out <- effect |>
-        summarise_with_probs(probs, for_plots) |>
-        mutate(
-          "{unit}" := rep(treated, each = length(times)),
-          "{time}" := rep(times, times = length(treated)),
-          .before = 1L
-        ) |>
-        mutate(variable = "Treatment effect")
+      units <- rep(treated, each = length(times))
+      times2 <- rep(times, times = length(treated))
+      out <- format_posterior_output(
+        effect,
+        summary = summary,
+        probs = probs,
+        variable = "Treatment effect",
+        for_plots = for_plots
+      ) |>
+        add_output_column(
+          name = time,
+          values = times2,
+          summary = summary
+        ) |> 
+        add_output_column(
+          name = unit,
+          values = units,
+          summary = summary
+        )
     }
   }
   out

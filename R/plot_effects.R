@@ -79,7 +79,7 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
 #' @rdname plot_effects
 #' @export
 plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
-  ymin <- ymax <- NULL
+  ymin <- ymax <- removed_donor <- NULL
   if (is.null(probs)) {
     probs <- range(x$metadata$probs)
   }
@@ -116,7 +116,7 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
   )
 
   d_base <- x$effect |>
-    filter(.data$removed_donor == "none") |>
+    filter(removed_donor == "none") |>
     rename(any_of(lookup))
 
   d_ldo <- x$effect |>

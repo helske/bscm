@@ -13,17 +13,19 @@ effective_donors <- function(x, ...) {
 #' average effective donors over treated units in case of
 #' multiple treated units.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries of the estimated effective
-#' donors.
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname effective_donors
 #' @aliases effective_donors
 #' @export
 effective_donors.bscmfit <- function(
   x,
   average = TRUE,
+  summary = TRUE,
   probs = c(0.025, 0.975),
   ...
 ) {
+  test_summary(summary)
   probs <- sort_probs(probs)
   stopifnot_(
     checkmate::test_flag(average),
@@ -35,15 +37,25 @@ effective_donors.bscmfit <- function(
   eff <- rvar_apply(omega, 1, \(x) 1 / rvar_sum(x^2))
 
   if (average && N > 1) {
-    rvar_mean(eff) |>
-      summarise_with_probs(probs) |>
-      mutate(variable = "Average effective donors")
+    format_posterior_output(
+      rvar_mean(eff),
+      summary = summary,
+      probs = probs,
+      variable = "Average effective donors"
+    )
   } else {
     unit <- get_unit(x)
     treated <- get_treated(x)
-    eff |>
-      summarise_with_probs(probs) |>
-      mutate("{unit}" := treated, .before = 1L) |>
-      mutate(variable = "Effective donors")
+    format_posterior_output(
+      eff,
+      summary = summary,
+      probs = probs,
+      variable = "Effective donors"
+    ) |>
+      add_output_column(
+        name = unit,
+        values = treated,
+        summary = summary
+      )
   }
 }

@@ -96,9 +96,7 @@ lfo.bscmfit <- function(
   unit <- get_unit(x)
   treatment <- get_treatment(x)
   treated <- get_treated(x)
-  omega_prior <- x$setup$omega_prior
-  omega_prior$kappa <- get_kappa(x)
-  omega_prior$r_ess <- NULL
+  omega_prior <- get_omega_prior(x)
 
   refit_at <- function(t_lfo) {
     d <- x$data |>

@@ -124,3 +124,10 @@ sort_probs <- function(probs) {
   )
   sort(probs)
 }
+
+test_summary <- function(summary) {
+  stopifnot_(
+    checkmate::test_flag(summary),
+    "Argument {.arg summary} must be a single {.cls logical} value."
+  )
+}
