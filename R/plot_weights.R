@@ -93,7 +93,7 @@ plot_weights.bscmfit <- function(
         donors,
         linewidth,
         point_size,
-        reverse
+        reverse = reverse
       )
   }
   if (length(plots) == 1L) plots[[1L]] else plots
