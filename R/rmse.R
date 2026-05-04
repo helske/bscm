@@ -29,6 +29,11 @@ rmse.bscmfit <- function(
     checkmate::test_flag(average),
     "Argument {.arg average} must be a single {.cls logical} value."
   )
+  stopifnot_(
+    !is.null(x$data),
+    "The model fit {.arg x} does not contain the original data. You probably
+    used {.fun bscm} with {.arg save_data = FALSE}?"
+  )
   N <- get_N(x)
   T_pre <- get_T_pre(x)
   T_total <- get_T_total(x)

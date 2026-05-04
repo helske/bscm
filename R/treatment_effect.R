@@ -44,6 +44,11 @@ treatment_effect.bscmfit <- function(
     "Argument {.arg type} must be either {.val time}, {.val average} or 
     {.val cumulative}."
   )
+  stopifnot_(
+    !is.null(x$data),
+    "The model fit {.arg x} does not contain the original data. You probably
+    used {.fun bscm} with {.arg save_data = FALSE}?"
+  )
   time <- get_time(x)
   times <- get_times(x)
   T_pre <- get_T_pre(x)
