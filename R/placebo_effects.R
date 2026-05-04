@@ -102,7 +102,6 @@ placebo_effects.bscmfit <- function(
         x,
         data = d,
         mcmc_diagnostics = FALSE,
-        save_data = FALSE,
         omega_prior = omega_prior,
         ...
       )
@@ -133,7 +132,6 @@ placebo_effects.bscmfit <- function(
         x,
         data = d,
         mcmc_diagnostics = FALSE,
-        save_data = FALSE,
         omega_prior = omega_prior,
         ...
       )

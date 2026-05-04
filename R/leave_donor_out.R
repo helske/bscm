@@ -95,7 +95,6 @@ leave_donor_out.bscmfit <- function(
       data = d,
       refresh = 0,
       mcmc_diagnostics = FALSE,
-      save_data = FALSE,
       omega_prior = omega_prior,
       ...
     )
