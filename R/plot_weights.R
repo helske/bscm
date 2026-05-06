@@ -82,7 +82,7 @@ plot_weights.bscmfit <- function(
     mutate(unit = .data[[unit]])
   donors <- order_donors(x, order, weights)
   if (is.null(reverse)) {
-    reverse <- ifelse(order == "ascending", FALSE, TRUE)
+    reverse <- ifelse(isTRUE(order == "ascending"), FALSE, TRUE)
   }
   for (i in treated) {
     plots[[i]] <- weights |>
@@ -291,15 +291,9 @@ weight_plot <- function(
     alpha <- 0.25 + 0.75 * z
   }
   if (reverse) {
-    scale_y <- scale_y_reverse(
-      NULL,
-      expand = expansion(mult = 0.02, add = 0)
-    )
+    y_limits <- rev
   } else {
-    scale_y <- scale_y_continuous(
-      NULL,
-      expand = expansion(mult = 0.02, add = 0)
-    )
+    y_limits <- I
   }
   p <- ggplot(x, aes(.data[[point_col]], unit))
   if (!is.null(ldo_points)) {
@@ -313,13 +307,16 @@ weight_plot <- function(
         alpha = alpha[i]
       )
   }
-  p +
-    geom_point(size = point_size) +
+  p + geom_point(size = point_size) +
     scale_x_continuous(
       breaks = seq(0, 1, by = 0.1),
       expand = expansion(mult = 0.02)
     ) +
-    scale_y +
+    scale_y_discrete(
+      NULL,
+      limits = y_limits,
+      expand = expansion(mult = 0.02, add = 0)
+    ) +
     labs(x = "Donor weight") +
     theme_bw()
 }

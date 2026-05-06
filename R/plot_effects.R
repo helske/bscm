@@ -136,7 +136,10 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
       fill = "#EECC66",
       alpha = 0.25
     ) +
-    geom_line(data = d_ldo, colour = "grey50", alpha = 0.5) +
+    geom_line(
+      data = d_ldo, aes(group = removed_donor), 
+      colour = "grey50", alpha = 0.5
+    ) +
     geom_line(colour = "#DDAA33") +
     labs(x = time, y = ylab) +
     theme_bw()
@@ -200,16 +203,16 @@ plot_effects.bscm_placebo_effects <- function(x, probs = NULL, ...) {
   d_base |>
     ggplot(aes(time, mean)) +
     geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+    geom_ribbon(
+      aes(ymin = ymin, ymax = ymax),
+      fill = "#EECC66",
+      alpha = 0.25
+    ) +
     geom_line(
       data = d_placebo,
       aes(group = placebo),
       colour = "grey50",
       alpha = 0.5
-    ) +
-    geom_ribbon(
-      aes(ymin = ymin, ymax = ymax),
-      fill = "#EECC66",
-      alpha = 0.25
     ) +
     geom_line(colour = "#DDAA33") +
     labs(x = time, y = "Treatment effect") +

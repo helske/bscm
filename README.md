@@ -38,22 +38,22 @@ Bayesian synthetic control model y ~ x
 Treated unit: 1 
 Number of donors: 30 
 Number of time periods (pre + post): 30 + 10 
-MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 1.54 seconds
+MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 1.34 seconds for the slowest chain
 
-MCMC diagnostics indicate no issues. 
+MCMC diagnostics indicate no issues.  
 ```
 ```{r}
 summary(fit)
-  id    variable                   mean     sd    q2.5  q97.5  rhat ess_bulk ess_tail
-1 NA    Coef_x                0.995     0.447   0.0884  1.84  1.000    9158.    7341.
-2 1     Residual SD (sigma)   0.512     0.0781  0.384   0.690 1.00     9895.    6800.
-3 1     Bayesian R-squared    0.818     0.0499  0.699   0.894 1.00     9740.    7562.
-4 1     Pre-treatment effect  0.0000376 0.133  -0.269   0.259 1.000   11252.    8803.
-5 1     Post-treatment effect 5.92      0.300   5.34    6.51  1.000    9545.    9055.
-6 1     Pre-RMSE              0.711     0.106   0.528   0.936 1.00     8220.    8255.
-7 1     Post-RMSE             6.64      0.322   6.03    7.29  1.000    9248.    8696.
-8 1     RMSE ratio            9.54      1.45    6.97   12.7   1.00     8437.    8577.
-9 1     Effective donors      8.40      3.13    2.81   14.7   1.00     8730.    8809.
+  id    variable                    mean     sd   q2.5  q97.5  rhat ess_bulk ess_tail
+1 NA    Coef_x                 1.04      0.413   0.223  1.86  1.00     9157.    7162.
+2 1     Residual SD (sigma)    0.522     0.0748  0.399  0.692 1.000    9185.    7201.
+3 1     Bayesian R-squared     0.809     0.0473  0.698  0.884 1.000    9797.    7824.
+4 1     Pre-treatment effect  -0.0000958 0.137  -0.271  0.274 1.00    10145.    8758.
+5 1     Post-treatment effect  5.97      0.261   5.45   6.49  1.00    10074.    9368.
+6 1     Pre-RMSE               0.724     0.103   0.546  0.947 1.000    8832.    8503.
+7 1     Post-RMSE              6.69      0.285   6.13   7.26  1.000    9421.    9228.
+8 1     RMSE ratio             9.43      1.38    6.95  12.4   1.00     8936.    8927.
+9 1     Effective donors      16.2       2.30   11.5   20.5   1.00     5244.    7033.
 ```
 And default visualization:
 ``` r
