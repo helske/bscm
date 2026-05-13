@@ -12,7 +12,8 @@ check_bscm_arguments <- function(
   mcmc_diagnostics,
   save_data,
   priors,
-  compute_predictions
+  compute_predictions,
+  no_donors
 ) {
   stopifnot_(
     !missing(formula),
@@ -107,6 +108,10 @@ check_bscm_arguments <- function(
   stopifnot_(
     checkmate::test_flag(compute_predictions),
     "Argument {.arg compute_predictions} must be a single {.cls logical} value."
+  )
+  stopifnot_(
+    checkmate::test_flag(no_donors),
+    "Argument {.arg no_donors} must be a single {.cls logical} value."
   )
 }
 

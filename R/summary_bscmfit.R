@@ -39,7 +39,11 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     probs = probs
   )
   rmses <- rmse(object, average = TRUE, probs = probs)
-  eff <- effective_donors(object, average = TRUE, probs = probs)
+  if (endsWith(x$setup$model_type, "no")) {
+    eff <- NULL
+  } else {
+    eff <- effective_donors(object, average = TRUE, probs = probs)
+  }
   sumr <- bind_rows(cf, sigma_gamma, s, r2, att, rmses, eff)
   class(sumr) <- c("summary_bscmfit", class(sumr))
   sumr

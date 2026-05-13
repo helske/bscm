@@ -104,6 +104,11 @@
 #'   [synthetic_control()], [posterior_predict()], [rmse()], [summary()], and
 #'   other methods that rely on posterior predictions to fail, so you rarely 
 #'   want to set this to `FALSE`.
+#' @param no_donors \[`logical(1)`]\cr Should donors be ignored? Default is 
+#'   `FALSE`, but if set to `TRUE`, instead of BSCM, a simple Bayesian 
+#'   linear regression model based on `formula` is estimated. This is mainly 
+#'   for the purposes of assessing the relative the performance of BSCM in 
+#'   case where convex hull assumption of SCM does not hold. 
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
@@ -129,6 +134,7 @@ bscm <- function(
   save_data = TRUE,
   priors = "default",
   compute_predictions = TRUE,
+  no_donors = FALSE,
   ...
 ) {
   check_bscm_arguments(
@@ -141,7 +147,8 @@ bscm <- function(
     mcmc_diagnostics,
     save_data,
     priors,
-    compute_predictions
+    compute_predictions,
+    no_donors
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -150,6 +157,11 @@ bscm <- function(
   predictors <- parsed_formula$predictors
   has_x <- length(predictors > 0)
   has_w <- length(parsed_formula$w_terms > 0)
+  stopifnot_(
+    !no_donors || (no_donors && has_icpt),
+    "Argument {.arg formula} should include intercept 
+    when {.arg no_donors} is `TRUE`."
+  )
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
@@ -245,21 +257,14 @@ bscm <- function(
     }
   }
 
-  icpt <- ifelse(has_icpt, "int", "noint")
-  x <- ifelse(has_x, "x", "nox")
-  effect <- if (has_w) {
-    "varying"
-  } else if (has_x) {
-    "const"
-  } else {
-    "none"
-  }
-
-  kappa <- omega_prior$kappa
+  icpt <- ifelse(has_icpt, "a1", "a0")
+  x <- ifelse(has_x, "x1", "x0")
+  w <- ifelse(has_w, "w1", "w0")
   omega_prior_type <- omega_prior$distribution
+  o <- ifelse(omega_prior_type == "dirichlet", "dr", "ln")
+  omega <- ifelse(no_donors, "no", o)
   model_type <- paste(
-    c("bscm", icpt, x, effect, if (omega_prior_type == "dirichlet") "dir"),
-    collapse = "_"
+    c("bscm", icpt, x, w, omega), collapse = "_"
   )
 
   stan_args <- list(...)
@@ -291,7 +296,7 @@ bscm <- function(
     Y,
     Z,
     has_icpt,
-    kappa,
+    omega_prior$kappa,
     X_y = if (has_x) X_y,
     X_z = if (has_x) X_z,
     tv_idx = if (has_w) tv_idx,
@@ -312,7 +317,7 @@ bscm <- function(
     out$data <- data
   }
   times <- unique(data[[time]])
-  priors <- stan_args$data[substr(names(stan_args$data), 1, 3) %in% c("pr_")]
+  priors <- stan_args$data[startsWith(names(stan_args$data), "pr_")]
   out$setup <- dplyr::lst(
     outcome,
     treatment,
@@ -339,6 +344,7 @@ bscm <- function(
     total = proc.time() - start_time,
     sampling = rstan::get_elapsed_time(fit)
   )
+  out$formula <- formula
   out$call <- match.call()
   out
 }

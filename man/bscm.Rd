@@ -15,6 +15,7 @@ bscm(
   save_data = TRUE,
   priors = "default",
   compute_predictions = TRUE,
+  no_donors = FALSE,
   ...
 )
 }
@@ -80,6 +81,12 @@ setting this to \code{FALSE} will cause \code{\link[=treatment_effect]{treatment
 \code{\link[=synthetic_control]{synthetic_control()}}, \code{\link[=posterior_predict]{posterior_predict()}}, \code{\link[=rmse]{rmse()}}, \code{\link[=summary]{summary()}}, and
 other methods that rely on posterior predictions to fail, so you rarely
 want to set this to \code{FALSE}.}
+
+\item{no_donors}{[\code{logical(1)}]\cr Should donors be ignored? Default is
+\code{FALSE}, but if set to \code{TRUE}, instead of BSCM, a simple Bayesian
+linear regression model based on \code{formula} is estimated. This is mainly
+for the purposes of assessing the relative the performance of BSCM in
+case where convex hull assumption of SCM does not hold.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that

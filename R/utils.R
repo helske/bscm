@@ -47,7 +47,8 @@ summarise_with_probs <- function(x, probs, for_plots = FALSE) {
       mean,
       sd,
       if (length(probs) > 0) ~ quantile2(.x, probs = probs),
-      default_convergence_measures()
+      default_convergence_measures(),
+      "mcse_mean"
     )
   }
 }
@@ -60,12 +61,8 @@ summarise_with_probs <- function(x, probs, for_plots = FALSE) {
 #' @noRd
 draws_to_long <- function(x, variable = NULL) {
   d <- as_draws_df(x)
-  vars <- posterior::variables(d)
+  vars <- variables(d)
   if (!is.null(variable)) {
-    stopifnot_(
-      length(variable) %in% c(1L, length(vars)),
-      "Argument {.arg variable} must have length 1 or match the number of variables."
-    )
     variable <- rep(variable, length.out = length(vars))
   } else {
     variable <- vars
@@ -73,10 +70,9 @@ draws_to_long <- function(x, variable = NULL) {
   lapply(
     seq_along(vars),
     \(i) {
-      var <- vars[i]
       data.frame(
         variable = variable[i],
-        value = d[[var]],
+        value = d[[vars[i]]],
         .chain = d$.chain,
         .draw = d$.draw,
         .iteration = d$.iteration
@@ -104,12 +100,8 @@ format_posterior_output <- function(
   if (summary) {
     out <- summarise_with_probs(values, probs, for_plots)
     if (!is.null(variable)) {
-      stopifnot_(
-        length(variable) %in% c(1L, nrow(out)),
-        "Argument {.arg variable} must have length 1 or match the number of rows."
-      )
       out <- out |>
-        mutate(variable = rep(.env$variable, length.out = nrow(out)))
+        mutate(variable = .env$variable)
     }
     return(out)
   }
@@ -133,16 +125,8 @@ add_output_column <- function(
     before = 1L
 ) {
   if (summary) {
-    stopifnot_(
-      length(values) %in% c(1L, nrow(d)),
-      "Length of {.arg values} must be 1 or match output rows."
-    )
     vals <- rep(values, length.out = nrow(d))
   } else {
-    stopifnot_(
-      length(values) > 0L && nrow(d) %% length(values) == 0L,
-      "Draw rows are not compatible with {.arg values} length."
-    )
     vals <- rep(values, each = nrow(d) / length(values))
   }
   mutate(d, "{name}" := vals, .before = .env$before)

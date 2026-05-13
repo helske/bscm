@@ -30,6 +30,8 @@ that triggers a model refit. Default is \code{0.7}. Ignored when \code{exact = T
 An object of class \code{bscm_lfo}, a list with components:
 \itemize{
 \item \code{ELPD}: Total expected log predictive density.
+\item \code{ELPD_SE}: A crude approximation of standard error of ELDP, ignoring
+serial dependency of ELPD estimates.
 \item \code{ELPDs}: Vector of per-step ELPDs (length \code{T_pre_min - L}). Element \code{k}
 is the ELPD for predicting observation \code{L + k}.
 \item \code{ks}: Pareto \code{k} values (length \code{T_pre_min - L - 1}, \code{NULL} for exact
@@ -80,8 +82,8 @@ lfo_exact
 }
 }
 \references{
-Paul-Christian Bürkner, Jonah Gabry & Aki Vehtari (2020).
+Bürkner, P. C., Gabry, J., & Vehtari, A. (2020).
 Approximate leave-future-out cross-validation for Bayesian time series
-models. \emph{Journal of Statistical Computation and Simulation}, 90(14),
-2499--2523. \url{https://doi.org/10.1080/00949655.2020.1783262}
+models. Journal of Statistical Computation and Simulation, 90(14),
+2499–2523. \url{doi:10.1080/00949655.2020.1783262}
 }
