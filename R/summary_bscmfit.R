@@ -39,7 +39,7 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     probs = probs
   )
   rmses <- rmse(object, average = TRUE, probs = probs)
-  if (endsWith(x$setup$model_type, "no")) {
+  if (endsWith(object$setup$model_type, "no")) {
     eff <- NULL
   } else {
     eff <- effective_donors(object, average = TRUE, probs = probs)
