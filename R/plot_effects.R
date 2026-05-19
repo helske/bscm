@@ -137,8 +137,10 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
       alpha = 0.25
     ) +
     geom_line(
-      data = d_ldo, aes(group = removed_donor), 
-      colour = "grey50", alpha = 0.5
+      data = d_ldo,
+      aes(group = removed_donor),
+      colour = "grey50",
+      alpha = 0.5
     ) +
     geom_line(colour = "#DDAA33") +
     labs(x = time, y = ylab) +

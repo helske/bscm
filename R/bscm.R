@@ -14,15 +14,15 @@
 #' - **Symmetric Dirichlet** ([dirichlet()]): \eqn{\omega \sim
 #'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
 #'   concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
-#'   the center of the simplex. The default prior is 
-#'   \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over 
+#'   the center of the simplex. The default prior is
+#'   \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over
 #'   probability simplices.
-#'    
+#'
 #' You should test different values to assess sensitivity of results,
-#' and potentially run [bscm::loo()] or [bscm::lfo()] for cross-validation 
-#' based selection (although it can be inconclusive for small and moderate 
+#' and potentially run [bscm::loo()] or [bscm::lfo()] for cross-validation
+#' based selection (although it can be inconclusive for small and moderate
 #' number of pre-treatment time points and/or donors).
-#' 
+#'
 #' When model contains covariates \eqn{X}, their effect is subtracted from
 #' donors, i.e., for treated unit \eqn{i},
 #' \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)},
@@ -83,8 +83,8 @@
 #'   or `"default"` which is a default and only supported option at the
 #'   moment for parameters other than weight vector \eqn{\omega}. See details.
 #' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
-#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()], where both 
-#'   constructors take argument `kappa` which defines the scale and 
+#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()], where both
+#'   constructors take argument `kappa` which defines the scale and
 #'   concentration parameter of the corresponding distribution.
 #'   Defaults to `dirichlet(kappa = 1)`. See details.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
@@ -102,13 +102,13 @@
 #'   internally by [lfo()] when refitting the model repeatedly. Note that
 #'   setting this to `FALSE` will cause [treatment_effect()],
 #'   [synthetic_control()], [posterior_predict()], [rmse()], [summary()], and
-#'   other methods that rely on posterior predictions to fail, so you rarely 
+#'   other methods that rely on posterior predictions to fail, so you rarely
 #'   want to set this to `FALSE`.
-#' @param no_donors \[`logical(1)`]\cr Should donors be ignored? Default is 
-#'   `FALSE`, but if set to `TRUE`, instead of BSCM, a simple Bayesian 
-#'   linear regression model based on `formula` is estimated. This is mainly 
-#'   for the purposes of assessing the relative the performance of BSCM in 
-#'   case where convex hull assumption of SCM does not hold. 
+#' @param no_donors \[`logical(1)`]\cr Should donors be ignored? Default is
+#'   `FALSE`, but if set to `TRUE`, instead of BSCM, a simple Bayesian
+#'   linear regression model based on `formula` is estimated. This is mainly
+#'   for the purposes of assessing the relative the performance of BSCM in
+#'   case where convex hull assumption of SCM does not hold.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
@@ -264,7 +264,8 @@ bscm <- function(
   o <- ifelse(omega_prior_type == "dirichlet", "dr", "ln")
   omega <- ifelse(no_donors, "no", o)
   model_type <- paste(
-    c("bscm", icpt, x, w, omega), collapse = "_"
+    c("bscm", icpt, x, w, omega),
+    collapse = "_"
   )
 
   stan_args <- list(...)

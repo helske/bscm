@@ -15,8 +15,12 @@
 #' @aliases loo_R2
 #' @export loo_R2
 #' @export
-loo_R2.bscmfit <- function(object, 
-                           summary = TRUE, probs = c(0.025, 0.975), ...) {
+loo_R2.bscmfit <- function(
+  object,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   stopifnot_(
     !is.null(object$data),
     "LOO R2 requires the original data. Refit the model with
@@ -81,8 +85,12 @@ loo_R2.bscmfit <- function(object,
 #' @aliases bayes_R2
 #' @export bayes_R2
 #' @export
-bayes_R2.bscmfit <- function(object, 
-                             summary = TRUE, probs = c(0.025, 0.975), ...) {
+bayes_R2.bscmfit <- function(
+  object,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   test_summary(summary)
   probs <- sort_probs(probs)
   N <- get_N(object)
@@ -98,7 +106,7 @@ bayes_R2.bscmfit <- function(object,
     var_fit <- rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
     r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
   }
-  
+
   format_posterior_output(
     r2,
     summary = summary,

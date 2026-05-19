@@ -37,17 +37,17 @@ multiple_treated <- data.frame(
   psi2 = psi[, 2],
   lambda1 = rep(lambda[1, ], each = T_total),
   lambda2 = rep(lambda[2, ], each = T_total)
-) |> 
+) |>
   dplyr::mutate(
     treatment = ifelse(id <= N & time >= 0, 1, 0),
     .before = psi1
-  ) |> 
+  ) |>
   dplyr::mutate(
     # true effect is t, t = time points since treatment
     tau = ifelse(treatment, cumsum(treatment), 0),
     .by = id,
     .before = psi1
-  ) |> 
+  ) |>
   dplyr::mutate(
     y = -5 + y + x + z + tau * treatment + rnorm(n())
   )

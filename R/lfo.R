@@ -29,9 +29,9 @@ lfo <- function(x, ...) {
 #'   points the ELPD is computed exactly; at other points it is approximated
 #'   by PSIS.
 #'
-#' @references Bürkner, P. C., Gabry, J., & Vehtari, A. (2020). 
-#' Approximate leave-future-out cross-validation for Bayesian time series 
-#' models. Journal of Statistical Computation and Simulation, 90(14), 
+#' @references Bürkner, P. C., Gabry, J., & Vehtari, A. (2020).
+#' Approximate leave-future-out cross-validation for Bayesian time series
+#' models. Journal of Statistical Computation and Simulation, 90(14),
 #' 2499–2523. <doi:10.1080/00949655.2020.1783262>
 #'
 #' @export
@@ -49,7 +49,7 @@ lfo <- function(x, ...) {
 #' @param ... Additional arguments passed on to [bscm()] when refitting.
 #' @return An object of class `bscm_lfo`, a list with components:
 #'   * `ELPD`: Total expected log predictive density.
-#'   * `ELPD_SE`: A crude approximation of standard error of ELDP, ignoring 
+#'   * `ELPD_SE`: A crude approximation of standard error of ELDP, ignoring
 #'      serial dependency of ELPD estimates.
 #'   * `ELPDs`: Vector of per-step ELPDs (length `T_pre_min - L`). Element `k`
 #'     is the ELPD for predicting observation `L + k`.

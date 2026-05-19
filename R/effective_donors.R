@@ -13,7 +13,7 @@ effective_donors <- function(x, ...) {
 #' average effective donors over treated units in case of
 #' multiple treated units.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname effective_donors
 #' @aliases effective_donors

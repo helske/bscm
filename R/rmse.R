@@ -11,18 +11,23 @@ rmse <- function(x, ...) {
 #' If `FALSE`, unit-specific values are returned.
 #' @param summary \[`logical(1)`]\cr If `TRUE` (the default), returns posterior
 #'   mean, standard deviation, posterior quantiles (as defined by the
-#'   `probs` argument), and MCMC convergence measures. 
+#'   `probs` argument), and MCMC convergence measures.
 #'   If `FALSE`, returns the posterior samples instead.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname rmse
 #' @aliases rmse
 #' @export
 rmse.bscmfit <- function(
-    x, average = TRUE, summary = TRUE, probs = c(0.025, 0.975), ...) {
+  x,
+  average = TRUE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   test_summary(summary)
   probs <- sort_probs(probs)
   stopifnot_(
@@ -38,10 +43,10 @@ rmse.bscmfit <- function(
   T_pre <- get_T_pre(x)
   T_total <- get_T_total(x)
   treated <- get_treated(x)
-  
+
   y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
   effect <- get_stan_y(x) - y_rep
-  
+
   pre <- post <- ratio <- vector("list", N)
   for (i in seq_len(N)) {
     T_ <- T_pre[treated[i]]

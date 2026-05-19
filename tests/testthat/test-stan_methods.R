@@ -51,6 +51,12 @@ test_that("log_lik with T_works", {
 })
 
 test_that("log_lik T_end validates its argument", {
-  expect_error(log_lik(fit1_int, T_end = -999), "must be a value of the time variable")
-  expect_error(log_lik(fit1_int, T_end = "not_a_time"), "must be a value of the time variable")
+  expect_error(
+    log_lik(fit1_int, T_end = -999),
+    "must be a value of the time variable"
+  )
+  expect_error(
+    log_lik(fit1_int, T_end = "not_a_time"),
+    "must be a value of the time variable"
+  )
 })

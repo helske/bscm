@@ -91,11 +91,11 @@ draws_to_long <- function(x, variable = NULL) {
 #' @param for_plots Whether to omit sd/rhat/ess summaries.
 #' @noRd
 format_posterior_output <- function(
-    values,
-    summary,
-    probs,
-    variable = NULL,
-    for_plots = FALSE
+  values,
+  summary,
+  probs,
+  variable = NULL,
+  for_plots = FALSE
 ) {
   if (summary) {
     out <- summarise_with_probs(values, probs, for_plots)
@@ -118,11 +118,11 @@ format_posterior_output <- function(
 #' @param after Column after which to insert.
 #' @noRd
 add_output_column <- function(
-    d,
-    name,
-    values,
-    summary,
-    before = 1L
+  d,
+  name,
+  values,
+  summary,
+  before = 1L
 ) {
   if (summary) {
     vals <- rep(values, length.out = nrow(d))

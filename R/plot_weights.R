@@ -307,7 +307,8 @@ weight_plot <- function(
         alpha = alpha[i]
       )
   }
-  p + geom_point(size = point_size) +
+  p +
+    geom_point(size = point_size) +
     scale_x_continuous(
       breaks = seq(0, 1, by = 0.1),
       expand = expansion(mult = 0.02)

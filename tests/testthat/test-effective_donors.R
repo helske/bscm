@@ -3,7 +3,17 @@ test_that("effective_donors returns data.frame", {
   expect_s3_class(d, "data.frame")
   expect_named(
     d,
-    c("id", "variable", "mean", "sd", "q30", "rhat", "ess_bulk", "ess_tail")
+    c(
+      "id",
+      "variable",
+      "mean",
+      "sd",
+      "q30",
+      "rhat",
+      "ess_bulk",
+      "ess_tail",
+      "mcse_mean"
+    )
   )
   expect_equal(nrow(d), 1L)
 
@@ -11,7 +21,17 @@ test_that("effective_donors returns data.frame", {
   expect_s3_class(d, "data.frame")
   expect_named(
     d,
-    c("variable", "mean", "sd", "q2.5", "q97.5", "rhat", "ess_bulk", "ess_tail")
+    c(
+      "variable",
+      "mean",
+      "sd",
+      "q2.5",
+      "q97.5",
+      "rhat",
+      "ess_bulk",
+      "ess_tail",
+      "mcse_mean"
+    )
   )
   expect_equal(d$variable, "Average effective donors")
 
@@ -30,7 +50,16 @@ test_that("effective_donors respects custom probs", {
   d <- effective_donors(fit1_int, probs = numeric(0))
   expect_named(
     d,
-    c("id", "variable", "mean", "sd", "rhat", "ess_bulk", "ess_tail")
+    c(
+      "id",
+      "variable",
+      "mean",
+      "sd",
+      "rhat",
+      "ess_bulk",
+      "ess_tail",
+      "mcse_mean"
+    )
   )
 })
 

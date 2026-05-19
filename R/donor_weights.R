@@ -7,13 +7,17 @@ donor_weights <- function(x, ...) {
 #'
 #' @inheritParams rmse.bscmfit
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname donor_weights
 #' @aliases donor_weights
 #' @export
 donor_weights.bscmfit <- function(
-    x, summary = TRUE, probs = c(0.025, 0.5, 0.975), ...) {
+  x,
+  summary = TRUE,
+  probs = c(0.025, 0.5, 0.975),
+  ...
+) {
   test_summary(summary)
   probs <- sort_probs(probs)
   donors <- get_donors(x)

@@ -8,13 +8,17 @@ synthetic_control <- function(x, ...) {
 #' @inheritParams rmse.bscmfit
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname synthetic_control
 #' @aliases synthetic_control
 #' @export
 synthetic_control.bscmfit <- function(
-    x, summary = TRUE, probs = c(0.025, 0.975), ...) {
+  x,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   test_summary(summary)
   probs <- sort_probs(probs)
   time <- get_time(x)
@@ -37,7 +41,7 @@ synthetic_control.bscmfit <- function(
       name = time,
       values = times2,
       summary = summary
-    ) |> 
+    ) |>
     add_output_column(
       name = unit,
       values = units,

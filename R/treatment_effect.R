@@ -16,18 +16,18 @@ treatment_effect <- function(x, ...) {
 #' multiple treated units. If `FALSE`, unit-specific effects are returned.
 #' Currently not applicable to `type = "cumulative"`.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname treatment_effect
 #' @aliases treatment_effect
 #' @export
 treatment_effect.bscmfit <- function(
-    x,
-    type = "time",
-    average = TRUE,
-    summary = TRUE,
-    probs = c(0.025, 0.975),
-    ...
+  x,
+  type = "time",
+  average = TRUE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
 ) {
   probs <- sort_probs(probs)
   stopifnot_(
@@ -56,12 +56,11 @@ treatment_effect.bscmfit <- function(
   N <- get_N(x)
   unit <- get_unit(x)
   treated <- get_treated(x)
-  
+
   for_plots <- list(...)$for_plots %||% FALSE
   y_rep <- as_draws_rvars(as_draws(x, "y_rep"))$y_rep
   effect <- get_stan_y(x) - y_rep
-  
-  
+
   if (type == "average") {
     pre <- vector("list", N)
     post <- vector("list", N)
@@ -133,7 +132,7 @@ treatment_effect.bscmfit <- function(
           name = unit,
           values = treated[i],
           summary = summary
-        ) 
+        )
     }) |>
       bind_rows()
   }
@@ -167,7 +166,7 @@ treatment_effect.bscmfit <- function(
           name = time,
           values = times2,
           summary = summary
-        ) |> 
+        ) |>
         add_output_column(
           name = unit,
           values = units,

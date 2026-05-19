@@ -8,7 +8,7 @@ T_total <- 40
 # two factors
 psi <- cbind(
   c(-1 + arima.sim(list(ar = 0.9), n = T_total, sd = sqrt(0.19))),
-  0.5*(-sqrt(seq_len(T_total)) + runif(T_total))
+  0.5 * (-sqrt(seq_len(T_total)) + runif(T_total))
 )
 lambda <- rbind(
   rgamma(J, 2, 2),
@@ -33,11 +33,11 @@ single_treated <- data.frame(
   psi2 = psi[, 2],
   lambda1 = rep(lambda[1, ], each = T_total),
   lambda2 = rep(lambda[2, ], each = T_total)
-) |> 
+) |>
   dplyr::mutate(
     treatment = ifelse(id == 1 & time >= 0, 1, 0),
     .before = alpha
-  ) |> 
+  ) |>
   dplyr::mutate(
     y = 8 + y + x + (time + 1) * treatment + rnorm(n(), 0, 0.5)
   )

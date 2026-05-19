@@ -1,12 +1,12 @@
 #' Extract regression coefficients of a Bayesian synthetic control model
-#' 
+#'
 #' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
 #'   `"gamma"` (time-varying regression coefficients).
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases coef
 #' @export

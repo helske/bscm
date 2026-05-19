@@ -13,8 +13,8 @@
 #' \eqn{\kappa = 1} is uniform over the simplex; \eqn{\kappa > 1}
 #' pulls weights toward the center of the simplex.
 #'
-#' @param kappa \[`numeric(1)`]\cr Positive concentration parameter of 
-#' symmetric Dirichlet distribution or positive scale parameter of logistic 
+#' @param kappa \[`numeric(1)`]\cr Positive concentration parameter of
+#' symmetric Dirichlet distribution or positive scale parameter of logistic
 #' normal distribution.
 #' @return An `omega_prior` object (a list with elements `distribution` and
 #'   `kappa`).
@@ -42,7 +42,7 @@ dirichlet <- function(kappa) {
   )
 }
 
-#' Function `get_omega_prior()` returns the prior of weight vector \eqn{\omega} 
+#' Function `get_omega_prior()` returns the prior of weight vector \eqn{\omega}
 #' used in the model estimation.
 #'
 #' @param x \[`bscmfit`]\cr The output returned by the [bscm()].

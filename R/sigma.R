@@ -4,12 +4,16 @@
 #' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or 
+#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases sigma
 #' @export
-sigma.bscmfit <- function(object, summary = TRUE, 
-                          probs = c(0.025, 0.975), ...) {
+sigma.bscmfit <- function(
+  object,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
   test_summary(summary)
   probs <- sort_probs(probs)
   treated <- get_treated(object)
