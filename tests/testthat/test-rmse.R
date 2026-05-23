@@ -61,5 +61,5 @@ test_that("rmse average argument works", {
   d2 <- rmse(fitN_int, average = TRUE)
   expect_equal(d1, d2)
   d2 <- rmse(fitN_int, average = FALSE)
-  expect_identical(dim(d2), c(9L, 9L))
+  expect_identical(dim(d2), c(9L, 10L))
 })
