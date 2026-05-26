@@ -104,13 +104,13 @@ types.
 The prior for the weight vector \eqn{\omega} is controlled by the
 \code{omega_prior} argument. Two families are supported:
 \itemize{
-\item \strong{Logistic normal} (\code{\link[=logistic_normal]{logistic_normal()}}): \eqn{\omega =
+\item Logistic normal (\code{\link[=logistic_normal]{logistic_normal()}}): \eqn{\omega =
   \textrm{softmax}(\eta)} with \eqn{\eta \sim N(0, \kappa^2 I)} constrained
 to sum to zero. Larger \eqn{\kappa} induces sparser weights.
-\item \strong{Symmetric Dirichlet} (\code{\link[=dirichlet]{dirichlet()}}): \eqn{\omega \sim
+\item Symmetric Dirichlet (\code{\link[=dirichlet]{dirichlet()}}): \eqn{\omega \sim
   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
-concentrate weight on few donors; \eqn{\kappa > 1} pulls weights toward
-the center of the simplex. The default prior is
+concentrate weight on few donors while \eqn{\kappa > 1} pulls encourages
+more uniform weights. The default prior is
 \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over
 probability simplices.
 }
@@ -138,15 +138,10 @@ where by default \code{m_i = mean(y_i)}, \code{s_i = 2 * sd(y_i)},
 outcomes of treated unit \eqn{i}.
 
 The default prior for the coefficient \eqn{\beta_k} is
-\eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2 * s / sd(x_k)} and s
-is the median of the variances of the treated outcomes in the
-pretreatment period, and \eqn{x_k} is the vector of values of the k-th
-covariate in the pretreatment period over all.
-
-The output of \code{bscm()} contains posterior samples of various derived
-quantities such as effect estimates. To access these after model
-estimation, use methods such as \code{\link[=treatment_effect]{treatment_effect()}} \code{\link[=coef]{coef()}}, and
-\code{\link[=summary.bscmfit]{summary.bscmfit()}} on the output of \code{bscm()}.
+\eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2s_y / s_{x,k}} and
+\eqn{s_y} and  \eqn{s_{x,k}} are the pre-treatment median standard
+deviations of the outcomes for treated units and covariates \eqn{x_k} for
+all units.
 }
 \examples{
 fit <- bscm(
