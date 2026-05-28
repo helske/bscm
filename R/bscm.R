@@ -112,13 +112,14 @@
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
 #' @examples
+#' # skip diagnostics and use small number of iterations for CRAN checks
 #' fit <- bscm(
 #'   y ~ 1, single_treated, "treatment", "time", "id",
-#'   chains = 1, cores = 1, refresh = 0
+#'   omega_prior = dirichlet(0.5),
+#'   chains = 1, cores = 1, refresh = 0, iter = 1000,
+#'   mcmc_diagnostics = FALSE
 #' )
 #' fit
-#' summary(fit)
-#' plot(fit)
 bscm <- function(
   formula,
   data,

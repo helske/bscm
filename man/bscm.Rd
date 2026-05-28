@@ -144,13 +144,14 @@ deviations of the outcomes for treated units and covariates \eqn{x_k} for
 all units.
 }
 \examples{
+# skip diagnostics and use small number of iterations for CRAN checks
 fit <- bscm(
   y ~ 1, single_treated, "treatment", "time", "id",
-  chains = 1, cores = 1, refresh = 0
+  omega_prior = dirichlet(0.5),
+  chains = 1, cores = 1, refresh = 0, iter = 1000,
+  mcmc_diagnostics = FALSE
 )
 fit
-summary(fit)
-plot(fit)
 }
 \seealso{
 \code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
