@@ -5,25 +5,20 @@
 \alias{single_treated}
 \title{Simulated example data with single treated unit}
 \format{
-A data frame with 1,550 rows and 5 columns:
+A data frame with 1785 rows and 5 columns:
 \itemize{
-\item time: Time index from ranging from -30 to 9.
+\item time: Time index from ranging from -30 to 4.
 \item id: Unit index variable `ranging from 1 to 31.
 \item y: Outcome variable.
 \item x: Time-varying predictor.
 \item treatment: Binary indicator variable where 1 corresponds to the treatment.
-\item alpha: Unit-specific intercepts.
-\item psi1: First latent factor.
-\item psi2: Second latent factor.
-\item lambda1: Loadings of the first factor.
-\item lambda2: Loadings of the second factor.
 }
 }
 \description{
-This simulated data is generated based on a latent factor model with two
-factors, 40 time points and 31 units. For the first unit (\code{id = 1}),
-a "treatment" \eqn{\tau = 1 + t} for the last 10 time points
-\eqn{t=0,\ldots,9} is added to an outcome \code{y}.
+This simulated data is generated based on a latent factor model with three
+factors, 35 time points and 51 units. For the first unit (\code{id = 1}),
+a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
+\eqn{t=0,\ldots,5} is added to an outcome \code{y}.
 To see exactly how the data was generated, see \code{data-raw} folder on the
 Github repository of the package.
 }

@@ -33,3 +33,6 @@ value of the time variable, all treated units are evaluated up to and including
 that time point regardless of whether these correspond to pre- or
 post-treatment times.
 }
+\examples{
+log_lik(fit_single_treated, T_end = -28) |> head() 
+}

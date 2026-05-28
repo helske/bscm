@@ -47,3 +47,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 \description{
 Treatment effect estimates of a Bayesian synthetic control model
 }
+\examples{
+treatment_effect(fit_single_treated) |> tail()
+}

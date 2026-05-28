@@ -21,6 +21,8 @@ rmse <- function(x, ...) {
 #' @rdname rmse
 #' @aliases rmse
 #' @export
+#' @examples
+#' rmse(fit_single_treated)
 rmse.bscmfit <- function(
   x,
   average = TRUE,

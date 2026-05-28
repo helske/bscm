@@ -9,6 +9,8 @@
 #' @param ... Ignored
 #' @aliases plot
 #' @export
+#' @examples
+#' plot(fit_single_treated, probs = c(0.05, 0.95)) 
 plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   type <- yintercept <- ymin <- ymax <- NULL
   stopifnot_(

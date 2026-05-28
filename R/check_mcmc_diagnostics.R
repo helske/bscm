@@ -29,6 +29,8 @@ check_mcmc_diagnostics <- function(x, ...) {
 }
 #' @export
 #' @rdname check_mcmc_diagnostics
+#' @examples
+#' check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
 check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
   stopifnot_(
     checkmate::test_flag(warn),

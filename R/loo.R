@@ -12,6 +12,8 @@
 #' @aliases loo
 #' @export loo
 #' @export
+#' @examples
+#' loo(fit_single_treated) 
 loo.bscmfit <- function(x, r_eff = TRUE, ...) {
   ll <- log_lik(x)
   nc <- nchains(x)

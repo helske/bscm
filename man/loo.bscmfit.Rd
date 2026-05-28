@@ -22,6 +22,9 @@ An output from \code{\link[loo:loo]{loo::loo()}}.
 \description{
 Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic control models
 }
+\examples{
+loo(fit_single_treated) 
+}
 \references{
 Vehtari A, Gelman A, and Gabry J (2017).
 Practical Bayesian model evaluation using leave-one-out cross-validation and

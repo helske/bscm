@@ -37,6 +37,8 @@ plot_weights <- function(x, ...) {
 }
 #' @rdname plot_weights
 #' @export
+#' @examples
+#' plot_weights(fit_single_treated)
 plot_weights.bscmfit <- function(
   x,
   point_estimate = "median",

@@ -22,9 +22,7 @@ treatment_effect <- function(x, ...) {
 #' @aliases treatment_effect
 #' @export
 #' @examples
-#' fit <- bscm(y ~ 1, data = single_treated, treatment = "treatment",
-#'  chains = 1, control = list(adapt_delta = 0.8), refresh = 0)
-#' treatment_effect(fit) |> tail()
+#' treatment_effect(fit_single_treated) |> tail()
 treatment_effect.bscmfit <- function(
   x,
   type = "time",

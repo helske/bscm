@@ -29,3 +29,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 \description{
 Extract donor weights of a Bayesian synthetic control model
 }
+\examples{
+donor_weights(fit_single_treated) |> head(5)
+}

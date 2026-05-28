@@ -12,6 +12,8 @@
 #' @seealso [as_draws.bscmfit()].
 #' @aliases as.data.frame
 #' @export
+#' @examples
+#' head(as.data.frame(fit_single_treated, parameters = c("alpha", "sigma")))
 as.data.frame.bscmfit <- function(
   x,
   row.names = NULL,

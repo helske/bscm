@@ -149,7 +149,8 @@ fit <- bscm(
   chains = 1, cores = 1, refresh = 0
 )
 fit
-
+summary(fit)
+plot(fit)
 }
 \seealso{
 \code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.

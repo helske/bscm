@@ -33,3 +33,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 \description{
 Extract root mean squared errors of a Bayesian synthetic control model
 }
+\examples{
+rmse(fit_single_treated)
+}

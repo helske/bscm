@@ -10,6 +10,9 @@
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases coef
 #' @export
+#' @examples
+#' coef(fit_single_treated)
+#' coef(fit_single_treated, type = "beta")
 coef.bscmfit <- function(
   object,
   type = c("alpha", "beta", "gamma"),

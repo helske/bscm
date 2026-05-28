@@ -5,8 +5,8 @@ test_that("bscm() rejects unbalanced panel data", {
     "Data is not balanced"
   )
   d <- single_treated
-  d <- d[d$time != 5 | d$id < 30, ]
-  d <- d[d$time != 10 | d$id > 30, ]
+  d <- d[d$time != -25 | d$id < 30, ]
+  d <- d[d$time != -2 | d$id > 30, ]
   expect_error(
     fit <- bscm(
       y ~ x,
@@ -23,7 +23,7 @@ test_that("bscm() rejects unbalanced panel data", {
 
 test_that("bscm() rejects gaps in treatment variable", {
   d <- single_treated
-  d$treatment[d$id == 1 & d$time == 5] <- 0L
+  d$treatment[d$id == 1 & d$time == 2] <- 0L
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
     "There should be no gaps in the treatment"

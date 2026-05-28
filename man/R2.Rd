@@ -32,6 +32,9 @@ Default is \code{c(0.025, 0.975)}.}
 Bayesian synthetic control model, while \code{loo_R2} computes a leave-one-out
 adjusted version of the same quantity.
 }
+\examples{
+bayes_R2(fit_single_treated)
+}
 \references{
 Gelman A, Goodrich B, Gabry J, and Vehtari A (2019). R-squared for
 Bayesian regression models. \emph{The American Statistician}. 73(3), 307--309.

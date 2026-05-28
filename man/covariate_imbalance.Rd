@@ -35,3 +35,7 @@ a treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}. This
 is computed separately for each treated unit in case of multiple treated
 units.
 }
+\examples{
+covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))
+
+}

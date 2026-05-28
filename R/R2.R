@@ -15,6 +15,8 @@
 #' @aliases loo_R2
 #' @export loo_R2
 #' @export
+#' @examples
+#' bayes_R2(fit_single_treated)
 loo_R2.bscmfit <- function(
   object,
   summary = TRUE,

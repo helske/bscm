@@ -14,6 +14,8 @@
 #' @aliases as_draws
 #' @export as_draws
 #' @export
+#' @examples
+#' head(as_draws(fit_single_treated, parameters = c("alpha", "sigma")))
 as_draws.bscmfit <- function(
   x,
   parameters,

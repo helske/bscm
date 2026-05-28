@@ -29,3 +29,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 Extract residual standard deviations of a Bayesian synthetic control
 model
 }
+\examples{
+sigma(fit_single_treated)
+}

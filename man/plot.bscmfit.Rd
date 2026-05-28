@@ -19,3 +19,6 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 A plot of the posterior mean and posterior interval of the treatment effect
 and synthetic control over time.
 }
+\examples{
+plot(fit_single_treated, probs = c(0.05, 0.95)) 
+}

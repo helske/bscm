@@ -12,6 +12,8 @@ donor_weights <- function(x, ...) {
 #' @rdname donor_weights
 #' @aliases donor_weights
 #' @export
+#' @examples
+#' donor_weights(fit_single_treated) |> head(5)
 donor_weights.bscmfit <- function(
   x,
   summary = TRUE,

@@ -7,14 +7,16 @@ test_that("posterior_predict has correct dimensions", {
   pp <- posterior_predict(fit1_int)
   expect_equal(dim(pp), c(ndraws(fit1_int), get_T_total(fit1_int)))
   pp <- posterior_predict(fitN_int)
-  expect_equal(dim(pp), c(ndraws(fitN_int), 3 * get_T_total(fit1_int)))
+  expect_equal(dim(pp), c(ndraws(fitN_int), 3 * get_T_total(fitN_int)))
 })
 
 test_that("posterior_epred returns a matrix with correct dimensions", {
   pe <- posterior_epred(fit1_x)
   expect_true(is.matrix(pe))
   expect_equal(dim(pe), c(ndraws(fit1_x), get_T_total(fit1_x)))
-  expect_equal(colnames(pe), paste0("y_mean[", seq_len(40), ",1]"))
+  expect_equal(
+    colnames(pe), paste0("y_mean[", seq_len(get_T_total(fit1_x)), ",1]")
+  )
 })
 
 test_that("posterior_linpred returns same as posterior_epred", {

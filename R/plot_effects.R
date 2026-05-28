@@ -25,6 +25,8 @@ plot_effects <- function(x, ...) {
 
 #' @rdname plot_effects
 #' @export
+#' @examples
+#' plot_effects(fit_single_treated)
 plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   ymin <- ymax <- NULL
   stopifnot_(

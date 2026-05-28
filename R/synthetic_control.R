@@ -13,6 +13,8 @@ synthetic_control <- function(x, ...) {
 #' @rdname synthetic_control
 #' @aliases synthetic_control
 #' @export
+#' @examples
+#' synthetic_control(fit_single_treated) |> tail()
 synthetic_control.bscmfit <- function(
   x,
   summary = TRUE,

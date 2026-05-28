@@ -38,6 +38,9 @@ reasons include using priors which are incompatible with the data.
 In addition, too large standard deviation \eqn{kappa} can
 cause numerical issues (divergences) with Stan.
 }
+\examples{
+check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
+}
 \references{
 https://mc-stan.org/learn-stan/diagnostics-warnings.html
 }

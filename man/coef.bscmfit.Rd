@@ -37,3 +37,7 @@ posterior samples (\code{summary = FALSE}) in long format.
 \description{
 Extract regression coefficients of a Bayesian synthetic control model
 }
+\examples{
+coef(fit_single_treated)
+coef(fit_single_treated, type = "beta")
+}

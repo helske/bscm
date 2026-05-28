@@ -25,6 +25,9 @@ A \code{data.frame} containing model parameters in a wide format.
 Returns a \code{data.frame} representation of the posterior sample of the model
 parameters.
 }
+\examples{
+head(as.data.frame(fit_single_treated, parameters = c("alpha", "sigma")))
+}
 \seealso{
 \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.
 }

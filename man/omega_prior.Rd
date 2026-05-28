@@ -41,6 +41,7 @@ pulls weights toward the center of the simplex.
 \examples{
 logistic_normal(kappa = 2)
 dirichlet(kappa = 0.5)
+get_omega_prior(fit_single_treated)
 }
 \seealso{
 \code{\link[=bscm]{bscm()}}

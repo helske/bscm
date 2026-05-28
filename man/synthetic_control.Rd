@@ -29,3 +29,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 \description{
 Extract synthetic control series of a Bayesian synthetic control model
 }
+\examples{
+synthetic_control(fit_single_treated) |> tail()
+}

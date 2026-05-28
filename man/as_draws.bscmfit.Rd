@@ -28,6 +28,9 @@ the specified parameters.
 \description{
 Return posterior draws from BSCM fit
 }
+\examples{
+head(as_draws(fit_single_treated, parameters = c("alpha", "sigma")))
+}
 \seealso{
 \code{\link[posterior:draws]{posterior::as_draws()}} for converting the output to other formats.
 }

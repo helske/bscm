@@ -23,6 +23,7 @@
 #' @examples
 #' logistic_normal(kappa = 2)
 #' dirichlet(kappa = 0.5)
+#' get_omega_prior(fit_single_treated)
 #' @export
 logistic_normal <- function(kappa) {
   check_omega_prior_args(kappa)

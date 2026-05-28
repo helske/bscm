@@ -70,14 +70,10 @@ by PSIS.
 }
 \examples{
 \dontrun{
-fit <- bscm(
-  y ~ 1, single_treated, "treatment", "time", "id",
-  chains = 1, cores = 1, refresh = 0
-)
-lfo_approx <- lfo(fit, L = 10)
+lfo_approx <- lfo(fit_single_treated, L = 10)
 lfo_approx
 
-lfo_exact <- lfo(fit, L = 10, exact = TRUE)
+lfo_exact <- lfo(fit_single_treated, L = 10, exact = TRUE)
 lfo_exact
 }
 }

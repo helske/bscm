@@ -8,6 +8,8 @@
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @aliases sigma
 #' @export
+#' @examples
+#' sigma(fit_single_treated)
 sigma.bscmfit <- function(
   object,
   summary = TRUE,

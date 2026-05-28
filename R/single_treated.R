@@ -1,26 +1,20 @@
 #' Simulated example data with single treated unit
 #'
-#' This simulated data is generated based on a latent factor model with two
-#' factors, 40 time points and 31 units. For the first unit (`id = 1`),
-#' a "treatment" \eqn{\tau = 1 + t} for the last 10 time points
-#' \eqn{t=0,\ldots,9} is added to an outcome `y`.
+#' This simulated data is generated based on a latent factor model with three
+#' factors, 35 time points and 51 units. For the first unit (`id = 1`),
+#' a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
+#' \eqn{t=0,\ldots,5} is added to an outcome `y`.
 #' To see exactly how the data was generated, see `data-raw` folder on the
 #' Github repository of the package.
-#'
 #' @docType data
 #' @keywords datasets
 #' @format
-#' A data frame with 1,550 rows and 5 columns:
-#'  * time: Time index from ranging from -30 to 9.
+#' A data frame with 1785 rows and 5 columns:
+#'  * time: Time index from ranging from -30 to 4.
 #'  * id: Unit index variable `ranging from 1 to 31.
 #'  * y: Outcome variable.
 #'  * x: Time-varying predictor.
 #'  * treatment: Binary indicator variable where 1 corresponds to the treatment.
-#'  * alpha: Unit-specific intercepts.
-#'  * psi1: First latent factor.
-#'  * psi2: Second latent factor.
-#'  * lambda1: Loadings of the first factor.
-#'  * lambda2: Loadings of the second factor.
 #' @name single_treated
 #' @examples
 #' head(single_treated)
@@ -31,4 +25,22 @@
 #'     data = single_treated |> dplyr::filter(id == 1), colour = "tomato"
 #'   ) +
 #'   ggplot2::theme_bw()
+NULL
+#' Example bscmfit object
+#' 
+#' The object `fit_single_treated` contains a Bayesian synthetic 
+#' control model estimated as
+#' \preformatted{
+#' fit <- bscm(
+#'   formula = y ~ x, data = single_treated, treatment = "treatment", 
+#'   chains = 2, cores = 1, refresh = 0, iter = 2000, warmup = 1000, 
+#'   control = list(adapt_delta = 0.8)
+#' )
+#' }
+#' @docType data
+#' @format A `bscmfit` object.
+#' @name fit_single_treated
+#' @examples
+#' fit_single_treated
+#' plot(fit_single_treated)
 NULL

@@ -41,3 +41,6 @@ For models with multiple treated units, \code{plot_effects.bscmfit()} returns a
 named list of per-unit plots, while methods for leave-out or placebo outputs
 return a signle plot of the average treatment effect.
 }
+\examples{
+plot_effects(fit_single_treated)
+}

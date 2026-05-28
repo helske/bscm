@@ -40,3 +40,6 @@ posterior samples (\code{summary = FALSE}) in long format.
 Effective donors is defined as \eqn{1 / \sum_{j=1}^J \omega_j^2},
 where \eqn{\omega_j} is the donor weight of control unit \eqn{j}.
 }
+\examples{
+effective_donors(fit_single_treated)
+}

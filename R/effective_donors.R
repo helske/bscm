@@ -18,6 +18,8 @@ effective_donors <- function(x, ...) {
 #' @rdname effective_donors
 #' @aliases effective_donors
 #' @export
+#' @examples
+#' effective_donors(fit_single_treated)
 effective_donors.bscmfit <- function(
   x,
   average = TRUE,

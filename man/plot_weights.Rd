@@ -73,3 +73,6 @@ fitted Bayesian synthetic control model. When applied to the output of
 \code{\link[=leave_donor_out]{leave_donor_out()}}, it instead visualizes how donor
 weights or their ranks change across the leave-out runs.
 }
+\examples{
+plot_weights(fit_single_treated)
+}
