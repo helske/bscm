@@ -1,5 +1,5 @@
 
-# bscm
+# bscm: Bayesian Synthetic Control Models
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/helske/bscm/graph/badge.svg)](https://app.codecov.io/gh/helske/bscm)
@@ -7,6 +7,15 @@
 <!-- badges: end -->
 
 R package for Bayesian Synthetic Control Models (Helske 2026, in-preparation). 
+Key features:
+* Time-varying covariates, optionally with time-varying random-walk coefficients.
+* Multiple treated units, with or without staggered adoption.
+* Customizable Dirichlet and logistic normal priors for donor weights.
+* Convenient methods for extracting posterior summaries or draws of 
+  treatment effects, synthetic control series, donor weights, RMSE, 
+  Bayesian R^2, and other quantities of interest.
+* Model evaluation and comparison via leave-one-out and leave-future-out 
+  cross-validation, leave-donor(s)-out, in-time, and in-space placebo studies.
 
 
 ## Installation
