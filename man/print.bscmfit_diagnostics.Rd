@@ -16,6 +16,9 @@ problems. If \code{TRUE} or \code{FALSE}, always prints or does not print the ta
 
 \item{...}{Ignored.}
 }
+\value{
+input \code{x} (invisibility).
+}
 \description{
 Print MCMC Diagnostics
 }

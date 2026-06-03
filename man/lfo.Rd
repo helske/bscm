@@ -69,7 +69,7 @@ by PSIS.
 }
 }
 \examples{
-\dontrun{
+\donttest{
 lfo_approx <- lfo(fit_single_treated, L = 10)
 lfo_approx
 

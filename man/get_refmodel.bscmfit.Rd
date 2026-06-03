@@ -30,7 +30,7 @@ obtaining predictions based on the projected model, the \code{newdata} argument
 needs the data in wide format, see examples.
 }
 \examples{
-\dontrun{
+\donttest{
 fit <- bscm(
   y ~ 1, treatment = "treatment", time = "time", unit = "id",
   data = single_treated, refresh = 0, chains = 2, cores = 2

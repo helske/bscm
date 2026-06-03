@@ -6,6 +6,10 @@
 #'
 #' @inheritParams rmse.bscmfit
 #' @param object \[`bscmfit`]\cr The model fit object.
+#' @param fixed_seed \[logical(1)]\cr If `TRUE` (the default), fixes the seed
+#'   of random number generator (RNG) so that `loo_R2`, which uses Bayesian
+#'   bootstrap, returns identical results in repeated calls for the same model
+#'   object. On exit, the state of the RNG is restored to the original state.
 #' @param ... Ignored.
 #' @return `data.frame` of posterior summary of (LOO-adjusted) R-squared values.
 #' @references
@@ -21,6 +25,7 @@ loo_R2.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  fixed_seed = TRUE,
   ...
 ) {
   stopifnot_(
@@ -30,10 +35,15 @@ loo_R2.bscmfit <- function(
   )
   test_summary(summary)
   probs <- sort_probs(probs)
-  old_seed <- .Random.seed
-  on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
-  set.seed(get_stanfit(object)@stan_args[[1]]$seed)
-
+  stopifnot_(
+    checkmate::test_flag(fixed_seed),
+    "Argument {.arg fixed_seed} should be a single logical value."
+  )
+  if (fixed_seed) {
+    old_seed <- .Random.seed
+    on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
+    set.seed(get_stanfit(object)@stan_args[[1]]$seed)
+  }
   T_pre <- get_T_pre(object)
   unit <- get_unit(object)
   time <- get_time(object)

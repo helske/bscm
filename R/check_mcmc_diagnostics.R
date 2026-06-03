@@ -150,6 +150,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
 #' table of largest Rhat and smallest ESS values in case diagnostics indicate
 #' problems. If `TRUE` or `FALSE`, always prints or does not print the table.
 #' @param ... Ignored.
+#' @return input `x` (invisibility).
 #' @export
 print.bscmfit_diagnostics <- function(x, print_table = NULL, ...) {
   stopifnot_(

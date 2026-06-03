@@ -35,15 +35,15 @@ single_treated <- data.frame(
   time = seq_len(T_total) - T_0 - 1,
   id = rep(seq_len(J + 1), each = T_total),
   x = c(x),
-  alpha = rep(alpha, each = T_total), 
+  alpha = rep(alpha, each = T_total),
   delta = delta,
   f = c(f),
   epsilon = epsilon
-) |> 
+) |>
   dplyr::mutate(
     treatment = as.integer(id == 1 & time >= 0),
     y = alpha + delta + f + (1 + time) * treatment + epsilon,
-  ) |> 
+  ) |>
   dplyr::select(time, id, y, x, treatment)
 
 usethis::use_data(single_treated, overwrite = TRUE)

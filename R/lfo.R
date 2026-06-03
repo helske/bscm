@@ -63,7 +63,7 @@ lfo <- function(x, ...) {
 #'   * `time_var`: Name of the time variable.
 #'   * `k_thres`: The Pareto k threshold used.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' lfo_approx <- lfo(fit_single_treated, L = 10)
 #' lfo_approx
 #'

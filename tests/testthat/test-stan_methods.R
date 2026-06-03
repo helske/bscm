@@ -15,7 +15,8 @@ test_that("posterior_epred returns a matrix with correct dimensions", {
   expect_true(is.matrix(pe))
   expect_equal(dim(pe), c(ndraws(fit1_x), get_T_total(fit1_x)))
   expect_equal(
-    colnames(pe), paste0("y_mean[", seq_len(get_T_total(fit1_x)), ",1]")
+    colnames(pe),
+    paste0("y_mean[", seq_len(get_T_total(fit1_x)), ",1]")
   )
 })
 

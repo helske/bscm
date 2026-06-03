@@ -7,7 +7,7 @@
 \alias{bayes_R2}
 \title{Bayesian R-squared value}
 \usage{
-\method{loo_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), ...)
+\method{loo_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), fixed_seed = TRUE, ...)
 
 \method{bayes_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), ...)
 }
@@ -21,6 +21,11 @@ If \code{FALSE}, returns the posterior samples instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{fixed_seed}{[logical(1)]\cr If \code{TRUE} (the default), fixes the seed
+of random number generator (RNG) so that \code{loo_R2}, which uses Bayesian
+bootstrap, returns identical results in repeated calls for the same model
+object. On exit, the state of the RNG is restored to the original state.}
 
 \item{...}{Ignored.}
 }

@@ -19,7 +19,7 @@
 #' @return An object of class `refmodel`.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' fit <- bscm(
 #'   y ~ 1, treatment = "treatment", time = "time", unit = "id",
 #'   data = single_treated, refresh = 0, chains = 2, cores = 2

@@ -15,6 +15,10 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 
 \item{...}{Ignored}
 }
+\value{
+A \code{ggplot} object, or a named list of \code{ggplot} objects when
+\code{x} is a \code{bscmfit} with multiple treated units.
+}
 \description{
 A plot of the posterior mean and posterior interval of the treatment effect
 and synthetic control over time.

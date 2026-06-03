@@ -13,7 +13,7 @@
 #'   to sum to zero. Larger \eqn{\kappa} induces sparser weights.
 #' - Symmetric Dirichlet ([dirichlet()]): \eqn{\omega \sim
 #'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
-#'   concentrate weight on few donors while \eqn{\kappa > 1} pulls encourages 
+#'   concentrate weight on few donors while \eqn{\kappa > 1} pulls encourages
 #'   more uniform weights. The default prior is
 #'   \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over
 #'   probability simplices.
@@ -41,9 +41,9 @@
 #' outcomes of treated unit \eqn{i}.
 #'
 #' The default prior for the coefficient \eqn{\beta_k} is
-#' \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2s_y / s_{x,k}} and 
-#' \eqn{s_y} and  \eqn{s_{x,k}} are the pre-treatment median standard 
-#' deviations of the outcomes for treated units and covariates \eqn{x_k} for 
+#' \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2s_y / s_{x,k}} and
+#' \eqn{s_y} and  \eqn{s_{x,k}} are the pre-treatment median standard
+#' deviations of the outcomes for treated units and covariates \eqn{x_k} for
 #' all units.
 #'
 #' @param formula \[`formula`]\cr The model formula containing the outcome

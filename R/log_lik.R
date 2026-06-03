@@ -23,7 +23,7 @@
 #' @export log_lik
 #' @export
 #' @examples
-#' log_lik(fit_single_treated, T_end = -28) |> head() 
+#' log_lik(fit_single_treated, T_end = -28) |> head()
 log_lik.bscmfit <- function(object, T_end = NULL, ...) {
   T_total <- get_T_total(object)
   T_pre <- get_T_pre(object)

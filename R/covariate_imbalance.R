@@ -28,7 +28,7 @@ covariate_imbalance <- function(x, ...) {
 #' @export
 #' @examples
 #' covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))
-#' 
+#'
 covariate_imbalance.bscmfit <- function(
   x,
   plot = TRUE,
