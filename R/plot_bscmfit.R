@@ -8,8 +8,7 @@
 #' the posterior interval. Default is `c(0.025, 0.975)`.
 #' @param ... Ignored
 #' @aliases plot
-#' @return A `ggplot` object, or a named list of `ggplot` objects when
-#'   `x` is a `bscmfit` with multiple treated units.
+#' @return A `ggplot` object
 #' @export
 #' @examples
 #' plot(fit_single_treated, probs = c(0.05, 0.95))
@@ -30,6 +29,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   treated <- get_treated(x)
   time <- get_time(x)
   unit <- get_unit(x)
+  treatment <- get_treatment(x)
 
   d_effects <- treatment_effect(
     x,
@@ -42,40 +42,34 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   d_effects$type <- "Treatment effect"
   d_synth$type <- "Synthetic control"
   lookup <- stats::setNames(
-    c(unit, time, outcome, paste0("q", 100 * probs)),
-    c("unit", "time", "mean", "ymin", "ymax")
+    c(unit, time, treatment, outcome, paste0("q", 100 * probs)),
+    c("unit", "time", "treatment", "mean", "ymin", "ymax")
   )
-  d_plot <- bind_rows(d_effects, d_synth) |>
-    rename(any_of(lookup))
-
+  d_plot <- dplyr::bind_rows(d_effects, d_synth) |>
+    dplyr::rename(dplyr::any_of(lookup))
   dy <- x$data |>
-    filter(.data[[unit]] %in% .env$treated) |>
-    select(all_of(c(unit, time, outcome))) |>
-    mutate(type = "Synthetic control") |>
-    rename(any_of(lookup))
+    dplyr::filter(.data[[unit]] %in% .env$treated) |>
+    dplyr::select(dplyr::all_of(c(unit, time, treatment, outcome))) |>
+    dplyr::mutate(type = "Synthetic control", treatment = factor(treatment)) |>
+    dplyr::rename(dplyr::any_of(lookup))
 
-  dt <- data.frame(yintercept = 0, type = "Treatment effect")
-  N <- get_N(x)
-  plots <- stats::setNames(vector("list", length = N), treated)
-  for (i in treated) {
-    plots[[i]] <- d_plot |>
-      filter(unit == i) |>
-      ggplot(aes(time, mean)) +
-      geom_hline(
-        data = dt,
-        aes(yintercept = yintercept),
-        linetype = "dashed",
-        colour = "grey70"
-      ) +
-      geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = type), alpha = 0.25) +
-      geom_line(aes(colour = type)) +
-      geom_point(data = dy |> filter(unit == i), colour = "grey30") +
-      labs(x = time, y = if (N > 1L) i) +
-      scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +
-      scale_fill_manual(values = c("#EECC66", "#77AADD")) +
-      guides(fill = "none", colour = "none") +
-      facet_wrap(~type, ncol = 1, scales = "free_y", strip.position = "left") +
-      theme_bw()
-  }
-  if (N == 1L) plots[[1]] else plots
+  wrap <- facet_grid(
+    rows = vars(type),
+    cols = if (get_N(x) > 1) vars(unit),
+    scales = "free_y"
+  )
+  d_plot |>
+    ggplot(aes(time, mean)) +
+    geom_ribbon(
+      aes(ymin = ymin, ymax = ymax, fill = type),
+      alpha = 0.5
+    ) +
+    geom_line(aes(colour = type)) +
+    geom_point(data = dy, aes(shape = treatment), colour = "grey30") +
+    labs(x = time, y = NULL) +
+    scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +
+    scale_fill_manual(values = c("#EECC66", "#77AADD")) +
+    guides(fill = "none", colour = "none", shape = "none") +
+    wrap +
+    theme_bw()
 }

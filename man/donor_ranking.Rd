@@ -7,8 +7,8 @@
 donor_ranking(x)
 }
 \arguments{
-\item{x}{[\code{vsel}] or [\code{bscmfit}]\cr Output from \code{\link[=bscm]{bscm()}}, \code{\link[projpred:varsel]{projpred::varsel()}} or
-\code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}.}
+\item{x}{[\code{vsel}] or [\code{bscmfit}]\cr Output from \code{\link[=bscm]{bscm()}},
+\code{\link[projpred:varsel]{projpred::varsel()}} or \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}.}
 }
 \value{
 Character vector of donor IDs in order of selection.

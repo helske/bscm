@@ -28,11 +28,11 @@ treated unit, then the second, and so on.
 \description{
 Returns posterior draws of pointwise log-likelihoods of the treated units per
 time point. By default (\code{T_end = NULL}), only pre-treatment observations are
-included (\code{T_pre[i]} time points for unit \code{i}).  When \code{T_end} is supplied as a
-value of the time variable, all treated units are evaluated up to and including
-that time point regardless of whether these correspond to pre- or
+included (\code{T_pre[i]} time points for unit \code{i}). When \code{T_end} is supplied as a
+value of the time variable, all treated units are evaluated up to and
+including that time point regardless of whether these correspond to pre- or
 post-treatment times.
 }
 \examples{
-log_lik(fit_single_treated, T_end = -28) |> head() 
+log_lik(fit_single_treated, T_end = -28) |> head()
 }

@@ -3,7 +3,7 @@
 \name{synthetic_control}
 \alias{synthetic_control}
 \alias{synthetic_control.bscmfit}
-\title{Extract synthetic control series of a Bayesian synthetic control model}
+\title{Synthetic control series of a Bayesian synthetic control model}
 \usage{
 synthetic_control(x, ...)
 
@@ -27,7 +27,9 @@ A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
 posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{
-Extract synthetic control series of a Bayesian synthetic control model
+Returns posterior draws (or summaries) of the pre- and post-treatment
+trajectories of treated units, i.e. draws \code{y_rep}from the posterior
+predictive distribution of the model.
 }
 \examples{
 synthetic_control(fit_single_treated) |> tail()

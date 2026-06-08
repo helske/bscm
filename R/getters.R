@@ -22,8 +22,8 @@ get_stan_y <- function(x) {
   outcome <- get_outcome(x)
   T_total <- get_T_total(x)
   x$data |>
-    filter(.data[[unit]] %in% .env$treated) |>
-    pull(.data[[outcome]]) |>
+    dplyr::filter(.data[[unit]] %in% .env$treated) |>
+    dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total)
 }
 #' @noRd
@@ -33,8 +33,8 @@ get_stan_Z <- function(x) {
   outcome <- get_outcome(x)
   T_total <- get_T_total(x)
   x$data |>
-    filter(.data[[unit]] %in% .env$donors) |>
-    pull(.data[[outcome]]) |>
+    dplyr::filter(.data[[unit]] %in% .env$donors) |>
+    dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total)
 }
 #' Extract the name of the outcome variable from formula object

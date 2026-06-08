@@ -3,7 +3,8 @@
 \name{loo.bscmfit}
 \alias{loo.bscmfit}
 \alias{loo}
-\title{Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic control models}
+\title{Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic
+control models}
 \usage{
 \method{loo}{bscmfit}(x, r_eff = TRUE, ...)
 }
@@ -20,13 +21,15 @@ increased computation time.}
 An output from \code{\link[loo:loo]{loo::loo()}}.
 }
 \description{
-Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic control models
+Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic
+control models
 }
 \examples{
-loo(fit_single_treated) 
+loo(fit_single_treated)
 }
 \references{
 Vehtari A, Gelman A, and Gabry J (2017).
 Practical Bayesian model evaluation using leave-one-out cross-validation and
-WAIC. \emph{Statistics and Computing}. 27(5), 1413--1432.
+WAIC. \emph{Statistics and Computing}. 27(5), 1413--1432,
+\url{doi:10.1007/s11222-016-9696-4}.
 }

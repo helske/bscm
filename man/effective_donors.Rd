@@ -9,7 +9,7 @@ effective_donors(x, ...)
 
 \method{effective_donors}{bscmfit}(
   x,
-  average = TRUE,
+  average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
@@ -20,9 +20,9 @@ effective_donors(x, ...)
 
 \item{...}{Ignored.}
 
-\item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns the
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE}, returns the
 average effective donors over treated units in case of
-multiple treated units.}
+multiple treated units. The default is \code{FALSE}.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the

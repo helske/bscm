@@ -78,8 +78,8 @@ lfo_exact
 }
 }
 \references{
-Bürkner, P. C., Gabry, J., & Vehtari, A. (2020).
+Bürkner PC, Gabry J, and Vehtari A (2020).
 Approximate leave-future-out cross-validation for Bayesian time series
-models. Journal of Statistical Computation and Simulation, 90(14),
-2499–2523. \url{doi:10.1080/00949655.2020.1783262}
+models. \emph{Journal of Statistical Computation and Simulation}, 90(14),
+2499--2523, \url{doi:10.1080/00949655.2020.1783262}.
 }

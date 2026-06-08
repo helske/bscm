@@ -4,7 +4,8 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
-#'   `"gamma"` (time-varying regression coefficients).
+#'   `"gamma"` (time-varying regression coefficients, returns also
+#'   corresponding SDs).
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
@@ -37,71 +38,66 @@ coef.bscmfit <- function(
     "The model does not contain {cli::qty(N)} {?an intercept/intercepts} or any 
     predictors."
   )
+  unit <- get_unit(object)
+  time <- get_time(object)
 
   d_alpha <- d_beta <- d_gamma <- d_sigma_gamma <- NULL
   if ("alpha" %in% pars) {
     treated <- get_treated(object)
-    unit <- get_unit(object)
-    d_alpha <- format_posterior_output(
-      as_draws(object, "alpha"),
-      summary = summary,
-      probs = probs,
-      variable = "Intercept"
-    ) |>
-      add_output_column(
-        name = unit,
-        values = treated,
-        summary = summary
-      )
+    d_alpha <- dplyr::tibble(
+      parameter = "Intercept",
+      "{unit}" := treated,
+      alpha = posterior::as_draws_rvars(as_draws(object, "alpha"))$alpha
+    )
+    if (summary) {
+      d_alpha <- d_alpha |>
+        dplyr::mutate(summarise_with_probs(.data$alpha, probs)) |>
+        dplyr::select(-"alpha", -"variable")
+    }
+    if (N == 1) d_alpha <- d_alpha |> dplyr::select(-dplyr::all_of(unit))
   }
   if ("beta" %in% pars) {
-    d_beta <- format_posterior_output(
-      as_draws(object, "beta"),
-      summary = summary,
-      probs = probs,
-      variable = paste0("Coef_", object$setup$beta_names)
+    d_beta <- dplyr::tibble(
+      parameter = paste0("beta_", object$setup$beta_names),
+      beta = posterior::as_draws_rvars(as_draws(object, "beta"))$beta
     )
+    if (summary) {
+      d_beta <- d_beta |>
+        dplyr::mutate(summarise_with_probs(.data$beta, probs)) |>
+        dplyr::select(-"beta", -"variable")
+    }
   }
   if ("gamma" %in% pars) {
-    time <- get_time(object)
     times <- get_times(object)
-    L <- length(object$setup$gamma_names)
-    gamma_names <- object$setup$gamma_names
-    gamma_vars <- rep(paste0("gamma_", gamma_names), times = length(times))
-    gamma_times <- rep(times, each = L)
-    d_gamma <- format_posterior_output(
-      as_draws(object, "gamma"),
-      summary = summary,
-      probs = probs,
-      variable = gamma_vars
+    gammas <- object$setup$gamma_names
+    L <- length(gammas)
+    T_total <- get_T_total(object)
+    d_gamma <- dplyr::tibble(
+      parameter = paste0("gamma_", rep(gammas, each = T_total)),
+      "{time}" := rep(times, times = L),
+      gamma = c(posterior::as_draws_rvars(as_draws(object, "gamma"))$gamma)
     )
-    d_gamma <- if (summary) {
-      add_output_column(
-        d_gamma,
-        name = time,
-        values = gamma_times,
-        summary = summary
-      )
-    } else {
-      add_output_column(
-        d_gamma,
-        name = time,
-        values = gamma_times,
-        summary = summary
-      )
+    d_sigma_gamma <- dplyr::tibble(
+      parameter = paste0("sigma_gamma_", gammas),
+      sigma_gamma = posterior::as_draws_rvars(
+        as_draws(object, "sigma_gamma")
+      )$sigma_gamma
+    )
+    if (summary) {
+      d_gamma <- d_gamma |>
+        dplyr::mutate(summarise_with_probs(.data$gamma, probs)) |>
+        dplyr::select(-"gamma", -"variable")
+      d_sigma_gamma <- d_sigma_gamma |>
+        dplyr::mutate(summarise_with_probs(.data$sigma_gamma, probs)) |>
+        dplyr::select(-"sigma_gamma", -"variable")
     }
-    d_sigma_gamma <- format_posterior_output(
-      as_draws(object, "sigma_gamma"),
-      summary = summary,
-      probs = probs,
-      variable = paste0("sigma_gamma_", gamma_names)
-    )
   }
-  out <- list(
-    alpha = d_alpha,
-    beta = d_beta,
-    gamma = d_gamma,
-    sigma_gamma = d_sigma_gamma
-  )
-  out[lengths(out) > 0]
+  dplyr::bind_rows(
+    d_alpha,
+    d_beta,
+    d_sigma_gamma,
+    d_gamma
+  ) |>
+    dplyr::relocate(dplyr::any_of(c("parameter", unit, time)), .before = 1L) |>
+    dplyr::rename(variable = .data$parameter)
 }

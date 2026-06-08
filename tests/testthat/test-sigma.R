@@ -1,7 +1,6 @@
 test_that("sigma returns data.frame with correct structure", {
   d <- sigma(fit1_int)
-  expect_s3_class(d, "data.frame")
-  expect_equal(d$variable, "sigma")
+  expect_s3_class(d, "tbl_df")
   expect_true("mean" %in% names(d))
   expect_true("sd" %in% names(d))
   expect_equal(nrow(d), 1L)

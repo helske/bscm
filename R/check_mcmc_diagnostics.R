@@ -2,9 +2,9 @@
 #'
 #' This function is automatically called at the end of [bscm()] to check that
 #' the output can be trusted in terms of convergence of the MCMC sampling.
-#' Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant used by
-#' Stan, as well as the Rhat values and effective sample sizes of all model
-#' parameters and derived variables. See [rstan::check_hmc_diagnostics()] and
+#' Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant
+#' used by Stan, as well as the Rhat values and effective sample sizes of model
+#' parameters. See [rstan::check_hmc_diagnostics()] and
 #' [posterior::default_convergence_measures()] for details on the definitions
 #' of these.
 #'
@@ -55,7 +55,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
 
   sumr <- x |>
     as_draws(parameters = c("y_mean", "y_rep"), include = FALSE) |>
-    summarise_draws(posterior::default_convergence_measures())
+    posterior::summarise_draws(posterior::default_convergence_measures())
   idx <- c(
     which.max(sumr$rhat),
     which.min(sumr$ess_bulk),

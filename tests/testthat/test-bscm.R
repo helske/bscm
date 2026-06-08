@@ -9,11 +9,11 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
   )
   expect_error(
     bscm(~1, data = single_treated, treatment = "treatment"),
-    "Argument `formula` must be a <formula> object with an outcome variable on the left-hand side\\."
+    "Argument `formula` must be a <formula> object with an outcome variable"
   )
   expect_error(
     bscm(c(y, x) ~ 1, data = single_treated, treatment = "treatment"),
-    "Argument `formula` must be a <formula> object with one outcome variable on the left-hand side\\."
+    "Argument `formula` must be a <formula> object with one outcome variable."
   )
   expect_error(
     bscm(y ~ 1),
@@ -22,10 +22,6 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
   expect_error(
     bscm(y ~ 1, data = 5),
     "Argument `data` must be a <data\\.frame> object\\."
-  )
-  expect_error(
-    bscm(y ~ 1, data = single_treated),
-    "Argument `treatment` is missing\\."
   )
   expect_error(
     bscm(y ~ 1, data = single_treated, treatment = "z"),

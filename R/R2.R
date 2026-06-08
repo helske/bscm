@@ -14,7 +14,8 @@
 #' @return `data.frame` of posterior summary of (LOO-adjusted) R-squared values.
 #' @references
 #' Gelman A, Goodrich B, Gabry J, and Vehtari A (2019). R-squared for
-#' Bayesian regression models. *The American Statistician*. 73(3), 307--309.
+#' Bayesian regression models. *The American Statistician*. 73(3), 307--309,
+#' <doi:10.1080/00031305.2018.1549100>.
 #' @rdname R2
 #' @aliases loo_R2
 #' @export loo_R2
@@ -56,12 +57,12 @@ loo_R2.bscmfit <- function(
   cs <- cumsum(T_pre)
   idx1 <- stats::setNames(1L + c(0L, cs[-N]), treated)
   idx2 <- stats::setNames(cs, treated)
-  r2 <- lapply(
+  d <- lapply(
     treated,
     \(id) {
       y <- object$data |>
-        filter(.data[[unit]] == .env$id) |>
-        pull(.data[[outcome]])
+        dplyr::filter(.data[[unit]] == .env$id) |>
+        dplyr::pull(.data[[outcome]])
       y <- y[seq_len(T_pre[id])]
       idx <- idx1[id]:idx2[id]
       lr <- log_ratios[, idx, drop = FALSE]
@@ -82,16 +83,22 @@ loo_R2.bscmfit <- function(
       r2 <- 1 - ss_e_loo / ss_y
       r2[r2 < -1] <- -1
       r2[r2 > 1] <- 1
-      format_posterior_output(
-        posterior::draws_array(R2 = r2),
-        summary = summary,
-        probs = probs,
-        variable = "R2"
+      tibble(
+        "{unit}" := id,
+        R2 = posterior::draws_rvars(r2 = r2)$r2
       )
     }
   ) |>
-    stats::setNames(treated)
-  bind_rows(r2, .id = unit)
+    dplyr::bind_rows()
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(.data$R2, probs)) |>
+      dplyr::select(-"R2", -"variable")
+  }
+  if (length(treated) == 1) {
+    d <- d |> dplyr::select(-dplyr::all_of(unit))
+  }
+  d
 }
 #' @rdname R2
 #' @aliases bayes_R2
@@ -110,24 +117,25 @@ bayes_R2.bscmfit <- function(
   unit <- get_unit(object)
   T_pre <- get_T_pre(object)
 
-  y_mean <- as_draws_rvars(as_draws(object, "y_mean"))$y_mean
-  sigma <- as_draws_rvars(as_draws(object, "sigma"))$sigma
+  y_mean <- posterior::as_draws_rvars(as_draws(object, "y_mean"))$y_mean
+  sigma <- posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
 
   r2 <- vector("list", N)
   for (i in seq_len(N)) {
-    var_fit <- rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
+    var_fit <- posterior::rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
     r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
   }
-
-  format_posterior_output(
-    r2,
-    summary = summary,
-    probs = probs,
-    variable = "R2"
-  ) |>
-    add_output_column(
-      name = unit,
-      values = treated,
-      summary = summary
-    )
+  d <- tibble(
+    "{unit}" := treated,
+    R2 = do.call(c, r2)
+  )
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(.data$R2, probs)) |>
+      dplyr::select(-"R2", -"variable")
+  }
+  if (N == 1) {
+    d <- d |> dplyr::select(-dplyr::all_of(unit))
+  }
+  d
 }

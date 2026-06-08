@@ -42,5 +42,6 @@ bayes_R2(fit_single_treated)
 }
 \references{
 Gelman A, Goodrich B, Gabry J, and Vehtari A (2019). R-squared for
-Bayesian regression models. \emph{The American Statistician}. 73(3), 307--309.
+Bayesian regression models. \emph{The American Statistician}. 73(3), 307--309,
+\url{doi:10.1080/00031305.2018.1549100}.
 }

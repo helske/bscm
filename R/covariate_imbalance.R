@@ -7,11 +7,13 @@ covariate_imbalance <- function(x, ...) {
 #'
 #' For models with covariates, returns and optionally visualizes the
 #' covariate imbalances
-#' \deqn{\delta_{t} = \sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \sum_{j=1}^J \omega_j x_{k, j, t})^2},}
-#' \eqn{t=1,\ldots,T}, \eqn{x_{k,0,t}} is the value of \eqn{k}th covariate of
-#' a treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}. This
-#' is computed separately for each treated unit in case of multiple treated
-#' units.
+#' \deqn{\delta_{t} =
+#' \sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \bar x_{k,0,t})^2},}
+#' \eqn{t=1,\ldots,T}, where
+#' \eqn{\bar x_{k,0,t} = \sum_{j=1}^J \omega_j x_{k, j, t}} and \eqn{x_{k,0,t}}
+#' is the value of \eqn{k}th covariate of a treated unit at time t, and
+#' similarly for donors \eqn{j=1,\ldots,J}. This is computed separately for
+#' each treated unit in case of multiple treated units.
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param plot \[`logical(1)`]\cr If `TRUE` (the default), plots the posterior
@@ -53,7 +55,7 @@ covariate_imbalance.bscmfit <- function(
     \(i) covariate_imbalance_unit(x, i, X, probs)
   ) |>
     stats::setNames(treated) |>
-    bind_rows(.id = unit)
+    dplyr::bind_rows(.id = unit)
   if (plot) {
     time <- get_time(x)
     lwr <- paste0("q", 100 * min(probs))
@@ -80,7 +82,6 @@ covariate_imbalance.bscmfit <- function(
 }
 
 covariate_imbalance_unit <- function(x, unit, X, probs) {
-  variable <- NULL
   time <- get_time(x)
   times <- get_times(x)
   T_total <- get_T_total(x)
@@ -88,7 +89,7 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
   K <- length(get_predictors(x))
 
   pars <- paste0("omega[", unit, ",", seq_len(J), "]")
-  omega <- rvar(as_draws(x, pars), with_chains = TRUE)
+  omega <- posterior::rvar(as_draws(x, pars), with_chains = TRUE)
 
   X_y <- X$X_y[unit, , , drop = FALSE]
   dim(X_y) <- c(T_total, K)
@@ -99,12 +100,12 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
     }
   )
   sqrt(Reduce(`+`, delta_tk) / K) |>
-    summarise_draws(
+    posterior::summarise_draws(
       mean,
-      ~ quantile2(.x, probs = probs)
+      ~ posterior::quantile2(.x, probs = probs)
     ) |>
-    mutate("{time}" := .env$times, .before = variable) |>
-    select(-variable)
+    dplyr::mutate("{time}" := .env$times, .before = .data$variable) |>
+    dplyr::select(-"variable")
 }
 
 get_Xs <- function(x) {

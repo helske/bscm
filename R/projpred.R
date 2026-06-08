@@ -71,7 +71,7 @@ get_refmodel.bscmfit <- function(object, ...) {
   has_intercept <- has_intercept(object)
   outcome <- get_outcome(object)
   proj_data <- object$data |>
-    pull(.data[[outcome]]) |>
+    dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total) |>
     as.data.frame() |>
     stats::setNames(units)

@@ -7,7 +7,7 @@
 bscm(
   formula,
   data,
-  treatment,
+  treatment = "treatment",
   time = "time",
   unit = "id",
   omega_prior = dirichlet(kappa = 1),
@@ -27,7 +27,7 @@ the right-hand side (RHS) of \code{~}. In case of no predictors, use
 default when using predictors (e.g., \code{outcome ~ x + z}), the model
 includes intercept term. Intercept can be omitted by using \code{0} in the
 RHS, e.g., \code{outcome ~ 0} or \code{outcome ~ 0 + x + z} (equivalently, you
-can use \code{-1} in place of \code{0}). Formula does not need to contain the
+can use \code{-1} in place of \code{0}). Formula should not contain the
 variable defining the treatment, which is defined separately using the
 argument \code{treatment}. In case the variable is present also in the
 formula, it is automatically removed.
@@ -44,13 +44,13 @@ it would cancel out in the linear predictor.}
 The long format data that contains the model variables.}
 
 \item{treatment}{[\code{character(1)}]\cr Name of the treatment indicator
-variable in \code{data}.}
+variable in \code{data}. Default is \code{"treatment"}.}
 
 \item{time}{[\code{character(1)}]\cr Name of the time index variable in
-\code{data}.}
+\code{data}. Default is \code{"time"}.}
 
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data}
-identifying different units.}
+identifying different units. Default is \code{"id"}.}
 
 \item{omega_prior}{[\code{omega_prior}]\cr Prior for the donor weight vector
 \eqn{\omega}, created by \code{\link[=logistic_normal]{logistic_normal()}} or \code{\link[=dirichlet]{dirichlet()}}, where both
@@ -70,7 +70,7 @@ object returned by  \code{\link[=bscm]{bscm()}} includes the input \code{data.fr
 rearranging data by \code{unit} and \code{time} variables.}
 
 \item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
-or \code{"default"} which is a default and only supported option at the
+or \code{"default"}, latter being only supported option at the
 moment for parameters other than weight vector \eqn{\omega}. See details.}
 
 \item{compute_predictions}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
@@ -91,7 +91,10 @@ case where convex hull assumption of SCM does not hold.}
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that
 defaults \code{iter = 5000} and \code{warmup = 2500} differ from the defaults of
-\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively).}
+\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many other
+control arguments for Stan can be passed using a named list \code{control},
+such as \code{control = list(adapt_delta = 0.95)} which corresponds to the
+default \code{adapt_delta} value of \code{bscm} (while \code{rstan} default is \code{0.8}).}
 }
 \value{
 An object of class \code{bscmfit}.

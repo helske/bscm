@@ -9,9 +9,9 @@ effective_donors <- function(x, ...) {
 #' where \eqn{\omega_j} is the donor weight of control unit \eqn{j}.
 #'
 #' @inheritParams rmse.bscmfit
-#' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the
+#' @param average \[`logical(1)`]\cr If `TRUE`, returns the
 #' average effective donors over treated units in case of
-#' multiple treated units.
+#' multiple treated units. The default is `FALSE`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
@@ -22,7 +22,7 @@ effective_donors <- function(x, ...) {
 #' effective_donors(fit_single_treated)
 effective_donors.bscmfit <- function(
   x,
-  average = TRUE,
+  average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
@@ -34,30 +34,25 @@ effective_donors.bscmfit <- function(
     "Argument {.arg average} must be a single {.cls logical} value."
   )
 
+  treated <- get_treated(x)
+  unit <- get_unit(x)
   N <- get_N(x)
-  omega <- as_draws_rvars(as_draws(x, "omega"))$omega
-  eff <- rvar_apply(omega, 1, \(x) 1 / rvar_sum(x^2))
-
+  omega <- posterior::as_draws_rvars(as_draws(x, "omega"))$omega
+  d <- dplyr::tibble(
+    "{unit}" := treated,
+    ess = posterior::rvar_apply(omega, 1, \(x) 1 / posterior::rvar_sum(x^2))
+  )
   if (average && N > 1) {
-    format_posterior_output(
-      rvar_mean(eff),
-      summary = summary,
-      probs = probs,
-      variable = "Average effective donors"
-    )
-  } else {
-    unit <- get_unit(x)
-    treated <- get_treated(x)
-    format_posterior_output(
-      eff,
-      summary = summary,
-      probs = probs,
-      variable = "Effective donors"
-    ) |>
-      add_output_column(
-        name = unit,
-        values = treated,
-        summary = summary
-      )
+    d <- d |>
+      dplyr::summarise(ess = posterior::rvar_mean(.data$ess))
   }
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(.data$ess, probs)) |>
+      dplyr::select(-"ess", -"variable")
+  }
+  if (N == 1) {
+    d <- d |> dplyr::select(-dplyr::all_of(unit))
+  }
+  d
 }

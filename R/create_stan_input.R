@@ -52,7 +52,7 @@ create_standata <- function(
   T_total <- nrow(Y)
   J <- ncol(Z)
   standata <- list(
-    T = T_total,
+    "T" = T_total,
     T_pre = array(T_pre),
     N = N,
     J = J,
@@ -113,7 +113,7 @@ create_inits <- function(x, omega_prior) {
   if (!is.null(x$pr_mean_beta)) {
     inits$beta <- array(stats::rnorm(x$K, x$pr_mean_beta, 0.1 * x$pr_sd_beta))
     if (!is.null(x$pr_rate_sigma_gamma)) {
-      inits$gamma_raw <- matrix(0, x$T, x$L)
+      inits$gamma_raw <- matrix(0, x[["T"]], x$L)
       inits$sigma_gamma <- array(
         stats::runif(x$L, 0.9, 1.1) / x$pr_rate_sigma_gamma
       )

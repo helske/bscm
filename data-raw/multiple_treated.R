@@ -1,5 +1,4 @@
 ## code to used to create `multiple_treated` dataset
-library(dplyr)
 set.seed(235)
 # number of donor series
 J <- 50

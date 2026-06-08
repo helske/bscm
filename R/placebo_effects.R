@@ -61,8 +61,8 @@ placebo_effects.bscmfit <- function(
   stopifnot_(
     identical(type, "donor") ||
       checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
-    "Argument {.arg L} must be a single integer between 2 and {T_pre - 1}, defining 
-    the number of time points used for the first fit."
+    "Argument {.arg L} must be a single integer between 2 and {T_pre - 1}, 
+    defining the number of time points used for the first fit."
   )
   stopifnot_(
     !is.null(x$data),
@@ -84,14 +84,14 @@ placebo_effects.bscmfit <- function(
     effects[[1L]] <- treatment_effect(x, probs = probs)
     rmses[[1L]] <- rmse(x, probs = probs)
     diagnostics_list[[1L]] <- check_mcmc_diagnostics(x, warn = FALSE)
-    data <- data |> filter(.data[[unit]] %in% .env$donors)
+    data <- data |> dplyr::filter(.data[[unit]] %in% .env$donors)
     end <- times[T_pre]
     p <- progressr::progressor(along = donors)
     for (i in seq_along(donors)) {
       donor <- donors[i]
       p(sprintf(paste0("Estimating the model for donor ", donor, ".")))
       d <- data |>
-        mutate(
+        dplyr::mutate(
           "{treatment}" := ifelse(
             .data[[unit]] == .env$donor & .data[[time]] > .env$end,
             1,
@@ -121,7 +121,7 @@ placebo_effects.bscmfit <- function(
         paste0("Estimating the model with data up to time ", times[i], ".")
       ))
       d <- data |>
-        mutate(
+        dplyr::mutate(
           "{treatment}" := ifelse(
             .data[[unit]] == .env$treated & .data[[time]] > .env$times[i],
             1,
@@ -147,9 +147,9 @@ placebo_effects.bscmfit <- function(
     the `diagnostics` element of the output list for details."
   )
   out <- list(
-    effect = bind_rows(effects, .id = "placebo"),
-    rmse = bind_rows(rmses, .id = "placebo"),
-    diagnostics = bind_rows(
+    effect = dplyr::bind_rows(effects, .id = "placebo"),
+    rmse = dplyr::bind_rows(rmses, .id = "placebo"),
+    diagnostics = dplyr::bind_rows(
       lapply(diagnostics_list, diags2df),
       .id = "placebo"
     ),

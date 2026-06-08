@@ -3,7 +3,7 @@ test_that("plot_effects.bscmfit returns a ggplot for single treated unit", {
   expect_s3_class(p, "ggplot")
 })
 
-test_that("plot_effects.bscmfit returns a list of ggplots for multiple treated units", {
+test_that("plot_effects.bscmfit returns a list of ggplots for N > 1", {
   plots <- plot_effects(fitN_int)
   expect_type(plots, "list")
   expect_true(all(vapply(plots, inherits, logical(1L), "ggplot")))

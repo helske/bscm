@@ -3,7 +3,11 @@
 synthetic_control <- function(x, ...) {
   UseMethod("synthetic_control", x)
 }
-#' Extract synthetic control series of a Bayesian synthetic control model
+#' Synthetic control series of a Bayesian synthetic control model
+#'
+#' Returns posterior draws (or summaries) of the pre- and post-treatment
+#' trajectories of treated units, i.e. draws `y_rep`from the posterior
+#' predictive distribution of the model.
 #'
 #' @inheritParams rmse.bscmfit
 #' @param x \[`bscmfit`]\cr The model fit object.
@@ -21,32 +25,38 @@ synthetic_control.bscmfit <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
-  test_summary(summary)
   probs <- sort_probs(probs)
+  test_summary(summary)
+  stopifnot_(
+    !is.null(x$data),
+    "The model fit {.arg x} does not contain the original data. You probably
+    used {.fun bscm} with {.arg save_data = FALSE}?"
+  )
+  for_plots <- list(...)$for_plots %||% FALSE
   time <- get_time(x)
   times <- get_times(x)
+  T_pre <- get_T_pre(x)
+  T_total <- get_T_total(x)
   N <- get_N(x)
-  for_plots <- list(...)$for_plots %||% FALSE
   unit <- get_unit(x)
   treated <- get_treated(x)
-  values <- as_draws(x, "y_rep")
-  units <- rep(treated, each = length(times))
-  times2 <- rep(times, times = length(treated))
-  format_posterior_output(
-    values,
-    summary = summary,
-    probs = probs,
-    variable = "Synthetic control",
-    for_plots = for_plots
-  ) |>
-    add_output_column(
-      name = time,
-      values = times2,
-      summary = summary
-    ) |>
-    add_output_column(
-      name = unit,
-      values = units,
-      summary = summary
-    )
+  treatment <- get_treatment(x)
+  treatments <- unlist(
+    lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
+  )
+  d <- tibble(
+    "{unit}" := rep(treated, each = T_total),
+    "{time}" := rep(times, times = N),
+    "{treatment}" := treatments,
+    y_rep = c(posterior::as_draws_rvars(as_draws(x, "y_rep"))$y_rep)
+  )
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(.data$y_rep, probs, for_plots)) |>
+      dplyr::select(-"y_rep", -"variable")
+  }
+  if (N == 1) {
+    d <- d |> dplyr::select(-dplyr::all_of(unit))
+  }
+  d
 }

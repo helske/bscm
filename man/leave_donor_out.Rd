@@ -42,8 +42,8 @@ needed for plotting. The result can be visualized with \code{\link[=plot_weights
 \code{\link[=plot_effects]{plot_effects()}}.
 }
 \description{
-\code{leave_donor_out()} re-estimates the original model after omitting donors from
-the donor pool. By default, it removes one donor at a time. Setting
+\code{leave_donor_out()} re-estimates the original model after omitting donors
+from the donor pool. By default, it removes one donor at a time. Setting
 \code{cumulative = TRUE} instead removes donors cumulatively following the chosen
 order, which can be used to assess how sensitive the results are to the most
 influential donors.
@@ -52,9 +52,9 @@ influential donors.
 The donor order can always be supplied explicitly. For one-donor leave-out
 runs (\code{cumulative = FALSE}), that order controls the order of the returned
 runs. For cumulative leave-out runs (\code{cumulative = TRUE}), donors are removed
-from the ordered pool one by one. If no order is supplied, one-donor leave-out
-uses the original donor order, while cumulative leave-out orders donors by
-posterior mean donor weight in descending order.
+from the ordered pool one by one. If no order is supplied, one-donor
+leave-out uses the original donor order, while cumulative leave-out orders
+donors by posterior mean donor weight in descending order.
 
 For models with multiple treated units, automatic donor ranking is based on
 the average posterior mean donor weight across treated units.

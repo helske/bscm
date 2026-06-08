@@ -1,11 +1,9 @@
 test_that("effective_donors returns data.frame", {
   d <- effective_donors(fit1_int, probs = 0.3)
-  expect_s3_class(d, "data.frame")
+  expect_s3_class(d, "tbl_df")
   expect_named(
     d,
     c(
-      "id",
-      "variable",
       "mean",
       "sd",
       "q30",
@@ -18,11 +16,11 @@ test_that("effective_donors returns data.frame", {
   expect_equal(nrow(d), 1L)
 
   d <- effective_donors(fitN_int)
-  expect_s3_class(d, "data.frame")
+  expect_s3_class(d, "tbl_df")
   expect_named(
     d,
     c(
-      "variable",
+      "id",
       "mean",
       "sd",
       "q2.5",
@@ -33,11 +31,9 @@ test_that("effective_donors returns data.frame", {
       "mcse_mean"
     )
   )
-  expect_equal(d$variable, "Average effective donors")
-
-  d <- effective_donors(fitN_int, average = FALSE)
-  expect_s3_class(d, "data.frame")
-  expect_equal(d$variable, rep("Effective donors", 3))
+  d <- effective_donors(fitN_int, average = TRUE)
+  expect_s3_class(d, "tbl_df")
+  expect_null(d[["variable"]])
 })
 
 test_that("effective_donors respects custom probs", {
@@ -51,8 +47,6 @@ test_that("effective_donors respects custom probs", {
   expect_named(
     d,
     c(
-      "id",
-      "variable",
       "mean",
       "sd",
       "rhat",
@@ -79,6 +73,6 @@ test_that("effective_donors average argument works", {
   d2 <- effective_donors(fit1_int, average = FALSE)
   expect_equal(d1, d2)
   d1 <- effective_donors(fitN_int)
-  d2 <- effective_donors(fitN_int, average = TRUE)
+  d2 <- effective_donors(fitN_int, average = FALSE)
   expect_equal(d1, d2)
 })

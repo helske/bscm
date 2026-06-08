@@ -29,10 +29,11 @@ lfo <- function(x, ...) {
 #'   points the ELPD is computed exactly; at other points it is approximated
 #'   by PSIS.
 #'
-#' @references Bürkner, P. C., Gabry, J., & Vehtari, A. (2020).
+#' @references
+#' Bürkner PC, Gabry J, and Vehtari A (2020).
 #' Approximate leave-future-out cross-validation for Bayesian time series
-#' models. Journal of Statistical Computation and Simulation, 90(14),
-#' 2499–2523. <doi:10.1080/00949655.2020.1783262>
+#' models. *Journal of Statistical Computation and Simulation*, 90(14),
+#' 2499--2523, <doi:10.1080/00949655.2020.1783262>.
 #'
 #' @export
 #' @rdname lfo
@@ -98,7 +99,7 @@ lfo.bscmfit <- function(
 
   refit_at <- function(t_lfo) {
     d <- x$data |>
-      mutate(
+      dplyr::mutate(
         "{treatment}" := ifelse(
           .data[[unit]] %in% .env$treated & .data[[time]] > .env$times[t_lfo],
           1L,
@@ -117,7 +118,7 @@ lfo.bscmfit <- function(
     )
   }
 
-  treated_data <- x$data |> filter(.data[[unit]] %in% .env$treated)
+  treated_data <- x$data |> dplyr::filter(.data[[unit]] %in% .env$treated)
   n_steps <- T_pre_min - L
   elpds <- rep(NA_real_, n_steps)
   p <- progressr::progressor(steps = n_steps)
@@ -128,13 +129,13 @@ lfo.bscmfit <- function(
     for (t in L:(T_pre_min - 1L)) {
       p(sprintf("Fitting model with %d pre-treatment observations.", t))
       fit_t <- refit_at(t)
-      ll_next <- log_lik_at_times(fit_t, treated_data, t + 1L)
+      ll_next <- loglik_at_times(fit_t, treated_data, t + 1L)
       elpds[t - L + 1L] <- log_mean_exp(ll_next[, 1L])
     }
   } else {
     p(sprintf("Fitting model with %d pre-treatment observations.", L))
     fit_past <- refit_at(L)
-    ll_from_refit <- log_lik_at_times(
+    ll_from_refit <- loglik_at_times(
       fit_past,
       treated_data,
       seq(L + 1L, T_pre_min)
@@ -157,7 +158,7 @@ lfo.bscmfit <- function(
         refits <- c(refits, t)
         p(sprintf("Refitting model with %d pre-treatment observations.", t))
         fit_past <- refit_at(t)
-        ll_from_refit <- log_lik_at_times(
+        ll_from_refit <- loglik_at_times(
           fit_past,
           treated_data,
           seq(t + 1L, T_pre_min)
@@ -227,8 +228,8 @@ print.bscm_lfo <- function(x, ...) {
 #' Plot Pareto k diagnostics from LFO cross-validation
 #'
 #' Plots Pareto k values against the corresponding time variable values,
-#' with a horizontal line at the refitting threshold. Only available (and relevant)
-#' for PSIS-LFO (not exact LFO).
+#' with a horizontal line at the refitting threshold. Only available
+#' (and relevant) for PSIS-LFO (not exact LFO).
 #'
 #' @param x \[`bscm_lfo`]\cr Output from [lfo()].
 #' @param ... Ignored.
@@ -237,7 +238,7 @@ print.bscm_lfo <- function(x, ...) {
 plot.bscm_lfo <- function(x, ...) {
   if (is.null(x$ks)) {
     message(
-      "No Pareto k values available (output is based on exact LFO). Nothing to plot."
+      "Nothing to plot as input is from exact LFO."
     )
     return(invisible(NULL))
   }

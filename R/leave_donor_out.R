@@ -5,8 +5,8 @@ leave_donor_out <- function(x, ...) {
 }
 #' Leave-out donor sensitivity of a Bayesian synthetic control model
 #'
-#' `leave_donor_out()` re-estimates the original model after omitting donors from
-#' the donor pool. By default, it removes one donor at a time. Setting
+#' `leave_donor_out()` re-estimates the original model after omitting donors
+#' from the donor pool. By default, it removes one donor at a time. Setting
 #' `cumulative = TRUE` instead removes donors cumulatively following the chosen
 #' order, which can be used to assess how sensitive the results are to the most
 #' influential donors.
@@ -14,9 +14,9 @@ leave_donor_out <- function(x, ...) {
 #' The donor order can always be supplied explicitly. For one-donor leave-out
 #' runs (`cumulative = FALSE`), that order controls the order of the returned
 #' runs. For cumulative leave-out runs (`cumulative = TRUE`), donors are removed
-#' from the ordered pool one by one. If no order is supplied, one-donor leave-out
-#' uses the original donor order, while cumulative leave-out orders donors by
-#' posterior mean donor weight in descending order.
+#' from the ordered pool one by one. If no order is supplied, one-donor
+#' leave-out uses the original donor order, while cumulative leave-out orders
+#' donors by posterior mean donor weight in descending order.
 #'
 #' For models with multiple treated units, automatic donor ranking is based on
 #' the average posterior mean donor weight across treated units.
@@ -89,7 +89,7 @@ leave_donor_out.bscmfit <- function(
   for (i in seq_along(removed_donors)) {
     p(paste0("Removing donor ", donor_order[i + 1]))
     d <- x$data |>
-      filter(!(.data[[unit]] %in% .env$removed_donors[[i]]))
+      dplyr::filter(!(.data[[unit]] %in% .env$removed_donors[[i]]))
     fit <- stats::update(
       x,
       data = d,
@@ -114,10 +114,10 @@ leave_donor_out.bscmfit <- function(
     the `diagnostics` element of the output list for details."
   )
   out <- list(
-    effect = bind_rows(effects, .id = "removed_donor"),
-    rmse = bind_rows(rmses, .id = "removed_donor"),
-    weights = bind_rows(weights, .id = "removed_donor"),
-    diagnostics = bind_rows(
+    effect = dplyr::bind_rows(effects, .id = "removed_donor"),
+    rmse = dplyr::bind_rows(rmses, .id = "removed_donor"),
+    weights = dplyr::bind_rows(weights, .id = "removed_donor"),
+    diagnostics = dplyr::bind_rows(
       lapply(diagnostics, diags2df),
       .id = "removed_donor"
     ),

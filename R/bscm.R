@@ -53,7 +53,7 @@
 #' default when using predictors (e.g., `outcome ~ x + z`), the model
 #' includes intercept term. Intercept can be omitted by using `0` in the
 #' RHS, e.g., `outcome ~ 0` or `outcome ~ 0 + x + z` (equivalently, you
-#' can use `-1` in place of `0`). Formula does not need to contain the
+#' can use `-1` in place of `0`). Formula should not contain the
 #' variable defining the treatment, which is defined separately using the
 #' argument `treatment`. In case the variable is present also in the
 #' formula, it is automatically removed.
@@ -69,13 +69,13 @@
 #' @param data \[`data.frame` or an object coercible to one]\cr
 #'   The long format data that contains the model variables.
 #' @param treatment  \[`character(1)`]\cr Name of the treatment indicator
-#'   variable in `data`.
+#'   variable in `data`. Default is `"treatment"`.
 #' @param time \[`character(1)`]\cr Name of the time index variable in
-#'   `data`.
+#'   `data`. Default is `"time"`.
 #' @param unit \[`character(1)`]\cr Name of the variable in `data`
-#'   identifying different units.
+#'   identifying different units. Default is `"id"`.
 #' @param priors \[`list()` or `character(1)`]\cr List of prior definitions
-#'   or `"default"` which is a default and only supported option at the
+#'   or `"default"`, latter being only supported option at the
 #'   moment for parameters other than weight vector \eqn{\omega}. See details.
 #' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
 #'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()], where both
@@ -107,7 +107,10 @@
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
-#'   [rstan::sampling()] (which are 2000 and 1000 respectively).
+#'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many other
+#'   control arguments for Stan can be passed using a named list `control`,
+#'   such as `control = list(adapt_delta = 0.95)` which corresponds to the
+#'   default `adapt_delta` value of `bscm` (while `rstan` default is `0.8`).
 #' @return An object of class `bscmfit`.
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
@@ -123,7 +126,7 @@
 bscm <- function(
   formula,
   data,
-  treatment,
+  treatment = "treatment",
   time = "time",
   unit = "id",
   omega_prior = dirichlet(kappa = 1),
@@ -164,7 +167,7 @@ bscm <- function(
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
   )
   data <- data |>
-    arrange(.data[[unit]], .data[[time]]) |>
+    dplyr::arrange(.data[[unit]], .data[[time]]) |>
     droplevels()
   stopifnot_(
     all(table(data[[unit]], data[[time]]) == 1),
@@ -189,12 +192,12 @@ bscm <- function(
   T_pre <- unname(treatment_table[1, treated])
   T_total <- length(unique(data[[time]]))
   Y <- data |>
-    filter(.data[[unit]] %in% .env$treated) |>
-    pull(.data[[outcome]]) |>
+    dplyr::filter(.data[[unit]] %in% .env$treated) |>
+    dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total)
   Z <- data |>
-    filter(.data[[unit]] %in% .env$donors) |>
-    pull(.data[[outcome]]) |>
+    dplyr::filter(.data[[unit]] %in% .env$donors) |>
+    dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total)
   stopifnot_(
     all(!is.na(Y)) && all(!is.na(Z)),
@@ -309,7 +312,7 @@ bscm <- function(
   }
 
   start_time <- proc.time()
-  fit <- do.call(sampling, stan_args)
+  fit <- do.call(rstan::sampling, stan_args)
   out <- list(stanfit = fit)
   if (save_data) {
     out$data <- data

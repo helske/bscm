@@ -16,6 +16,6 @@ A \code{ggplot} object, or \code{NULL} invisibly for exact LFO.
 }
 \description{
 Plots Pareto k values against the corresponding time variable values,
-with a horizontal line at the refitting threshold. Only available (and relevant)
-for PSIS-LFO (not exact LFO).
+with a horizontal line at the refitting threshold. Only available
+(and relevant) for PSIS-LFO (not exact LFO).
 }

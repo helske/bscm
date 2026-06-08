@@ -7,7 +7,7 @@ donor_weights <- function(x, ...) {
 #'
 #' @inheritParams rmse.bscmfit
 #' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
+#' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
 #' @rdname donor_weights
 #' @aliases donor_weights
@@ -22,32 +22,20 @@ donor_weights.bscmfit <- function(
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
-  donors <- get_donors(x)
   unit <- get_unit(x)
   treated <- get_treated(x)
   N <- get_N(x)
-  J <- get_J(x)
-  out <- lapply(
-    seq_len(N),
-    \(i) {
-      pars <- paste0("omega[", i, ",", seq_len(J), "]")
-      format_posterior_output(
-        as_draws(x, pars),
-        summary = summary,
-        probs = probs,
-        variable = "Donor weight"
-      ) |>
-        add_output_column(
-          name = unit,
-          values = donors,
-          summary = summary
-        ) |>
-        add_output_column(
-          name = "treated_unit",
-          values = treated[i],
-          summary = summary
-        )
-    }
+  donors <- get_donors(x)
+  J <- length(donors)
+  d <- dplyr::tibble(
+    treated = rep(treated, times = J),
+    donor = rep(donors, each = N),
+    weight = c(posterior::as_draws_rvars(as_draws(x, "omega"))$omega)
   )
-  bind_rows(out)
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(.data$weight, probs)) |>
+      dplyr::select(-"weight", -"variable")
+  }
+  d
 }

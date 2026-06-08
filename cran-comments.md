@@ -1,4 +1,4 @@
-## Comments for resubmission
+## Comments for CRAN (resubmission)
 
 * There are (not yet) any references for the proposed method. 
   These will be added in later updates.

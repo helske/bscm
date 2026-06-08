@@ -24,9 +24,9 @@ Invisibly returns a list containing the results of the check.
 \description{
 This function is automatically called at the end of \code{\link[=bscm]{bscm()}} to check that
 the output can be trusted in terms of convergence of the MCMC sampling.
-Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant used by
-Stan, as well as the Rhat values and effective sample sizes of all model
-parameters and derived variables. See \code{\link[rstan:check_hmc_diagnostics]{rstan::check_hmc_diagnostics()}} and
+Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant
+used by Stan, as well as the Rhat values and effective sample sizes of model
+parameters. See \code{\link[rstan:check_hmc_diagnostics]{rstan::check_hmc_diagnostics()}} and
 \code{\link[posterior:draws_summary]{posterior::default_convergence_measures()}} for details on the definitions
 of these.
 }

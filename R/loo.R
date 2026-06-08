@@ -1,4 +1,5 @@
-#' Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic control models
+#' Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic
+#' control models
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param r_eff \[`logical(1)`]\cr If `TRUE` (the default), [loo::loo()]
@@ -6,9 +7,11 @@
 #' increased computation time.
 #' @param ... Additional arguments to [loo::loo()].
 #' @return An output from [loo::loo()].
-#' @references Vehtari A, Gelman A, and Gabry J (2017).
+#' @references
+#' Vehtari A, Gelman A, and Gabry J (2017).
 #' Practical Bayesian model evaluation using leave-one-out cross-validation and
-#' WAIC. *Statistics and Computing*. 27(5), 1413--1432.
+#' WAIC. *Statistics and Computing*. 27(5), 1413--1432,
+#' <doi:10.1007/s11222-016-9696-4>.
 #' @aliases loo
 #' @export loo
 #' @export

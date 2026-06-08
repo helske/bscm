@@ -2,9 +2,9 @@
 #'
 #' Returns posterior draws of pointwise log-likelihoods of the treated units per
 #' time point. By default (`T_end = NULL`), only pre-treatment observations are
-#' included (`T_pre[i]` time points for unit `i`).  When `T_end` is supplied as a
-#' value of the time variable, all treated units are evaluated up to and including
-#' that time point regardless of whether these correspond to pre- or
+#' included (`T_pre[i]` time points for unit `i`). When `T_end` is supplied as a
+#' value of the time variable, all treated units are evaluated up to and
+#' including that time point regardless of whether these correspond to pre- or
 #' post-treatment times.
 #'
 #' @param object \[`bscmfit`]\cr The model fit object.
@@ -48,8 +48,8 @@ log_lik.bscmfit <- function(object, T_end = NULL, ...) {
     for (i in seq_len(N)) {
       id <- treated[i]
       y_pre <- object$data |>
-        filter(.data[[unit]] == .env$id & .data[[treatment]] == 0) |>
-        pull(.data[[outcome]])
+        dplyr::filter(.data[[unit]] == .env$id & .data[[treatment]] == 0) |>
+        dplyr::pull(.data[[outcome]])
       mu_offset <- (i - 1L) * T_total
       s <- sigma_draws[, i]
       for (t in seq_along(y_pre)) {
@@ -76,8 +76,8 @@ log_lik.bscmfit <- function(object, T_end = NULL, ...) {
     for (i in seq_len(N)) {
       id <- treated[i]
       y_obs <- object$data |>
-        filter(.data[[unit]] == .env$id) |>
-        pull(.data[[outcome]])
+        dplyr::filter(.data[[unit]] == .env$id) |>
+        dplyr::pull(.data[[outcome]])
       mu_offset <- (i - 1L) * T_total
       s <- sigma_draws[, i]
       for (t in seq_len(T_max)) {
@@ -95,7 +95,7 @@ log_lik.bscmfit <- function(object, T_end = NULL, ...) {
   ll
 }
 
-log_lik_at_times <- function(fit, data, t_positions) {
+loglik_at_times <- function(fit, data, t_positions) {
   unit <- get_unit(fit)
   outcome <- get_outcome(fit)
   T_total <- get_T_total(fit)
@@ -109,8 +109,8 @@ log_lik_at_times <- function(fit, data, t_positions) {
   for (i in seq_len(N)) {
     id <- treated[i]
     y_obs <- data |>
-      filter(.data[[unit]] == .env$id) |>
-      pull(.data[[outcome]])
+      dplyr::filter(.data[[unit]] == .env$id) |>
+      dplyr::pull(.data[[outcome]])
     mu_offset <- (i - 1L) * T_total
     s <- sigma_draws[, i]
     for (j in seq_len(n_t)) {

@@ -20,15 +20,17 @@ sigma.bscmfit <- function(
   probs <- sort_probs(probs)
   treated <- get_treated(object)
   unit <- get_unit(object)
-  format_posterior_output(
-    as_draws(object, "sigma"),
-    summary = summary,
-    probs = probs,
-    variable = "sigma"
-  ) |>
-    add_output_column(
-      name = unit,
-      values = treated,
-      summary = summary
-    )
+  d <- tibble(
+    "{unit}" := treated,
+    sigma = posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
+  )
+  if (summary) {
+    d <- d |>
+      dplyr::mutate(summarise_with_probs(sigma, probs)) |>
+      dplyr::select(-"sigma", -"variable")
+  }
+  if (length(treated) == 1) {
+    d <- d |> dplyr::select(-dplyr::all_of(unit))
+  }
+  d
 }

@@ -12,8 +12,8 @@ The object \code{fit_single_treated} contains a Bayesian synthetic
 control model estimated as
 \preformatted{
 fit <- bscm(
-  formula = y ~ x, data = single_treated, treatment = "treatment", 
-  chains = 2, cores = 1, refresh = 0, iter = 2000, warmup = 1000, 
+  formula = y ~ x, data = single_treated, treatment = "treatment",
+  chains = 2, cores = 1, refresh = 0, iter = 2000, warmup = 1000,
   control = list(adapt_delta = 0.8)
 )
 }

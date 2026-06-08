@@ -5,13 +5,15 @@ Authors@R:
     person("Jouni", "Helske", email = "jouni.helske@iki.fi", 
     role = c("aut", "cre"),
     comment = c(ORCID = "0000-0001-7130-793X"))
-Description: Bayesian treatment of synthetic control method with posterior 
-    uncertainty estimates of treatment effects and other quantities of 
-    interest, as well as various model evaluation and comparison 
-    methods. Models support time-varying covariates with possibly 
-    time-varying effects. Single and multiple treated units with staggered 
-    treatment times are supported. Posterior sampling uses Markov chain 
-    Monte Carlo via Stan. 
+Description: Implements the synthetic control method of Abadie, Diamond, and 
+    Hainmueller (2010) <doi:10.1198/jasa.2009.ap08746> within a Bayesian 
+    framework, enabling straightforward uncertainty quantification of treatment 
+    effects and other quantities of interest. Supports time-varying covariates 
+    with potentially time-varying effects, single or multiple treated units, 
+    and staggered treatment adoption. Provides methods for model assessment, 
+    comparison, and selection based on placebo studies, cross-validation, and 
+    posterior predictive checks. Posterior sampling is performed using Markov 
+    chain Monte Carlo via Stan.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

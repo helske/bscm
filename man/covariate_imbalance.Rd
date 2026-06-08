@@ -29,11 +29,13 @@ distances.
 \description{
 For models with covariates, returns and optionally visualizes the
 covariate imbalances
-\deqn{\delta_{t} = \sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \sum_{j=1}^J \omega_j x_{k, j, t})^2},}
-\eqn{t=1,\ldots,T}, \eqn{x_{k,0,t}} is the value of \eqn{k}th covariate of
-a treated unit at time t, and similarly for donors \eqn{j=1,\ldots,J}. This
-is computed separately for each treated unit in case of multiple treated
-units.
+\deqn{\delta_{t} =
+\sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \bar x_{k,0,t})^2},}
+\eqn{t=1,\ldots,T}, where
+\eqn{\bar x_{k,0,t} = \sum_{j=1}^J \omega_j x_{k, j, t}} and \eqn{x_{k,0,t}}
+is the value of \eqn{k}th covariate of a treated unit at time t, and
+similarly for donors \eqn{j=1,\ldots,J}. This is computed separately for
+each treated unit in case of multiple treated units.
 }
 \examples{
 covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))

@@ -80,15 +80,14 @@ plot_weights.bscmfit <- function(
   N <- get_N(x)
   plots <- stats::setNames(vector("list", N), treated)
   unit <- get_unit(x)
-  weights <- donor_weights(x, probs = probs) |>
-    mutate(unit = .data[[unit]])
+  weights <- donor_weights(x, probs = probs)
   donors <- order_donors(x, order, weights)
   if (is.null(reverse)) {
     reverse <- ifelse(isTRUE(order == "ascending"), FALSE, TRUE)
   }
   for (i in treated) {
     plots[[i]] <- weights |>
-      filter(.data$treated_unit == i) |>
+      dplyr::filter(.data$treated == i) |>
       weight_plot(
         coverage,
         point_estimate,
@@ -112,7 +111,7 @@ plot_weights.bscm_ldo <- function(
   reverse = TRUE,
   ...
 ) {
-  removed_donor <- treated_unit <- NULL
+  removed_donor <- treated <- NULL
   type <- try_(match.arg(type, c("weight", "rank")))
   stopifnot_(
     !inherits(type, "try-error"),
@@ -143,7 +142,7 @@ plot_weights.bscm_ldo <- function(
   if (is.null(reverse)) {
     reverse <- ifelse(x$metadata$order == "ascending", FALSE, TRUE)
   }
-  x$weights <- x$weights |> mutate(unit = .data[[x$metadata$unit]])
+  x$weights <- x$weights |> dplyr::mutate(unit = .data[[x$metadata$unit]])
   donor_order <- x$metadata$donor_order
   treated <- x$metadata$treated
   plots <- stats::setNames(vector("list", length(treated)), treated)
@@ -151,16 +150,16 @@ plot_weights.bscm_ldo <- function(
   if (identical(type, "rank")) {
     keep <- c("removed_donor", "treated_unit", "unit", "mean")
     weights <- x$weights |>
-      mutate(
+      dplyr::mutate(
         removed_donor = factor(removed_donor, levels = c("none", donor_order))
       ) |>
-      select(all_of(keep)) |>
-      filter(unit %in% donor_order) |>
-      arrange(unit, removed_donor)
+      dplyr::select(dplyr::all_of(keep)) |>
+      dplyr::filter(unit %in% donor_order) |>
+      dplyr::arrange(unit, removed_donor)
 
     for (i in treated) {
       plots[[i]] <- rank_plot(
-        weights |> filter(.data$treated_unit == i),
+        weights |> dplyr::filter(.data$treated_unit == i),
         donor_order,
         linewidth,
         point_size,
@@ -168,10 +167,10 @@ plot_weights.bscm_ldo <- function(
       )
     }
   } else {
-    weights <- x$weights |> filter(unit %in% donor_order)
+    weights <- x$weights |> dplyr::filter(unit %in% donor_order)
     for (i in treated) {
       plots[[i]] <- weight_plot_ldo(
-        weights |> filter(treated_unit == i),
+        weights |> dplyr::filter(.data$treated_unit == i),
         coverage,
         point_estimate,
         donor_order,
@@ -193,38 +192,38 @@ rank_plot <- function(
 ) {
   removed_donor <- x <- gap <- segment <- x_next <- rank_next <- NULL
   rank_data <- weights |>
-    mutate(
+    dplyr::mutate(
       rank = rank(-mean, ties.method = "first"),
       .by = removed_donor
     ) |>
-    mutate(
+    dplyr::mutate(
       x = as.integer(removed_donor),
-      gap = (x - dplyr::lag(x, default = first(x))) != 1L,
+      gap = (x - dplyr::lag(x, default = dplyr::first(x))) != 1L,
       segment = cumsum(gap),
       .by = unit
     )
 
   breaks <- seq_along(donor_order)
   labels <- rank_data |>
-    filter(removed_donor == "none") |>
-    arrange(rank) |>
-    pull(unit)
+    dplyr::filter(removed_donor == "none") |>
+    dplyr::arrange(rank) |>
+    dplyr::pull(unit)
   rank_data <- rank_data |>
-    mutate(unit = ordered(unit, levels = labels))
+    dplyr::mutate(unit = ordered(unit, levels = labels))
 
   point_data <- rank_data |>
-    filter(
-      row_number() == 1 | row_number() == n(),
+    dplyr::filter(
+      dplyr::row_number() == 1 | dplyr::row_number() == dplyr::n(),
       .by = c(unit, segment)
     )
   gap_data <- rank_data |>
-    mutate(
+    dplyr::mutate(
       x_next = dplyr::lead(x),
       rank_next = dplyr::lead(rank),
       gap = (x_next - x) > 1,
       .by = unit
     ) |>
-    filter(gap)
+    dplyr::filter(gap)
 
   if (reverse) {
     scale_y <- scale_y_reverse(
@@ -283,7 +282,6 @@ weight_plot <- function(
   intervals <- sort(alpha[alpha != 0.5])
   lwr <- paste0("q", 100 * intervals)
   upr <- paste0("q", 100 * (1 - intervals))
-  x <- x |> filter(!is.na(unit))
   n <- length(intervals)
   if (n == 1L) {
     alpha <- 1
@@ -297,7 +295,7 @@ weight_plot <- function(
   } else {
     y_limits <- I
   }
-  p <- ggplot(x, aes(.data[[point_col]], unit))
+  p <- ggplot(x, aes(.data[[point_col]], .data$donor))
   if (!is.null(ldo_points)) {
     p <- p + ldo_points
   }
@@ -312,7 +310,7 @@ weight_plot <- function(
   p +
     geom_point(size = point_size) +
     scale_x_continuous(
-      breaks = seq(0, 1, by = 0.1),
+      "Donor weight",
       expand = expansion(mult = 0.02)
     ) +
     scale_y_discrete(
@@ -320,7 +318,6 @@ weight_plot <- function(
       limits = y_limits,
       expand = expansion(mult = 0.02, add = 0)
     ) +
-    labs(x = "Donor weight") +
     theme_bw()
 }
 weight_plot_ldo <- function(
@@ -333,19 +330,19 @@ weight_plot_ldo <- function(
   reverse
 ) {
   labels <- x |>
-    filter(.data$removed_donor == "none") |>
-    arrange(mean) |>
-    pull(unit)
+    dplyr::filter(.data$removed_donor == "none") |>
+    dplyr::arrange(mean) |>
+    dplyr::pull(unit)
   x <- x |>
-    mutate(unit = ordered(unit, levels = labels))
+    dplyr::mutate(unit = ordered(unit, levels = labels))
 
-  base <- filter(x, .data$removed_donor == "none")
-  ldo <- filter(x, .data$removed_donor != "none")
+  base <- dplyr::filter(x, .data$removed_donor == "none")
+  ldo <- dplyr::filter(x, .data$removed_donor != "none")
   check_weight_columns(x, c(if (point_estimate == "median") 0, coverage))
 
   ldo_points <- geom_point(
     data = ldo,
-    aes(x = mean, y = unit),
+    aes(x = .data$mean, y = .data$donor),
     shape = 124,
     size = 1.5 * point_size,
     alpha = 0.7,

@@ -1,7 +1,6 @@
 test_that("plot.bscmfit returns a ggplot object", {
   p <- plot(fit1_int)
   expect_s3_class(p, "ggplot")
-  expect_s3_class(p$facet, "FacetWrap")
 })
 
 test_that("plot.bscmfit works with custom probs", {

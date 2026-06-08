@@ -1,14 +1,15 @@
 test_that("rmse returns data.frame with RMSEs", {
   d <- rmse(fit1_int)
-  expect_s3_class(d, "data.frame")
-  expect_equal(d$variable, c("Pre-RMSE", "Post-RMSE", "RMSE ratio"))
+  expect_s3_class(d, "tbl_df")
+  expect_equal(d$treatment, 0:1)
 
   d <- rmse(fitN_xz, probs = numeric(0))
-  expect_s3_class(d, "data.frame")
+  expect_s3_class(d, "tbl_df")
   expect_named(
     d,
     c(
-      "variable",
+      "id",
+      "treatment",
       "mean",
       "sd",
       "rhat",
@@ -17,13 +18,12 @@ test_that("rmse returns data.frame with RMSEs", {
       "mcse_mean"
     )
   )
-  d <- rmse(fitN_xz, probs = 0.5, average = FALSE)
-  expect_s3_class(d, "data.frame")
+  d <- rmse(fitN_xz, probs = 0.5, average = TRUE)
+  expect_s3_class(d, "tbl_df")
   expect_named(
     d,
     c(
-      "id",
-      "variable",
+      "treatment",
       "mean",
       "sd",
       "q50",
@@ -33,7 +33,6 @@ test_that("rmse returns data.frame with RMSEs", {
       "mcse_mean"
     )
   )
-  expect_equal(d$id, as.character(rep(1:3, times = 3)))
 })
 
 test_that("rmse respects custom probs", {
@@ -58,8 +57,8 @@ test_that("rmse average argument works", {
   d2 <- rmse(fit1_int, average = TRUE)
   expect_equal(d1, d2)
   d1 <- rmse(fitN_int)
-  d2 <- rmse(fitN_int, average = TRUE)
-  expect_equal(d1, d2)
   d2 <- rmse(fitN_int, average = FALSE)
-  expect_identical(dim(d2), c(9L, 10L))
+  expect_equal(d1, d2)
+  d2 <- rmse(fitN_int, average = TRUE)
+  expect_identical(dim(d2), c(2L, 9L))
 })

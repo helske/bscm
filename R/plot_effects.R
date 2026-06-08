@@ -56,12 +56,12 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     c(unit, time, paste0("q", 100 * probs)),
     c("unit", "time", "ymin", "ymax")
   )
-  d_plot <- d_effects |> rename(any_of(lookup))
+  d_plot <- d_effects |> dplyr::rename(dplyr::any_of(lookup))
 
   plots <- stats::setNames(vector("list", N), treated)
   for (i in treated) {
     plots[[i]] <- d_plot |>
-      filter(unit == i) |>
+      dplyr::filter(unit == i) |>
       ggplot(aes(time, mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
       geom_ribbon(
@@ -118,12 +118,12 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
   )
 
   d_base <- x$effect |>
-    filter(removed_donor == "none") |>
-    rename(any_of(lookup))
+    dplyr::filter(removed_donor == "none") |>
+    dplyr::rename(dplyr::any_of(lookup))
 
   d_ldo <- x$effect |>
-    filter(removed_donor != "none") |>
-    rename(any_of(lookup))
+    dplyr::filter(removed_donor != "none") |>
+    dplyr::rename(dplyr::any_of(lookup))
 
   if (N > 1L) {
     ylab <- "Average treatment effect"
@@ -190,19 +190,19 @@ plot_effects.bscm_placebo_effects <- function(x, probs = NULL, ...) {
   )
   if (identical(type, "donor")) {
     d_base <- x$effect |>
-      filter(placebo == .env$treated) |>
-      rename(any_of(lookup))
+      dplyr::filter(placebo == .env$treated) |>
+      dplyr::rename(dplyr::any_of(lookup))
     d_placebo <- x$effect |>
-      filter(placebo != .env$treated) |>
-      rename(any_of(lookup))
+      dplyr::filter(placebo != .env$treated) |>
+      dplyr::rename(dplyr::any_of(lookup))
   } else {
     T_pre <- x$metadata$setup$T_pre
     d_base <- x$effect |>
-      filter(placebo == .env$T_pre) |>
-      rename(any_of(lookup))
+      dplyr::filter(placebo == .env$T_pre) |>
+      dplyr::rename(dplyr::any_of(lookup))
     d_placebo <- x$effect |>
-      filter(placebo != .env$T_pre) |>
-      rename(any_of(lookup))
+      dplyr::filter(placebo != .env$T_pre) |>
+      dplyr::rename(dplyr::any_of(lookup))
   }
   d_base |>
     ggplot(aes(time, mean)) +

@@ -23,14 +23,11 @@ treatment_effect(x, ...)
 
 \item{type}{[\code{character(1)}]\cr Type of treatment effect to compute.
 \code{"time"} (the default) returns effects at each time point.
-\code{"average"} returns the average pre- and post-treatment effects.
-\code{"cumulative"} returns the cumulative average effects over the
-post-treatment period.}
+\code{"average"} returns the average pre- and post-treatment effects.}
 
 \item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns the
 average effects over treated units in case of
-multiple treated units. If \code{FALSE}, unit-specific effects are returned.
-Currently not applicable to \code{type = "cumulative"}.}
+multiple treated units. If \code{FALSE}, unit-specific effects are returned.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
@@ -41,7 +38,7 @@ If \code{FALSE}, returns the posterior samples instead.}
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior samples (\code{summary = FALSE}) in long format.
 }
 \description{

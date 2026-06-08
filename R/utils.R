@@ -36,100 +36,21 @@ try_ <- function(expr) {
 #' @noRd
 summarise_with_probs <- function(x, probs, for_plots = FALSE) {
   if (for_plots) {
-    summarise_draws(
+    posterior::summarise_draws(
       x,
       mean,
-      if (length(probs) > 1) ~ quantile2(.x, probs = probs)
+      if (length(probs) > 1) ~ posterior::quantile2(.x, probs = probs)
     )
   } else {
-    summarise_draws(
+    posterior::summarise_draws(
       x,
       mean,
       sd,
-      if (length(probs) > 0) ~ quantile2(.x, probs = probs),
-      default_convergence_measures(),
+      if (length(probs) > 0) ~ posterior::quantile2(.x, probs = probs),
+      posterior::default_convergence_measures(),
       "mcse_mean"
     )
   }
-}
-
-#' Convert posterior draws to a long data frame
-#'
-#' @param x A `draws_array` object.
-#' @param variable Optional variable names. If supplied, must have length 1 or
-#'   equal the number of variables in `x`.
-#' @noRd
-draws_to_long <- function(x, variable = NULL) {
-  d <- as_draws_df(x)
-  vars <- variables(d)
-  if (!is.null(variable)) {
-    variable <- rep(variable, length.out = length(vars))
-  } else {
-    variable <- vars
-  }
-  lapply(
-    seq_along(vars),
-    \(i) {
-      data.frame(
-        variable = variable[i],
-        value = d[[vars[i]]],
-        .chain = d$.chain,
-        .draw = d$.draw,
-        .iteration = d$.iteration
-      )
-    }
-  ) |>
-    bind_rows()
-}
-
-#' Return posterior output either as summary or long format data frame of draws
-#'
-#' @param values Posterior values.
-#' @param summary Whether to return summaries.
-#' @param probs Probabilities for summaries.
-#' @param variable Optional variable names.
-#' @param for_plots Whether to omit sd/rhat/ess summaries.
-#' @noRd
-format_posterior_output <- function(
-  values,
-  summary,
-  probs,
-  variable = NULL,
-  for_plots = FALSE
-) {
-  if (summary) {
-    out <- summarise_with_probs(values, probs, for_plots)
-    if (!is.null(variable)) {
-      out <- out |>
-        mutate(variable = .env$variable)
-    }
-    return(out)
-  }
-  draws_to_long(as_draws_array(values), variable = variable)
-}
-
-#' Add a unit/time column to summary or draws output
-#'
-#' @param d A data.frame from ´format_posterior_output()`.
-#' @param name Output column name.
-#' @param values Column values.
-#' @param summary Whether `d` is summary output.
-#' @param before Column before which to insert.
-#' @param after Column after which to insert.
-#' @noRd
-add_output_column <- function(
-  d,
-  name,
-  values,
-  summary,
-  before = 1L
-) {
-  if (summary) {
-    vals <- rep(values, length.out = nrow(d))
-  } else {
-    vals <- rep(values, each = nrow(d) / length(values))
-  }
-  mutate(d, "{name}" := vals, .before = .env$before)
 }
 
 log_sum_exp <- function(x) {
