@@ -19,7 +19,7 @@ test_that("coef() returns both intercept and beta for model with covariates", {
 test_that("coef() errors for no-intercept no-predictor model", {
   expect_error(
     coef(fit1_noint),
-    "The model does not contain an intercept or any predictors"
+    "The model does not contain an intercept, any predictors"
   )
 })
 

@@ -7,7 +7,7 @@
 \usage{
 \method{coef}{bscmfit}(
   object,
-  type = c("alpha", "beta", "gamma"),
+  type = c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
@@ -18,8 +18,9 @@
 
 \item{type}{[\code{character()}]\cr Type of coefficients to return. Should be
 one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
-\code{"gamma"} (time-varying regression coefficients, returns also
-corresponding SDs).}
+\code{"gamma"} (time-varying regression coefficients), \code{"sigma_gamma"}
+(SDs of time-varying coefficients),
+\code{"rho"} (autoregressive coefficients of the residuals).}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the

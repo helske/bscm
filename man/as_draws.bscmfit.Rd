@@ -5,19 +5,23 @@
 \alias{as_draws}
 \title{Return posterior draws from BSCM fit}
 \usage{
-\method{as_draws}{bscmfit}(x, parameters, inc_warmup = FALSE, include = TRUE, ...)
+\method{as_draws}{bscmfit}(x, parameters = NULL, inc_warmup = FALSE, include = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
-\item{parameters}{[\code{character()}]\cr Vector of parameter names.}
+\item{parameters}{[\code{character()}]\cr Vector of parameter names. When
+\code{NULL}, (the default), corresponds to a relevant subset of
+\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}.}
 
 \item{inc_warmup}{[\code{logical(1)}]\cr Whether to include warmup draws.
 Default is \code{FALSE}.}
 
 \item{include}{[\code{logical(1)}]\cr If \code{TRUE} (the default), output includes
 only the variables defined by the argument \code{parameters}. If \code{FALSE}, these
-variables are excluded from the output.}
+variables are excluded from the output. If \code{NULL}, same as \code{TRUE} but
+variables not present in the model object are silently ignored
+(whereas \code{TRUE} throws an error).}
 
 \item{...}{Ignored.}
 }
@@ -32,5 +36,7 @@ Return posterior draws from BSCM fit
 head(as_draws(fit_single_treated, parameters = c("alpha", "sigma")))
 }
 \seealso{
-\code{\link[posterior:draws]{posterior::as_draws()}} for converting the output to other formats.
+\code{\link[posterior:draws]{posterior::as_draws()}} for converting the output to other formats,
+and \code{\link[posterior:draws_summary]{posterior::summarise_draws()}} for computing posterior summaries of the
+draws.
 }

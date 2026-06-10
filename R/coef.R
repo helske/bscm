@@ -4,8 +4,9 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
-#'   `"gamma"` (time-varying regression coefficients, returns also
-#'   corresponding SDs).
+#'   `"gamma"` (time-varying regression coefficients), `"sigma_gamma"` 
+#'   (SDs of time-varying coefficients), 
+#'   `"rho"` (autoregressive coefficients of the residuals).
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
 #'   posterior samples (`summary = FALSE`) in long format.
@@ -15,33 +16,37 @@
 #' coef(fit_single_treated)
 #' coef(fit_single_treated, type = "beta")
 coef.bscmfit <- function(
-  object,
-  type = c("alpha", "beta", "gamma"),
-  summary = TRUE,
-  probs = c(0.025, 0.975),
-  ...
+    object,
+    type = c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
+    summary = TRUE,
+    probs = c(0.025, 0.975),
+    ...
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
   type <- try_(
-    match.arg(type, c("alpha", "beta", "gamma"), several.ok = TRUE)
+    match.arg(
+      type, c("alpha", "beta", "gamma", "sigma_gamma", "rho"), 
+      several.ok = TRUE
+    )
   )
   stopifnot_(
     !inherits(type, "try-error"),
-    'Argument {.arg type} must a subset of {{"alpha", "beta", "gamma"}}'
+    'Argument {.arg type} must a subset of 
+    {{"alpha", "beta", "gamma", "sigma_gamma, "rho"}}'
   )
   all_pars <- get_stanfit(object)@model_pars
   pars <- intersect(type, all_pars)
   N <- get_N(object)
   stopifnot_(
     length(pars) > 0L,
-    "The model does not contain {cli::qty(N)} {?an intercept/intercepts} or any 
-    predictors."
+    "The model does not contain {cli::qty(N)} {?an intercept/intercepts}, any 
+    predictors, nor autoregressive coefficients."
   )
   unit <- get_unit(object)
   time <- get_time(object)
-
-  d_alpha <- d_beta <- d_gamma <- d_sigma_gamma <- NULL
+  
+  d_alpha <- d_beta <- d_gamma <- d_sigma_gamma <- d_rho <- NULL
   if ("alpha" %in% pars) {
     treated <- get_treated(object)
     d_alpha <- dplyr::tibble(
@@ -77,6 +82,13 @@ coef.bscmfit <- function(
       "{time}" := rep(times, times = L),
       gamma = c(posterior::as_draws_rvars(as_draws(object, "gamma"))$gamma)
     )
+    if (summary) {
+      d_gamma <- d_gamma |>
+        dplyr::mutate(summarise_with_probs(.data$gamma, probs)) |>
+        dplyr::select(-"gamma", -"variable")
+    }
+  }
+  if ("sigma_gamma" %in% pars) {
     d_sigma_gamma <- dplyr::tibble(
       parameter = paste0("sigma_gamma_", gammas),
       sigma_gamma = posterior::as_draws_rvars(
@@ -84,17 +96,29 @@ coef.bscmfit <- function(
       )$sigma_gamma
     )
     if (summary) {
-      d_gamma <- d_gamma |>
-        dplyr::mutate(summarise_with_probs(.data$gamma, probs)) |>
-        dplyr::select(-"gamma", -"variable")
       d_sigma_gamma <- d_sigma_gamma |>
         dplyr::mutate(summarise_with_probs(.data$sigma_gamma, probs)) |>
         dplyr::select(-"sigma_gamma", -"variable")
     }
   }
+  if ("rho" %in% pars) {
+    treated <- get_treated(object)
+    d_rho <- dplyr::tibble(
+      parameter = "rho",
+      "{unit}" := treated,
+      rho = posterior::as_draws_rvars(as_draws(object, "rho"))$rho
+    )
+    if (summary) {
+      d_rho <- d_rho |>
+        dplyr::mutate(summarise_with_probs(.data$rho, probs)) |>
+        dplyr::select(-"rho", -"variable")
+    }
+    if (N == 1) d_rho <- d_rho |> dplyr::select(-dplyr::all_of(unit))
+  }
   dplyr::bind_rows(
     d_alpha,
     d_beta,
+    d_rho,
     d_sigma_gamma,
     d_gamma
   ) |>

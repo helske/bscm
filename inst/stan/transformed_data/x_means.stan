@@ -8,7 +8,7 @@
   for (k in 1:K) {
     for (j in 1:J) {
       for (i in 1:N) {
-        X_z_mean[i, k, j] = mean(X_z[k, 1:T_pre[i], j]);
+        X_z_mean[i, k, j] = mean(X_z[j, 1:T_pre[i], k]);
       }
     }
   }

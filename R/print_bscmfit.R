@@ -10,11 +10,14 @@ print.bscmfit <- function(x, ...) {
   T_total <- get_T_total(x)
   N <- get_N(x)
   J <- get_J(x)
-
+  ar1 <- if (x$setup$error == "ar1") {
+    " with AR(1) residuals"
+  } else ""
+  
   cat("Call:\n")
   print(x$call)
   cat("\n")
-  cat("Bayesian synthetic control model", deparse(stats::formula(x)), "\n")
+  cat("Bayesian synthetic control model", deparse(stats::formula(x)), ar1, "\n")
   if (N == 1L) {
     cat("Treated unit:", get_treated(x), "\n")
     cat("Number of donors:", J, "\n")

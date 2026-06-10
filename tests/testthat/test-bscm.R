@@ -96,6 +96,7 @@ test_that("create_standata() returns correct list structure", {
       "pr_rate_sigma",
       "kappa",
       "cv",
+      "likelihood",
       "pr_mean_intercept",
       "pr_sd_intercept"
     )

@@ -10,7 +10,9 @@ bscm(
   treatment = "treatment",
   time = "time",
   unit = "id",
+  error = "iid",
   omega_prior = dirichlet(kappa = 1),
+  prior_only = FALSE,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
@@ -52,11 +54,18 @@ variable in \code{data}. Default is \code{"treatment"}.}
 \item{unit}{[\code{character(1)}]\cr Name of the variable in \code{data}
 identifying different units. Default is \code{"id"}.}
 
+\item{error}{[\code{character(1)}]\cr Assumed error structure of the model.
+Either \code{"iid"} (independent and identically distributed errors) or
+\code{"ar1"} (first-order autoregressive process). Default is \code{"iid"}.}
+
 \item{omega_prior}{[\code{omega_prior}]\cr Prior for the donor weight vector
 \eqn{\omega}, created by \code{\link[=logistic_normal]{logistic_normal()}} or \code{\link[=dirichlet]{dirichlet()}}, where both
 constructors take argument \code{kappa} which defines the scale and
 concentration parameter of the corresponding distribution.
 Defaults to \code{dirichlet(kappa = 1)}. See details.}
+
+\item{prior_only}{[\code{logical(1)}]\cr If \code{TRUE}, samples from prior
+predictive distribution. Default is \code{FALSE}.}
 
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks

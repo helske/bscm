@@ -9,39 +9,47 @@
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A data frame with posterior summaries of
-#'   * Estimated intercept terms, time-invariant regression coefficients,
-#'     standard deviations of time-varying regression coefficients, and
-#'     residual standard deviation parameters \eqn{\sigma}.
-#'   * Bayesian \eqn{R^2} values for each treated unit
+#'   * If part of the estimated model, posterior summaries of intercept terms, 
+#'     time-invariant regression coefficients, standard deviations of 
+#'     time-varying regression coefficients, residual standard deviations, 
+#'     and autoregressive coefficients of residuals.
 #'   * Average RMSE for pre- and post-treatment periods
-#'   * Average effective number of donors
 #'   * Average treatment effect (over post-treatment period and treated units)
 #' @aliases summary
 #' @export
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   probs <- sort_probs(probs)
-  cf <- NULL
-  if (has_intercept(object) || has_predictors(object)) {
-    cf <- coef(object, probs = probs)
-    if (length(object$setup$gamma_names) > 0) {
-      cf <- cf |>
-        dplyr::filter(!startsWith(.data$variable, "gamma")) |>
-        dplyr::select(-get_time(object))
-    }
+  cf <- rho <- NULL
+  ar1_error <- object$setup$error == "ar1"
+  if (has_intercept(object) || has_predictors(object) || ar1_error) {
+    cf <- coef(
+      object, probs = probs, type = c("alpha", "beta", "sigma_gamma", "rho")
+    )
   }
   s <- sigma(object, probs = probs) |>
     dplyr::mutate(variable = "Residual SD")
+  treatment <- get_treatment(object)
   att <- treatment_effect(
     object,
     type = "average",
     average = FALSE,
     probs = probs
   ) |>
-    dplyr::rename(variable = .data$treatment) |>
-    dplyr::mutate(variable = c("Pre-treatment effect", "Post-treatment effect"))
+    dplyr::rename(variable = treatment) |>
+    dplyr::mutate(
+      variable = dplyr::if_else(
+        .data$variable == 0, 
+        "Pre-treatment effect", 
+        "Post-treatment effect")
+    )
   rmses <- rmse(object, average = FALSE, probs = probs) |>
-    dplyr::rename(variable = .data$treatment) |>
-    dplyr::mutate(variable = c("Pre-treatment RMSE", "Post-treatment RMSE"))
+    dplyr::rename(variable = treatment) |>
+    dplyr::mutate(
+      variable = dplyr::if_else(
+        .data$variable == 0, 
+        "Pre-treatment RMSE", 
+        "Post-treatment RMSE")
+    )
   sumr <- dplyr::bind_rows(cf, s, att, rmses)
   class(sumr) <- c("summary_bscmfit", class(sumr))
   sumr |> dplyr::relocate(.data$variable, .before = 1L)

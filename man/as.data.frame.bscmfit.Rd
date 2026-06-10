@@ -5,7 +5,14 @@
 \alias{as.data.frame}
 \title{Extract posterior draws of model parameters as a data frame}
 \usage{
-\method{as.data.frame}{bscmfit}(x, row.names = NULL, optional = FALSE, parameters = NULL, ...)
+\method{as.data.frame}{bscmfit}(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  parameters = NULL,
+  include = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
@@ -14,7 +21,15 @@
 
 \item{optional}{Ignored.}
 
-\item{parameters}{[\code{character()}]\cr Vector of parameter names.}
+\item{parameters}{[\code{character()}]\cr Vector of parameter names. When
+\code{NULL}, (the default), corresponds to a relevant subset of
+\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}.}
+
+\item{include}{[\code{logical(1)}]\cr If \code{TRUE} (the default), output includes
+only the variables defined by the argument \code{parameters}. If \code{FALSE}, these
+variables are excluded from the output. If \code{NULL}, same as \code{TRUE} but
+variables not present in the model object are silently ignored
+(whereas \code{TRUE} throws an error).}
 
 \item{...}{Ignored.}
 }

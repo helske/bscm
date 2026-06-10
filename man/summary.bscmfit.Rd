@@ -18,12 +18,11 @@ Default is \code{c(0.025, 0.975)}.}
 \value{
 A data frame with posterior summaries of
 \itemize{
-\item Estimated intercept terms, time-invariant regression coefficients,
-standard deviations of time-varying regression coefficients, and
-residual standard deviation parameters \eqn{\sigma}.
-\item Bayesian \eqn{R^2} values for each treated unit
+\item If part of the estimated model, posterior summaries of intercept terms,
+time-invariant regression coefficients, standard deviations of
+time-varying regression coefficients, residual standard deviations,
+and autoregressive coefficients of residuals.
 \item Average RMSE for pre- and post-treatment periods
-\item Average effective number of donors
 \item Average treatment effect (over post-treatment period and treated units)
 }
 }

@@ -46,7 +46,8 @@ create_standata <- function(
   X_y = NULL,
   X_z = NULL,
   tv_idx = NULL,
-  cv = 0L
+  cv = 0L,
+  prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -60,7 +61,8 @@ create_standata <- function(
     Z = Z,
     pr_rate_sigma = array(1 / x$sd_e),
     kappa = kappa,
-    cv = cv
+    cv = cv,
+    likelihood = !prior_only
   )
   if (icpt) {
     standata$pr_mean_intercept <- array(x$mean_y)
@@ -74,7 +76,7 @@ create_standata <- function(
       list(
         K = K,
         X_y = X_y,
-        X_z = aperm(X_z, c(3, 2, 1)),
+        X_z = X_z,
         pr_mean_beta = array(0, K),
         pr_sd_beta = array(pr_sd_beta)
       )
@@ -96,10 +98,13 @@ create_standata <- function(
   standata
 }
 
-create_inits <- function(x, omega_prior) {
+create_inits <- function(x, omega_prior, error = "iid") {
   inits <- list(
     sigma = array(stats::runif(x$N, 0.9, 1.1) / x$pr_rate_sigma)
   )
+  if (error == "ar1") {
+    inits$rho <- array(stats::runif(x$N, 0, 0.5))
+  }
   if (omega_prior$distribution == "logistic_normal") {
     inits$eta <- matrix(0, x$N, x$J - 1)
   } else {

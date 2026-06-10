@@ -74,6 +74,11 @@
 #'   `data`. Default is `"time"`.
 #' @param unit \[`character(1)`]\cr Name of the variable in `data`
 #'   identifying different units. Default is `"id"`.
+#' @param error \[`character(1)`]\cr Assumed error structure of the model.
+#'   Either `"iid"` (independent and identically distributed errors) or
+#'   `"ar1"` (first-order autoregressive process). Default is `"iid"`.
+#' @param prior_only \[`logical(1)`]\cr If `TRUE`, samples from prior
+#'   predictive distribution. Default is `FALSE`.
 #' @param priors \[`list()` or `character(1)`]\cr List of prior definitions
 #'   or `"default"`, latter being only supported option at the
 #'   moment for parameters other than weight vector \eqn{\omega}. See details.
@@ -129,7 +134,9 @@ bscm <- function(
   treatment = "treatment",
   time = "time",
   unit = "id",
+  error = "iid",
   omega_prior = dirichlet(kappa = 1),
+  prior_only = FALSE,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
   priors = "default",
@@ -148,7 +155,8 @@ bscm <- function(
     save_data,
     priors,
     compute_predictions,
-    no_donors
+    no_donors,
+    prior_only
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -165,6 +173,11 @@ bscm <- function(
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
+  )
+  error <- try_(match.arg(error, c("iid", "ar1")))
+  stopifnot_(
+    !inherits(error, "try-error"),
+    "Argument {.arg error} must be either {.val iid} or {.val ar1}."
   )
   data <- data |>
     dplyr::arrange(.data[[unit]], .data[[time]]) |>
@@ -191,6 +204,11 @@ bscm <- function(
   donors <- names(which(treatment_table[2, ] == 0))
   T_pre <- unname(treatment_table[1, treated])
   T_total <- length(unique(data[[time]]))
+  stopifnot_(
+    error == "iid" || min(T_pre) > 1L,
+    "When {.arg error} is {.val ar1}, all treated units must have at least 
+    two pre-treatment time points."
+  )
   Y <- data |>
     dplyr::filter(.data[[unit]] %in% .env$treated) |>
     dplyr::pull(.data[[outcome]]) |>
@@ -264,7 +282,7 @@ bscm <- function(
   o <- ifelse(omega_prior_type == "dirichlet", "dr", "ln")
   omega <- ifelse(no_donors, "no", o)
   model_type <- paste(
-    c("bscm", icpt, x, w, omega),
+    c("bscm", icpt, x, w, omega, error),
     collapse = "_"
   )
 
@@ -301,12 +319,13 @@ bscm <- function(
     X_y = if (has_x) X_y,
     X_z = if (has_x) X_z,
     tv_idx = if (has_w) tv_idx,
-    cv = as.integer(!compute_predictions)
+    cv = as.integer(!compute_predictions),
+    prior_only = prior_only
   )
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
-      create_inits(stan_args$data, omega_prior),
+      create_inits(stan_args$data, omega_prior, error),
       simplify = FALSE
     )
   }
@@ -335,7 +354,9 @@ bscm <- function(
     gamma_names,
     model_type,
     priors,
-    omega_prior
+    omega_prior,
+    error,
+    prior_only
   )
   class(out) <- "bscmfit"
   if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {

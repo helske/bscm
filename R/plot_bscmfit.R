@@ -50,8 +50,8 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   dy <- x$data |>
     dplyr::filter(.data[[unit]] %in% .env$treated) |>
     dplyr::select(dplyr::all_of(c(unit, time, treatment, outcome))) |>
-    dplyr::mutate(type = "Synthetic control", treatment = factor(treatment)) |>
-    dplyr::rename(dplyr::any_of(lookup))
+    dplyr::rename(dplyr::any_of(lookup)) |> 
+    dplyr::mutate(type = "Synthetic control", treatment = factor(treatment))
 
   wrap <- facet_grid(
     rows = vars(type),
