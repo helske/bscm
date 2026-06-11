@@ -61,6 +61,10 @@ print.omega_prior <- function(x, ...) {
   cat(paste0(x$distribution, "(kappa = ", x$kappa, ")"), "\n")
   invisible(x)
 }
+#' @export
+as.character.omega_prior <- function(x, ...) {
+  paste0(x$distribution, "(", x$kappa, ")")
+}
 
 check_omega_prior_args <- function(kappa) {
   stopifnot_(

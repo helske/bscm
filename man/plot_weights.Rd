@@ -12,7 +12,7 @@ plot_weights(x, ...)
   x,
   point_estimate = "median",
   order = NULL,
-  coverage = c(0.05, 0.95),
+  coverage = c(0.5, 0.95),
   linewidth = 1,
   point_size = 2,
   reverse = NULL,
