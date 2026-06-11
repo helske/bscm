@@ -90,7 +90,7 @@ coef.bscmfit <- function(
   }
   if ("sigma_gamma" %in% pars) {
     d_sigma_gamma <- dplyr::tibble(
-      parameter = paste0("sigma_gamma_", gammas),
+      parameter = paste0("sigma_gamma_", object$setup$gamma_names),
       sigma_gamma = posterior::as_draws_rvars(
         as_draws(object, "sigma_gamma")
       )$sigma_gamma
