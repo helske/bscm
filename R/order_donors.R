@@ -35,14 +35,13 @@ order_donors <- function(x, order = NULL, weights = NULL) {
   }
   # ranked ordering
   if (length(order) == 1L && order %in% c("ascending", "descending")) {
-    unit <- get_unit(x)
     if (is.null(weights)) {
       weights <- donor_weights(x, probs = numeric(0))
     }
     ranked <- weights |>
       dplyr::summarise(mean = mean(mean), .by = .data$donor) |>
       dplyr::arrange(if (order == "descending") dplyr::desc(mean) else mean)
-    return(ranked[[unit]])
+    return(ranked$donor)
   }
   stopifnot_(
     checkmate::test_character(
