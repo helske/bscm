@@ -1,4 +1,4 @@
-  matrix[T, J] X_z_beta;
-  for (j in 1:J) {
-    X_z_beta[, j] = X_z[j] * beta;
-  }
+    matrix[T, J] Z_term = Z;
+    for (j in 1:J) {
+      Z_term[, j] -= X_z[j] * beta;
+    }

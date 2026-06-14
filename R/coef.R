@@ -123,5 +123,5 @@ coef.bscmfit <- function(
     d_gamma
   ) |>
     dplyr::relocate(dplyr::any_of(c("parameter", unit, time)), .before = 1L) |>
-    dplyr::rename(variable = .data$parameter)
+    dplyr::rename(variable = "parameter")
 }

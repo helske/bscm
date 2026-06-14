@@ -22,7 +22,6 @@ donor_weights.bscmfit <- function(
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
-  unit <- get_unit(x)
   treated <- get_treated(x)
   N <- get_N(x)
   donors <- get_donors(x)

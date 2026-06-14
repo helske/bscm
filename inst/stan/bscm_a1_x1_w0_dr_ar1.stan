@@ -11,6 +11,7 @@ data {
 #include data/beta.stan
 }
 transformed data {
+#include transformed_data/base.stan
 #include transformed_data/omega_dirichlet.stan
 #include transformed_data/z_means.stan
 #include transformed_data/x_means.stan
@@ -22,10 +23,6 @@ parameters {
 #include parameters/beta.stan
 #include parameters/rho.stan
 }
-transformed parameters {
-#include transformed_parameters/alpha_z.stan
-#include transformed_parameters/alpha_x.stan
-}
 model {
 #include model/base.stan
 #include model/omega_dirichlet.stan
@@ -36,5 +33,7 @@ model {
 }
 generated quantities {
 #include generated_quantities/base.stan
+#include generated_quantities/alpha_z.stan
+#include generated_quantities/alpha_x.stan
 #include generated_quantities/gq_ar1_a1_x1_w0.stan
 }

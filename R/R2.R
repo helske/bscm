@@ -47,8 +47,6 @@ loo_R2.bscmfit <- function(
   }
   T_pre <- get_T_pre(object)
   unit <- get_unit(object)
-  time <- get_time(object)
-  times <- get_times(object)
   outcome <- get_outcome(object)
   treated <- get_treated(object)
   N <- get_N(object)

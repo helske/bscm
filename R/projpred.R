@@ -149,7 +149,6 @@ get_refmodel.bscmfit <- function(object, ...) {
   ) {
     donors_prj <- all.vars(formula[-2L])
     responses <- all.vars(formula[[2]])
-    S_prj <- length(responses)
 
     # Intercept-only model
     if (length(donors_prj) == 0) {

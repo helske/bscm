@@ -14,6 +14,7 @@ data {
 #include data/gamma.stan
 }
 transformed data {
+#include transformed_data/base.stan
 #include transformed_data/omega_logistic_normal.stan
 #include transformed_data/z_means.stan
 #include transformed_data/x_means.stan
@@ -29,8 +30,6 @@ parameters {
 }
 transformed parameters {
 #include transformed_parameters/omega_logistic_normal.stan
-#include transformed_parameters/alpha_z.stan
-#include transformed_parameters/alpha_x.stan
 #include transformed_parameters/gamma.stan
 }
 model {
@@ -44,5 +43,7 @@ model {
 }
 generated quantities {
 #include generated_quantities/base.stan
+#include generated_quantities/alpha_z.stan
+#include generated_quantities/alpha_x.stan
 #include generated_quantities/gq_ar1_a1_x1_w1.stan
 }

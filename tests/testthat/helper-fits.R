@@ -18,6 +18,7 @@ tryCatch(
       treatment = "treatment",
       time = "time",
       unit = "id",
+      error = "ar1",
       chains = 2,
       iter = 200,
       init = 0,
@@ -65,7 +66,7 @@ tryCatch(
       save_warmup = FALSE
     )
     fitN_tv <- bscm(
-      y ~ z + tv(~x),
+      y ~ z + tv(~x, 10),
       data = multiple_treated,
       treatment = "treatment",
       time = "time",

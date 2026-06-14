@@ -46,6 +46,7 @@ create_standata <- function(
   X_y = NULL,
   X_z = NULL,
   tv_idx = NULL,
+  df = 0,
   cv = 0L,
   prior_only = FALSE
 ) {
@@ -70,7 +71,7 @@ create_standata <- function(
   }
   if (!is.null(X_y)) {
     K <- dim(X_y)[3]
-    pr_sd_beta <- 2 * x$md_sd_e / x$md_sd_x
+    sd_ex <- x$md_sd_e / x$md_sd_x
     standata <- c(
       standata,
       list(
@@ -78,19 +79,29 @@ create_standata <- function(
         X_y = X_y,
         X_z = X_z,
         pr_mean_beta = array(0, K),
-        pr_sd_beta = array(pr_sd_beta)
+        pr_sd_beta = array(2 * sd_ex)
       )
     )
     if (!is.null(tv_idx)) {
       L <- length(tv_idx)
-      # mode at 0.1sigma, P(sigma_gamma < 0.5sigma) = 0.96
-      pr_rate_sigma_gamma <- rep(10 / x$md_sd_e, L)
+      pr_rate_sigma_gamma <- array(2 / sd_ex[tv_idx] * sqrt(df))
+      
+      B <- splines::bs(seq_len(T_total), df = df, intercept = TRUE)
+      d <- diag(df)
+      M <- B %*% lower.tri(d, diag = TRUE)
+      T0 <- min(T_pre)
+      a <- c(crossprod(M, rep(1:0, c(T0, T_total - T0))))
+      Q <- qr.Q(qr(cbind(a, d)))[, -1]
+      A <- M %*% Q
+      
       standata <- c(
         standata,
         list(
           L = L,
           tv_idx = array(tv_idx),
-          pr_rate_sigma_gamma = array(pr_rate_sigma_gamma)
+          pr_rate_sigma_gamma = array(pr_rate_sigma_gamma),
+          D = df,
+          A = A
         )
       )
     }
@@ -118,9 +129,9 @@ create_inits <- function(x, omega_prior, error = "iid") {
   if (!is.null(x$pr_mean_beta)) {
     inits$beta <- array(stats::rnorm(x$K, x$pr_mean_beta, 0.1 * x$pr_sd_beta))
     if (!is.null(x$pr_rate_sigma_gamma)) {
-      inits$gamma_raw <- matrix(0, x[["T"]], x$L)
+      inits$xi <- matrix(0, x[["D"]] - 1, x$L)
       inits$sigma_gamma <- array(
-        stats::runif(x$L, 0.9, 1.1) / x$pr_rate_sigma_gamma
+        stats::runif(x$L, 1, 3) / x$pr_rate_sigma_gamma
       )
     }
   }

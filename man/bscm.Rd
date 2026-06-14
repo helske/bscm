@@ -24,23 +24,7 @@ bscm(
 \arguments{
 \item{formula}{[\code{formula}]\cr The model formula containing the outcome
 variable on the left-hand side and optional time-varying predictors on
-the right-hand side (RHS) of \code{~}. In case of no predictors, use
-\code{outcome ~ 1} or \code{outcome ~ 0}. In the former case, as well by the
-default when using predictors (e.g., \code{outcome ~ x + z}), the model
-includes intercept term. Intercept can be omitted by using \code{0} in the
-RHS, e.g., \code{outcome ~ 0} or \code{outcome ~ 0 + x + z} (equivalently, you
-can use \code{-1} in place of \code{0}). Formula should not contain the
-variable defining the treatment, which is defined separately using the
-argument \code{treatment}. In case the variable is present also in the
-formula, it is automatically removed.
-
-To specify predictors with time-varying coefficients, wrap them in
-\code{tv()}, e.g., \code{outcome ~ x + tv(~ z)} defines a model where \code{x} has
-a time-constant coefficient and \code{z} has a time-varying coefficient.
-Terms inside \code{tv()} are automatically also included in the
-time-constant part of the model, since the time-varying coefficients
-are defined to have zero mean. Possible time-varying intercept is omitted as
-it would cancel out in the linear predictor.}
+the right-hand side (RHS) of \code{~}. See details.}
 
 \item{data}{[\code{data.frame} or an object coercible to one]\cr
 The long format data that contains the model variables.}
@@ -92,10 +76,8 @@ other methods that rely on posterior predictions to fail, so you rarely
 want to set this to \code{FALSE}.}
 
 \item{no_donors}{[\code{logical(1)}]\cr Should donors be ignored? Default is
-\code{FALSE}, but if set to \code{TRUE}, instead of BSCM, a simple Bayesian
-linear regression model based on \code{formula} is estimated. This is mainly
-for the purposes of assessing the relative the performance of BSCM in
-case where convex hull assumption of SCM does not hold.}
+\code{FALSE}, but if set to \code{TRUE}, instead of a BSCM, a Bayesian
+linear regression model based on \code{formula} is estimated.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}. Note that
@@ -113,6 +95,36 @@ Function \code{bscm} estimates a Bayesian synthetic control models of varying
 types.
 }
 \details{
+To define \code{formula} in case of no predictors, use
+\code{outcome ~ 1} or \code{outcome ~ 0}. In the former case, as well by the
+default when using predictors (e.g., \code{outcome ~ x + z}), the model
+includes intercept term for each treated unit. Intercept can be omitted by
+using \code{0} in the RHS, e.g., \code{outcome ~ 0} or \code{outcome ~ 0 + x + z}
+(equivalently, you can use \code{-1} in place of \code{0}). Formula should not contain
+the variable defining the treatment, which is defined separately using the
+argument \code{treatment}. In case the variable is present also in the
+formula, it is automatically removed.
+
+To specify predictors with time-varying coefficients in \code{formula}, wrap them
+in \code{tv(formula, df)}, e.g., \code{outcome ~ x + tv(~ z, 10)} defines a model where
+\code{x} has a time-constant coefficient and \code{z} has a time-varying coefficient
+following penalized cubic spline with \code{10} spline basis functions and
+random walk prior on the spline coefficients.
+Terms inside \code{tv()} are automatically also included in the
+time-constant part of the model, since the time-varying coefficients
+are defined to have zero mean in the pre-treatment period (in case of
+multiple treated units, minimum period). Note that possible time-varying
+intercept is omitted as it would cancel out in the linear predictor.
+
+Both the time-constant and time-varying regression part is assumed to apply
+for all treated and donor units with common coefficients. If you
+want to apply a covariate only for treated units, just set the covariate
+values to zero for donors. This approach can be also used to vary behaviour
+of intercept: Defining formula such as \code{y ~ 0 + intercept + x}, where
+\code{intercept} is a name of constant column in the data, will define common
+intercept for all units, instead of unit-specific intercepts
+(e.g., fixed effects).
+
 The prior for the weight vector \eqn{\omega} is controlled by the
 \code{omega_prior} argument. Two families are supported:
 \itemize{

@@ -10,6 +10,7 @@ data {
 #include data/beta.stan
 }
 transformed data {
+#include transformed_data/base.stan
 #include transformed_data/omega_dirichlet.stan
 }
 parameters {

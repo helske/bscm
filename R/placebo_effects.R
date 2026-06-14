@@ -60,7 +60,7 @@ placebo_effects.bscmfit <- function(
   T_pre <- get_T_pre(x)
   stopifnot_(
     identical(type, "donor") ||
-      checkmate::test_integerish(L, len = 1, lower = 2, upper = T_pre - 1),
+      checkmate::test_int(L, lower = 2, upper = T_pre - 1),
     "Argument {.arg L} must be a single integer between 2 and {T_pre - 1}, 
     defining the number of time points used for the first fit."
   )

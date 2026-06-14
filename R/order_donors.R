@@ -39,7 +39,7 @@ order_donors <- function(x, order = NULL, weights = NULL) {
       weights <- donor_weights(x, probs = numeric(0))
     }
     ranked <- weights |>
-      dplyr::summarise(mean = mean(mean), .by = .data$donor) |>
+      dplyr::summarise(mean = mean(mean), .by = "donor") |>
       dplyr::arrange(if (order == "descending") dplyr::desc(mean) else mean)
     return(ranked$donor)
   }

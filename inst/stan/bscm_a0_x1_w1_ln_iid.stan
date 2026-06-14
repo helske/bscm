@@ -11,6 +11,7 @@ data {
 #include data/gamma.stan
 }
 transformed data {
+#include transformed_data/base.stan
 #include transformed_data/omega_logistic_normal.stan
 #include transformed_data/gamma.stan
 }

@@ -1,3 +1,3 @@
   for (i in 1:N) {
-    y_mean[, i] = rep_vector(alpha[i], T);
+    y_mean[, i] = rep_vector(a[i], T);
   }

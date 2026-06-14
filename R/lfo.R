@@ -86,7 +86,7 @@ lfo.bscmfit <- function(
   T_pre <- get_T_pre(x)
   T_pre_min <- min(T_pre)
   stopifnot_(
-    checkmate::test_integerish(L, len = 1L, lower = 2L, upper = T_pre_min - 2L),
+    checkmate::test_int(L, lower = 2L, upper = T_pre_min - 2L),
     "Argument {.arg L} must be a single integer between 2 and {T_pre_min - 2}."
   )
 

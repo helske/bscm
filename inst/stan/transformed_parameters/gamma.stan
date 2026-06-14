@@ -1,6 +1,5 @@
   // time-varying regression coefficients
-  matrix[T, L] gamma = gamma_raw;
+  matrix[T, L] gamma;
   for (l in 1:L) {
-    gamma[, l] = cumulative_sum(sigma_gamma[l] * gamma[, l]);
-    gamma[, l] -= mean(gamma[1:T1, l]);
+    gamma[, l] = A * (sigma_gamma[l] * xi[, l]);
   }

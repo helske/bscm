@@ -16,11 +16,10 @@ test_that("coef() returns both intercept and beta for model with covariates", {
   )
 })
 
-test_that("coef() errors for no-intercept no-predictor model", {
-  expect_error(
-    coef(fit1_noint),
-    "The model does not contain an intercept, any predictors"
-  )
+test_that("coef() returns rho for AR(1) no-intercept model", {
+  d <- coef(fit1_noint)
+  expect_s3_class(d, "tbl_df")
+  expect_equal(d$variable, "rho")
 })
 
 test_that("coef() validates probs argument", {

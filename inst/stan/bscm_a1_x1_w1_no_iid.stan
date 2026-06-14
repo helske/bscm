@@ -6,14 +6,20 @@ data {
 #include data/gamma.stan
 }
 transformed data {
+#include transformed_data/base.stan
   matrix[N, K] X_y_mean;
+  array[N] matrix[T, K] cX_y;
+
   for (i in 1:N) {
     for (k in 1:K) {
-      X_y_mean[i, k] = mean(X_y[i, 1:T_pre[i], k]);
+      X_y_mean[i, k] = mean(X_y[i, 1:T0, k]);
+      cX_y[i, , k] = X_y[i, , k] - X_y_mean[i, k];
     }
   }
-  int T1 = max(T_pre);
-  int T2 = T - T1;
+  array[N] matrix[T, L] W_y;
+  for (i in 1:N) {
+    W_y[i] = X_y[i, , tv_idx];
+  }
 }
 parameters {
 #include parameters/base.stan
@@ -23,7 +29,6 @@ parameters {
 }
 transformed parameters {
 #include transformed_parameters/gamma.stan
-  vector[N] alpha = a - X_y_mean * beta;
 }
 model {
 #include model/base.stan
@@ -34,6 +39,7 @@ model {
 }
 generated quantities {
 #include generated_quantities/base.stan
+  vector[N] alpha = a - X_y_mean * beta;
 #include generated_quantities/y_mean_a1_x1_w1_no.stan
 #include generated_quantities/y_rep_iid.stan
 }

@@ -51,10 +51,12 @@ test_that("bscmfit$setup values are correct", {
   expect_equal(get_predictors(fitN_xz), c("x", "z"))
   expect_true(has_intercept(fitN_xz))
   expect_equal(fit1_int$setup$model_type, "bscm_a1_x0_w0_dr_iid")
-  expect_equal(fit1_noint$setup$model_type, "bscm_a0_x0_w0_dr_iid")
+  expect_equal(fit1_noint$setup$model_type, "bscm_a0_x0_w0_dr_ar1")
   expect_equal(fit1_x$setup$model_type, "bscm_a1_x1_w0_dr_iid")
   expect_equal(fitN_xz$setup$model_type, "bscm_a1_x1_w0_dr_iid")
   expect_equal(get_treated(fitN_xz), c("1", "2", "3"))
+  expect_equal(fit1_noint$setup$error, "ar1")
+  expect_equal(fit1_int$setup$error, "iid")
 })
 
 test_that("bscmfit$setup with tv() has correct structure", {

@@ -52,5 +52,5 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     )
   sumr <- dplyr::bind_rows(cf, s, att, rmses)
   class(sumr) <- c("summary_bscmfit", class(sumr))
-  sumr |> dplyr::relocate(.data$variable, .before = 1L)
+  sumr |> dplyr::relocate("variable", .before = 1L)
 }

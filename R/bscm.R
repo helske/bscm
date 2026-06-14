@@ -5,6 +5,36 @@
 #'
 #' @details
 #'
+#' To define `formula` in case of no predictors, use
+#' `outcome ~ 1` or `outcome ~ 0`. In the former case, as well by the
+#' default when using predictors (e.g., `outcome ~ x + z`), the model
+#' includes intercept term for each treated unit. Intercept can be omitted by 
+#' using `0` in the RHS, e.g., `outcome ~ 0` or `outcome ~ 0 + x + z` 
+#' (equivalently, you can use `-1` in place of `0`). Formula should not contain 
+#' the variable defining the treatment, which is defined separately using the
+#' argument `treatment`. In case the variable is present also in the
+#' formula, it is automatically removed.
+#'
+#' To specify predictors with time-varying coefficients in `formula`, wrap them 
+#' in `tv(formula, df)`, e.g., `outcome ~ x + tv(~ z, 10)` defines a model where 
+#' `x` has a time-constant coefficient and `z` has a time-varying coefficient 
+#' following penalized cubic spline with `10` spline basis functions and 
+#' random walk prior on the spline coefficients.
+#' Terms inside `tv()` are automatically also included in the
+#' time-constant part of the model, since the time-varying coefficients
+#' are defined to have zero mean in the pre-treatment period (in case of 
+#' multiple treated units, minimum period). Note that possible time-varying 
+#' intercept is omitted as it would cancel out in the linear predictor.
+#' 
+#' Both the time-constant and time-varying regression part is assumed to apply 
+#' for all treated and donor units with common coefficients. If you 
+#' want to apply a covariate only for treated units, just set the covariate 
+#' values to zero for donors. This approach can be also used to vary behaviour 
+#' of intercept: Defining formula such as `y ~ 0 + intercept + x`, where 
+#' `intercept` is a name of constant column in the data, will define common 
+#' intercept for all units, instead of unit-specific intercepts 
+#' (e.g., fixed effects).
+#' 
 #' The prior for the weight vector \eqn{\omega} is controlled by the
 #' `omega_prior` argument. Two families are supported:
 #'
@@ -48,24 +78,7 @@
 #'
 #' @param formula \[`formula`]\cr The model formula containing the outcome
 #' variable on the left-hand side and optional time-varying predictors on
-#' the right-hand side (RHS) of `~`. In case of no predictors, use
-#' `outcome ~ 1` or `outcome ~ 0`. In the former case, as well by the
-#' default when using predictors (e.g., `outcome ~ x + z`), the model
-#' includes intercept term. Intercept can be omitted by using `0` in the
-#' RHS, e.g., `outcome ~ 0` or `outcome ~ 0 + x + z` (equivalently, you
-#' can use `-1` in place of `0`). Formula should not contain the
-#' variable defining the treatment, which is defined separately using the
-#' argument `treatment`. In case the variable is present also in the
-#' formula, it is automatically removed.
-#'
-#' To specify predictors with time-varying coefficients, wrap them in
-#' `tv()`, e.g., `outcome ~ x + tv(~ z)` defines a model where `x` has
-#' a time-constant coefficient and `z` has a time-varying coefficient.
-#' Terms inside `tv()` are automatically also included in the
-#' time-constant part of the model, since the time-varying coefficients
-#' are defined to have zero mean. Possible time-varying intercept is omitted as
-#' it would cancel out in the linear predictor.
-#'
+#' the right-hand side (RHS) of `~`. See details.
 #' @param data \[`data.frame` or an object coercible to one]\cr
 #'   The long format data that contains the model variables.
 #' @param treatment  \[`character(1)`]\cr Name of the treatment indicator
@@ -105,10 +118,8 @@
 #'   other methods that rely on posterior predictions to fail, so you rarely
 #'   want to set this to `FALSE`.
 #' @param no_donors \[`logical(1)`]\cr Should donors be ignored? Default is
-#'   `FALSE`, but if set to `TRUE`, instead of BSCM, a simple Bayesian
-#'   linear regression model based on `formula` is estimated. This is mainly
-#'   for the purposes of assessing the relative the performance of BSCM in
-#'   case where convex hull assumption of SCM does not hold.
+#'   `FALSE`, but if set to `TRUE`, instead of a BSCM, a Bayesian
+#'   linear regression model based on `formula` is estimated.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
@@ -165,6 +176,7 @@ bscm <- function(
   predictors <- parsed_formula$predictors
   has_x <- length(predictors > 0)
   has_w <- length(parsed_formula$w_terms > 0)
+  df <- parsed_formula$df
   stopifnot_(
     !no_donors || (no_donors && has_icpt),
     "Argument {.arg formula} should include intercept 
@@ -269,9 +281,11 @@ bscm <- function(
       tv_idx <- match(gamma_names, beta_names)
       stopifnot_(
         !anyNA(tv_idx),
-        "Column mismatch between time-varying and full predictor matrices."
+        c(
+          "Column mismatch between time-varying and full predictor matrices.",
+          i = "This shouldn't be possible, please report a bug on Github."
+        )
       )
-      L <- length(tv_idx)
     }
   }
 
@@ -300,7 +314,7 @@ bscm <- function(
     exclude_these <- c(
       if (omega_prior_type == "logistic_normal") "eta",
       if (has_icpt) "a",
-      if (has_w) "gamma_raw"
+      if (has_w) "xi"
     )
     if (length(exclude_these) > 0L) {
       stan_args$pars <- exclude_these
@@ -319,6 +333,7 @@ bscm <- function(
     X_y = if (has_x) X_y,
     X_z = if (has_x) X_z,
     tv_idx = if (has_w) tv_idx,
+    df = df,
     cv = as.integer(!compute_predictions),
     prior_only = prior_only
   )
@@ -352,6 +367,7 @@ bscm <- function(
     predictors,
     beta_names,
     gamma_names,
+    df,
     model_type,
     priors,
     omega_prior,
@@ -359,7 +375,8 @@ bscm <- function(
     prior_only
   )
   class(out) <- "bscmfit"
-  if (mcmc_diagnostics && !identical(stan_args$algorithm, "Fixed_param")) {
+  
+  if (mcmc_diagnostics && ndraws(out) > 50L && !identical(stan_args$algorithm, "Fixed_param")) {
     out$converge <- check_mcmc_diagnostics.bscmfit(out)
   }
   out$elapsed_time <- list(
