@@ -1,39 +1,38 @@
 #' Define the time-varying coefficients for BSCM
-#' 
-#' Function `tv()` validates its arguments and returns the necessary 
-#' variables needed for the construct the time-varying coefficients in 
-#' [bscm()]. You should not call `tv()` separately, instead it should be part 
+#'
+#' Function `tv()` validates its arguments and returns the necessary
+#' variables needed for the construct the time-varying coefficients in
+#' [bscm()]. You should not call `tv()` separately, instead it should be part
 #' of a formula, e.g., `y ~ x + tv(~ z * w, df = 20)`.
-#'  
-#' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z` 
+#'
+#' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
-#' @param df \[`integer(1)`]\cr Integer defining the number of spline basis 
-#'   functions. Default is `df = 20` which is quite arbitrary, so it is good to 
-#'   test various choices of `df`. Typically it is better to choose too large 
-#'   than too small value, as the random walk prior of the spline coefficients 
-#'   will regularize overfitting. Downside of large `df` is increased 
+#' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
+#'   functions. Default is `df = 20` which is quite arbitrary, so it is good to
+#'   test various choices of `df`. Typically it is better to choose too large
+#'   than too small value, as the random walk prior of the spline coefficients
+#'   will regularize overfitting. Downside of large `df` is increased
 #'   computational cost.
 #' @return Object of class `tv_term` (a `list`).
 #' @export
 tv <- function(tv_formula, df = 20) {
-
   stopifnot_(
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."
   )
-  
+
   stopifnot_(
     checkmate::test_int(df, lower = 4),
     "Argument {.arg df} of {.code tv()} must be an integer larger than 4."
   )
-  
+
   tv_terms_obj <- stats::terms(tv_formula, specials = "tv")
   nested_tv <- attr(tv_terms_obj, "specials")$tv
   stopifnot_(
     is.null(nested_tv),
     "Nested {.code tv()} terms are not supported."
   )
-  
+
   tv_term_labels <- attr(tv_terms_obj, "term.labels")
   stopifnot_(
     length(tv_term_labels) > 0L,
@@ -62,7 +61,6 @@ tv <- function(tv_formula, df = 20) {
 #'   - `df`: Degrees of freedom variable passed on to [splines::bs()].
 #' @noRd
 parse_bscm_formula <- function(formula) {
-
   xt <- stats::terms(formula, specials = "tv")
   tv_idx <- attr(xt, "specials")$tv
   icpt <- as.logical(attr(xt, "intercept"))
@@ -80,30 +78,30 @@ parse_bscm_formula <- function(formula) {
       )
     )
   }
-  
+
   stopifnot_(
     length(tv_idx) == 1L,
     "Multiple {.code tv()} terms are not supported. Combine all
     time-varying terms into a single {.code tv()} call."
   )
-  
+
   xt_vars <- attr(xt, "variables")
   xt_terms <- attr(xt, "term.labels")
-  
+
   tv_call <- xt_vars[[tv_idx + 1L]]
   tv_object <- eval(tv_call)
-  
+
   tv_df <- tv_object$df
   tv_term_labels <- tv_object$terms
-  
+
   # Drop the tv() term from the original formula
   tv_deparse <- deparse1(xt_vars[[tv_idx + 1L]])
   tv_drop_idx <- which(xt_terms == tv_deparse)
-  
+
   main_xt <- stats::drop.terms(xt, dropx = tv_drop_idx)
   main_terms <- attr(stats::terms(main_xt), "term.labels")
   response <- xt_vars[[2L]]
-  
+
   # union of main and tv terms
   all_terms <- union(main_terms, tv_term_labels)
   full_formula <- stats::reformulate(
@@ -111,16 +109,16 @@ parse_bscm_formula <- function(formula) {
     response = response,
     intercept = icpt
   )
-  
+
   # tv terms only
   tv_formula <- stats::reformulate(
     termlabels = tv_term_labels,
     response = response,
     intercept = icpt
   )
-  
+
   predictors <- all.vars(full_formula[-2L])
-  
+
   list(
     icpt = icpt,
     predictors = predictors,

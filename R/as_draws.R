@@ -6,7 +6,7 @@
 #' @return An object of class `draws_array` containing the posterior draws of
 #' the specified parameters.
 #' @seealso [posterior::as_draws()] for converting the output to other formats,
-#' and [posterior::summarise_draws()] for computing posterior summaries of the 
+#' and [posterior::summarise_draws()] for computing posterior summaries of the
 #' draws.
 #' @aliases as_draws
 #' @export as_draws
@@ -14,13 +14,12 @@
 #' @examples
 #' head(as_draws(fit_single_treated, parameters = c("alpha", "sigma")))
 as_draws.bscmfit <- function(
-    x,
-    parameters = NULL,
-    inc_warmup = FALSE,
-    include = TRUE,
-    ...
+  x,
+  parameters = NULL,
+  inc_warmup = FALSE,
+  include = TRUE,
+  ...
 ) {
-  
   all_pars <- setdiff(get_stanfit(x)@model_pars, c("omega_raw", "a"))
   if (is.null(parameters)) {
     parameters <- c("alpha", "beta", "sigma", "sigma_gamma", "rho")

@@ -8,33 +8,33 @@
 #' To define `formula` in case of no predictors, use
 #' `outcome ~ 1` or `outcome ~ 0`. In the former case, as well by the
 #' default when using predictors (e.g., `outcome ~ x + z`), the model
-#' includes intercept term for each treated unit. Intercept can be omitted by 
-#' using `0` in the RHS, e.g., `outcome ~ 0` or `outcome ~ 0 + x + z` 
-#' (equivalently, you can use `-1` in place of `0`). Formula should not contain 
+#' includes intercept term for each treated unit. Intercept can be omitted by
+#' using `0` in the RHS, e.g., `outcome ~ 0` or `outcome ~ 0 + x + z`
+#' (equivalently, you can use `-1` in place of `0`). Formula should not contain
 #' the variable defining the treatment, which is defined separately using the
 #' argument `treatment`. In case the variable is present also in the
 #' formula, it is automatically removed.
 #'
-#' To specify predictors with time-varying coefficients in `formula`, wrap them 
-#' in `tv(formula, df)`, e.g., `outcome ~ x + tv(~ z, 10)` defines a model where 
-#' `x` has a time-constant coefficient and `z` has a time-varying coefficient 
-#' following penalized cubic spline with `10` spline basis functions and 
+#' To specify predictors with time-varying coefficients in `formula`, wrap them
+#' in `tv(formula, df)`, e.g., `outcome ~ x + tv(~ z, 10)` defines a model where
+#' `x` has a time-constant coefficient and `z` has a time-varying coefficient
+#' following penalized cubic spline with `10` spline basis functions and
 #' random walk prior on the spline coefficients.
 #' Terms inside `tv()` are automatically also included in the
 #' time-constant part of the model, since the time-varying coefficients
-#' are defined to have zero mean in the pre-treatment period (in case of 
-#' multiple treated units, minimum period). Note that possible time-varying 
+#' are defined to have zero mean in the pre-treatment period (in case of
+#' multiple treated units, minimum period). Note that possible time-varying
 #' intercept is omitted as it would cancel out in the linear predictor.
-#' 
-#' Both the time-constant and time-varying regression part is assumed to apply 
-#' for all treated and donor units with common coefficients. If you 
-#' want to apply a covariate only for treated units, just set the covariate 
-#' values to zero for donors. This approach can be also used to vary behaviour 
-#' of intercept: Defining formula such as `y ~ 0 + intercept + x`, where 
-#' `intercept` is a name of constant column in the data, will define common 
-#' intercept for all units, instead of unit-specific intercepts 
+#'
+#' Both the time-constant and time-varying regression part is assumed to apply
+#' for all treated and donor units with common coefficients. If you
+#' want to apply a covariate only for treated units, just set the covariate
+#' values to zero for donors. This approach can be also used to vary behaviour
+#' of intercept: Defining formula such as `y ~ 0 + intercept + x`, where
+#' `intercept` is a name of constant column in the data, will define common
+#' intercept for all units, instead of unit-specific intercepts
 #' (e.g., fixed effects).
-#' 
+#'
 #' The prior for the weight vector \eqn{\omega} is controlled by the
 #' `omega_prior` argument. Two families are supported:
 #'
@@ -117,9 +117,6 @@
 #'   [synthetic_control()], [posterior_predict()], [rmse()], [summary()], and
 #'   other methods that rely on posterior predictions to fail, so you rarely
 #'   want to set this to `FALSE`.
-#' @param no_donors \[`logical(1)`]\cr Should donors be ignored? Default is
-#'   `FALSE`, but if set to `TRUE`, instead of a BSCM, a Bayesian
-#'   linear regression model based on `formula` is estimated.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`. Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
@@ -152,7 +149,6 @@ bscm <- function(
   save_data = TRUE,
   priors = "default",
   compute_predictions = TRUE,
-  no_donors = FALSE,
   ...
 ) {
   check_bscm_arguments(
@@ -166,7 +162,6 @@ bscm <- function(
     save_data,
     priors,
     compute_predictions,
-    no_donors,
     prior_only
   )
   outcome <- get_outcome(formula)
@@ -177,11 +172,6 @@ bscm <- function(
   has_x <- length(predictors > 0)
   has_w <- length(parsed_formula$w_terms > 0)
   df <- parsed_formula$df
-  stopifnot_(
-    !no_donors || (no_donors && has_icpt),
-    "Argument {.arg formula} should include intercept 
-    when {.arg no_donors} is `TRUE`."
-  )
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
@@ -292,11 +282,8 @@ bscm <- function(
   icpt <- ifelse(has_icpt, "a1", "a0")
   x <- ifelse(has_x, "x1", "x0")
   w <- ifelse(has_w, "w1", "w0")
-  omega_prior_type <- omega_prior$distribution
-  o <- ifelse(omega_prior_type == "dirichlet", "dr", "ln")
-  omega <- ifelse(no_donors, "no", o)
   model_type <- paste(
-    c("bscm", icpt, x, w, omega, error),
+    c("bscm", icpt, x, w, error),
     collapse = "_"
   )
 
@@ -312,7 +299,8 @@ bscm <- function(
   stan_args$object <- stanmodels[[model_type]]
   if (is.null(stan_args$pars) && is.null(stan_args$include)) {
     exclude_these <- c(
-      if (omega_prior_type == "logistic_normal") "eta",
+      "eta",
+      "omega_",
       if (has_icpt) "a",
       if (has_w) "xi"
     )
@@ -329,7 +317,7 @@ bscm <- function(
     Y,
     Z,
     has_icpt,
-    omega_prior$kappa,
+    omega_prior,
     X_y = if (has_x) X_y,
     X_z = if (has_x) X_z,
     tv_idx = if (has_w) tv_idx,
@@ -375,8 +363,12 @@ bscm <- function(
     prior_only
   )
   class(out) <- "bscmfit"
-  
-  if (mcmc_diagnostics && ndraws(out) > 50L && !identical(stan_args$algorithm, "Fixed_param")) {
+
+  if (
+    mcmc_diagnostics &&
+      ndraws(out) > 50L &&
+      !identical(stan_args$algorithm, "Fixed_param")
+  ) {
     out$converge <- check_mcmc_diagnostics.bscmfit(out)
   }
   out$elapsed_time <- list(

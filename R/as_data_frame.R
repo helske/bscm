@@ -4,13 +4,13 @@
 #' parameters.
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param parameters \[`character()`]\cr Vector of parameter names. When 
-#'   `NULL`, (the default), corresponds to a relevant subset of 
+#' @param parameters \[`character()`]\cr Vector of parameter names. When
+#'   `NULL`, (the default), corresponds to a relevant subset of
 #'   `c("alpha", "beta", "sigma", "sigma_gamma", "rho")`.
 #' @param include \[`logical(1)`]\cr If `TRUE` (the default), output includes
 #'   only the variables defined by the argument `parameters`. If `FALSE`, these
-#'   variables are excluded from the output. If `NULL`, same as `TRUE` but 
-#'   variables not present in the model object are silently ignored 
+#'   variables are excluded from the output. If `NULL`, same as `TRUE` but
+#'   variables not present in the model object are silently ignored
 #'   (whereas `TRUE` throws an error).
 #' @param row.names Ignored.
 #' @param optional Ignored.

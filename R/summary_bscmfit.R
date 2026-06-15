@@ -9,9 +9,9 @@
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A data frame with posterior summaries of
-#'   * If part of the estimated model, posterior summaries of intercept terms, 
-#'     time-invariant regression coefficients, standard deviations of 
-#'     time-varying regression coefficients, residual standard deviations, 
+#'   * If part of the estimated model, posterior summaries of intercept terms,
+#'     time-invariant regression coefficients, standard deviations of
+#'     time-varying regression coefficients, residual standard deviations,
 #'     and autoregressive coefficients of residuals.
 #'   * Average RMSE for pre- and post-treatment periods
 #'   * Average treatment effect (over post-treatment period and treated units)
@@ -23,7 +23,9 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   ar1_error <- object$setup$error == "ar1"
   if (has_intercept(object) || has_predictors(object) || ar1_error) {
     cf <- coef(
-      object, probs = probs, type = c("alpha", "beta", "sigma_gamma", "rho")
+      object,
+      probs = probs,
+      type = c("alpha", "beta", "sigma_gamma", "rho")
     )
   }
   s <- sigma(object, probs = probs) |>
@@ -38,17 +40,19 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     dplyr::rename(variable = treatment) |>
     dplyr::mutate(
       variable = dplyr::if_else(
-        .data$variable == 0, 
-        "Pre-treatment effect", 
-        "Post-treatment effect")
+        .data$variable == 0,
+        "Pre-treatment effect",
+        "Post-treatment effect"
+      )
     )
   rmses <- rmse(object, average = FALSE, probs = probs) |>
     dplyr::rename(variable = treatment) |>
     dplyr::mutate(
       variable = dplyr::if_else(
-        .data$variable == 0, 
-        "Pre-treatment RMSE", 
-        "Post-treatment RMSE")
+        .data$variable == 0,
+        "Pre-treatment RMSE",
+        "Post-treatment RMSE"
+      )
     )
   sumr <- dplyr::bind_rows(cf, s, att, rmses)
   class(sumr) <- c("summary_bscmfit", class(sumr))

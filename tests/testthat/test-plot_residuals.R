@@ -4,7 +4,7 @@ test_that("plot_residuals returns ggplot for single treated unit", {
 })
 
 test_that("plot_residuals returns named list of ggplots for N > 1", {
-  plots <- plot_residuals(fitN_int)
+  suppressWarnings(plots <- plot_residuals(fitN_int))
   expect_type(plots, "list")
   expect_named(plots, get_treated(fitN_int))
   expect_true(all(vapply(plots, inherits, logical(1L), "ggplot")))

@@ -104,7 +104,7 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
       mean,
       ~ posterior::quantile2(.x, probs = probs)
     ) |>
-    dplyr::mutate("{time}" := .env$times, .before = .data$variable) |>
+    dplyr::mutate("{time}" := .env$times, .before = "variable") |>
     dplyr::select(-"variable")
 }
 

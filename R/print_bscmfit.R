@@ -12,8 +12,10 @@ print.bscmfit <- function(x, ...) {
   J <- get_J(x)
   ar1 <- if (x$setup$error == "ar1") {
     " with AR(1) residuals"
-  } else ""
-  
+  } else {
+    ""
+  }
+
   cat("Call:\n")
   print(x$call)
   cat("\n")

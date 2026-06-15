@@ -50,10 +50,10 @@ test_that("bscmfit$setup values are correct", {
   expect_s3_class(fit1_int$data, "data.frame")
   expect_equal(get_predictors(fitN_xz), c("x", "z"))
   expect_true(has_intercept(fitN_xz))
-  expect_equal(fit1_int$setup$model_type, "bscm_a1_x0_w0_dr_iid")
-  expect_equal(fit1_noint$setup$model_type, "bscm_a0_x0_w0_dr_ar1")
-  expect_equal(fit1_x$setup$model_type, "bscm_a1_x1_w0_dr_iid")
-  expect_equal(fitN_xz$setup$model_type, "bscm_a1_x1_w0_dr_iid")
+  expect_equal(fit1_int$setup$model_type, "bscm_a1_x0_w0_iid")
+  expect_equal(fit1_noint$setup$model_type, "bscm_a0_x0_w0_ar1")
+  expect_equal(fit1_x$setup$model_type, "bscm_a1_x1_w0_iid")
+  expect_equal(fitN_xz$setup$model_type, "bscm_a1_x1_w0_iid")
   expect_equal(get_treated(fitN_xz), c("1", "2", "3"))
   expect_equal(fit1_noint$setup$error, "ar1")
   expect_equal(fit1_int$setup$error, "iid")
@@ -61,7 +61,7 @@ test_that("bscmfit$setup values are correct", {
 
 test_that("bscmfit$setup with tv() has correct structure", {
   setup <- fitN_tv$setup
-  expect_equal(setup$model_type, "bscm_a1_x1_w1_dr_iid")
+  expect_equal(setup$model_type, "bscm_a1_x1_w1_iid")
   expect_identical(setup$gamma_names, "x")
   expect_true("x" %in% setup$beta_names)
   expect_true("z" %in% setup$beta_names)

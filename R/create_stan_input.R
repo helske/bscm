@@ -42,7 +42,7 @@ create_standata <- function(
   Y,
   Z,
   icpt,
-  kappa,
+  omega_prior,
   X_y = NULL,
   X_z = NULL,
   tv_idx = NULL,
@@ -61,7 +61,8 @@ create_standata <- function(
     y = t(Y),
     Z = Z,
     pr_rate_sigma = array(1 / x$sd_e),
-    kappa = kappa,
+    kappa = omega_prior$kappa,
+    dirichlet_omega = omega_prior$distribution == "dirichlet",
     cv = cv,
     likelihood = !prior_only
   )
@@ -85,7 +86,7 @@ create_standata <- function(
     if (!is.null(tv_idx)) {
       L <- length(tv_idx)
       pr_rate_sigma_gamma <- array(2 / sd_ex[tv_idx] * sqrt(df))
-      
+
       B <- splines::bs(seq_len(T_total), df = df, intercept = TRUE)
       d <- diag(df)
       M <- B %*% lower.tri(d, diag = TRUE)
@@ -93,7 +94,7 @@ create_standata <- function(
       a <- c(crossprod(M, rep(1:0, c(T0, T_total - T0))))
       Q <- qr.Q(qr(cbind(a, d)))[, -1]
       A <- M %*% Q
-      
+
       standata <- c(
         standata,
         list(
@@ -118,8 +119,10 @@ create_inits <- function(x, omega_prior, error = "iid") {
   }
   if (omega_prior$distribution == "logistic_normal") {
     inits$eta <- matrix(0, x$N, x$J - 1)
+    inits$omega_ <- matrix(1 / x$J, 0, x$J)
   } else {
-    inits$omega <- matrix(1 / x$J, x$N, x$J)
+    inits$eta <- matrix(0, 0, x$J - 1)
+    inits$omega_ <- matrix(1 / x$J, x$N, x$J)
   }
   if (!is.null(x$pr_mean_intercept)) {
     inits$a <- array(

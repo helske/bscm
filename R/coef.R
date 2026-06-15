@@ -4,8 +4,8 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
-#'   `"gamma"` (time-varying regression coefficients), `"sigma_gamma"` 
-#'   (SDs of time-varying coefficients), 
+#'   `"gamma"` (time-varying regression coefficients), `"sigma_gamma"`
+#'   (SDs of time-varying coefficients),
 #'   `"rho"` (autoregressive coefficients of the residuals).
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
@@ -16,17 +16,18 @@
 #' coef(fit_single_treated)
 #' coef(fit_single_treated, type = "beta")
 coef.bscmfit <- function(
-    object,
-    type = c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
-    summary = TRUE,
-    probs = c(0.025, 0.975),
-    ...
+  object,
+  type = c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
   type <- try_(
     match.arg(
-      type, c("alpha", "beta", "gamma", "sigma_gamma", "rho"), 
+      type,
+      c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
       several.ok = TRUE
     )
   )
@@ -45,7 +46,7 @@ coef.bscmfit <- function(
   )
   unit <- get_unit(object)
   time <- get_time(object)
-  
+
   d_alpha <- d_beta <- d_gamma <- d_sigma_gamma <- d_rho <- NULL
   if ("alpha" %in% pars) {
     treated <- get_treated(object)
