@@ -24,11 +24,7 @@
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
 \code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}. Other possible
-choices are \code{"gamma"} (time-varying regression coefficients), \code{"xi"}
-(spline coefficients used to construct \code{"gamma"}), \code{eta}
-(gaussian variables used to construct donor weights in case of logistic
-normal prior), \code{"a"}(intercept corresponding to centered
-predictors and donors), and \verb{"lp__}
+choices are \code{"gamma"} (time-varying regression coefficients) and \verb{"lp__}
 (log-posterior values without constants).}
 
 \item{include}{[\code{logical(1)}]\cr If \code{TRUE} (the default), output includes
