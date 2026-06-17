@@ -88,7 +88,7 @@ covariate_imbalance_unit <- function(x, unit, X, probs) {
   J <- get_J(x)
   K <- length(get_predictors(x))
 
-  pars <- paste0("omega[", unit, ",", seq_len(J), "]")
+  pars <- paste0("omega[", seq_len(J), ",", unit, "]")
   omega <- posterior::rvar(as_draws(x, pars), with_chains = TRUE)
 
   X_y <- X$X_y[unit, , , drop = FALSE]

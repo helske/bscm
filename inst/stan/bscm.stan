@@ -81,7 +81,7 @@ transformed data {
   matrix[N, K] X_y_mean;
   matrix[J, K] X_z_mean;
   array[N] matrix[T, K] cX_y;
-  array[J] matrix[T, K] cX_z;
+  array[K] matrix[T, J] cX_z;
   if (K > 0) {
     for (i in 1:N) {
       for (k in 1:K) {
@@ -92,18 +92,20 @@ transformed data {
     for (j in 1:J) {
       for (k in 1:K) {
         X_z_mean[j, k] = mean(X_z[j, 1:T0, k]);
-        cX_z[j, , k] = X_z[j, , k] - X_z_mean[j, k];
+        cX_z[k, , j] = X_z[j, , k] - X_z_mean[j, k];
       }
     }
   }
   array[N] matrix[T, L] W_y;
-  array[J] matrix[T, L] W_z;
+  array[L] matrix[T, J] W_z;
   if (L > 0) {
     for (i in 1:N) {
       W_y[i] = X_y[i, , tv_idx];
     }
-    for (j in 1:J) {
-      W_z[j] = X_z[j, , tv_idx];
+    for (l in 1:L) {
+      for (j in 1:J) {
+        W_z[l, , j] = X_z[j, , tv_idx[l]];
+      }
     }
   }
 }
@@ -120,14 +122,14 @@ parameters {
   vector<lower = -1, upper = 1>[N * ar1] rho;   // autoregressive parameters
 }
 transformed parameters {
-  array[N] vector[J] omega;
+  matrix[J, N] omega;
   if (dirichlet_omega) {
     for (i in 1:N) {
-      omega[i] = omega_[i];
+      omega[, i] = omega_[i];
     }
   } else {
     for (i in 1:N) {
-      omega[i] = softmax(kappavec[1] * zero_sum_constrain(eta[i]));
+      omega[, i] = softmax(kappavec[1] * zero_sum_constrain(eta[i]));
     }
   }
   // time-varying regression coefficients
@@ -153,21 +155,20 @@ model {
   to_vector(xi) ~ std_normal();
   0.5 * (1 + rho) ~ beta(pr_shape1_rho, pr_shape2_rho);
   if (likelihood) {
-    matrix[T, J] Z_term = cZ;
+    matrix[T, N] Z_term = cZ * omega;
     if (K > 0) {
-      for (j in 1:J) {
-        Z_term[, j] -= cX_z[j] * beta;
+      for (k in 1:K) {
+        Z_term -= beta[k] * cX_z[k] * omega;
       }
       if (L > 0) {
-        for (j in 1:J) {
-          Z_term[, j] -= rows_dot_product(W_z[j], gamma);
+        for (l in 1:L) {
+          Z_term -= diag_pre_multiply(gamma[, l], W_z[l] * omega);
         }
       }
     }
     for (i in 1:N) {
       int Ti = T_pre[i];
-      vector[Ti] mu;
-      mu = Z_term[1:Ti, ] * omega[i];
+      vector[Ti] mu = Z_term[1:Ti, i];
       if (icpt) mu += a[i];
       if (K > 0) {
         mu += cX_y[i, 1:Ti, ] * beta;
@@ -183,13 +184,13 @@ generated quantities {
   if (icpt) {
     alpha = a;
     for (i in 1:N) {
-      alpha[i] -= Z_mean * omega[i];
+      alpha[i] -= Z_mean * omega[, i];
     }
     if (K > 0) {
       alpha -= X_y_mean * beta;
       vector[J] xzb = X_z_mean * beta;
       for (i in 1:N) {
-        alpha[i] += dot_product(xzb, omega[i]);
+        alpha[i] += dot_product(xzb, omega[, i]);
       }
     }
   }

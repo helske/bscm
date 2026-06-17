@@ -27,8 +27,8 @@ donor_weights.bscmfit <- function(
   donors <- get_donors(x)
   J <- length(donors)
   d <- dplyr::tibble(
-    treated = rep(treated, times = J),
-    donor = rep(donors, each = N),
+    treated = rep(treated, each = J),
+    donor = rep(donors, times = N),
     weight = c(posterior::as_draws_rvars(as_draws(x, "omega"))$omega)
   )
   if (summary) {

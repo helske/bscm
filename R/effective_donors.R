@@ -40,7 +40,7 @@ effective_donors.bscmfit <- function(
   omega <- posterior::as_draws_rvars(as_draws(x, "omega"))$omega
   d <- dplyr::tibble(
     "{unit}" := treated,
-    ess = posterior::rvar_apply(omega, 1, \(x) 1 / posterior::rvar_sum(x^2))
+    ess = posterior::rvar_apply(omega, 2, \(x) 1 / posterior::rvar_sum(x^2))
   )
   if (average && N > 1) {
     d <- d |>
