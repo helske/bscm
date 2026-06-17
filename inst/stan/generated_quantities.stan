@@ -60,7 +60,6 @@ generated quantities {
       if (ar1) {
         y_mean[2:T, i] += rho[i] * (y[i, 1:(T - 1)] - y_mean[1:(T - 1), i]);
       }
-      y_rep[, i] = to_vector(normal_rng(y_mean[, i], sigma[i]));
     }
   }
   if (sample_y_rep) {
