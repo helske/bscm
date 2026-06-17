@@ -10,16 +10,10 @@ test_that("as.data.frame returns a data.frame", {
 
   d <- as.data.frame(
     fitN_xz,
-    parameters = c("beta", "y_rep")
+    parameters = c("beta", "sigma[1]")
   )
-  expect_equal(dim(d), c(ndraws(fitN_xz), 122L))
-  expect_equal(
-    names(d),
-    c(
-      paste0("beta[", 1:2, "]"),
-      paste0("y_rep[", seq_len(40), ",", rep(1:3, each = 40), "]")
-    )
-  )
+  expect_equal(dim(d), c(ndraws(fitN_xz), 3L))
+  expect_equal(names(d), c("beta[1]", "beta[2]", "sigma[1]"))
 
   expect_error(
     as.data.frame(fit1_int, parameters = c("sigma", "none", "aa", "something")),

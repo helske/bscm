@@ -1,12 +1,16 @@
 #' Extract posterior draws of model parameters as a data frame
 #'
 #' Returns a `data.frame` representation of the posterior sample of the model
-#' parameters.
+#' parameters. For samples from posterior predictive distribution, 
+#' see [bscm::posterior_epred()] and [bscm::posterior_predict()]. For donor 
+#' weights, use [bscm::donor_weights()].
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param parameters \[`character()`]\cr Vector of parameter names. When
 #'   `NULL`, (the default), corresponds to a relevant subset of
-#'   `c("alpha", "beta", "sigma", "sigma_gamma", "rho")`.
+#'   `c("alpha", "beta", "sigma", "sigma_gamma", "rho")`. Other possible 
+#'   choices are `"gamma"` (time-varying regression coefficients) and `"lp__` 
+#'   (log-posterior values without constants).
 #' @param include \[`logical(1)`]\cr If `TRUE` (the default), output includes
 #'   only the variables defined by the argument `parameters`. If `FALSE`, these
 #'   variables are excluded from the output. If `NULL`, same as `TRUE` but
@@ -29,7 +33,7 @@ as.data.frame.bscmfit <- function(
   include = TRUE,
   ...
 ) {
-  all_pars <- setdiff(get_stanfit(x)@model_pars, c("omega_raw", "a"))
+  all_pars <- setdiff(get_stanfit(x)@model_pars, x$setup$excluded_pars)
   if (is.null(parameters)) {
     parameters <- c("alpha", "beta", "sigma", "sigma_gamma", "rho")
     parameters <- intersect(parameters, all_pars)

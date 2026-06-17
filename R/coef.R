@@ -36,7 +36,9 @@ coef.bscmfit <- function(
     'Argument {.arg type} must a subset of 
     {{"alpha", "beta", "gamma", "sigma_gamma, "rho"}}'
   )
-  all_pars <- get_stanfit(object)@model_pars
+  all_pars <- setdiff(
+    get_stanfit(object)@model_pars, object$setup$excluded_pars
+  )
   pars <- intersect(type, all_pars)
   N <- get_N(object)
   stopifnot_(

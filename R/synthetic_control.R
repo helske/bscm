@@ -44,11 +44,12 @@ synthetic_control.bscmfit <- function(
   treatments <- unlist(
     lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
   )
+  y_rep <- posterior_predict(x)
   d <- tibble(
     "{unit}" := rep(treated, each = T_total),
     "{time}" := rep(times, times = N),
     "{treatment}" := treatments,
-    y_rep = c(posterior::as_draws_rvars(as_draws(x, "y_rep"))$y_rep)
+    y_rep = c(posterior::as_draws_rvars(y_rep)$y_rep)
   )
   if (summary) {
     d <- d |>

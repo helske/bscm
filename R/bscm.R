@@ -137,19 +137,19 @@
 #' )
 #' fit
 bscm <- function(
-  formula,
-  data,
-  treatment = "treatment",
-  time = "time",
-  unit = "id",
-  error = "iid",
-  omega_prior = dirichlet(kappa = 1),
-  prior_only = FALSE,
-  mcmc_diagnostics = TRUE,
-  save_data = TRUE,
-  priors = "default",
-  compute_predictions = TRUE,
-  ...
+    formula,
+    data,
+    treatment = "treatment",
+    time = "time",
+    unit = "id",
+    error = "iid",
+    omega_prior = dirichlet(kappa = 1),
+    prior_only = FALSE,
+    mcmc_diagnostics = TRUE,
+    save_data = TRUE,
+    priors = "default",
+    compute_predictions = TRUE,
+    ...
 ) {
   check_bscm_arguments(
     formula,
@@ -225,6 +225,8 @@ bscm <- function(
   )
   J <- ncol(Z)
   beta_names <- gamma_names <- NULL
+  X_y <- X_z <- NULL
+  tv_idx <- numeric(0)
   if (has_x) {
     X <- stats::model.matrix(formula, data = data)
     if (has_icpt) {
@@ -259,7 +261,7 @@ bscm <- function(
         i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
       )
     )
-
+    
     donor_idx <- which(!colnames(treatment_table) %in% treated)
     X_z <- X[donor_idx, , , drop = FALSE]
     X_y <- X[treated_idx, , , drop = FALSE]
@@ -278,15 +280,7 @@ bscm <- function(
       )
     }
   }
-
-  icpt <- ifelse(has_icpt, "a1", "a0")
-  x <- ifelse(has_x, "x1", "x0")
-  w <- ifelse(has_w, "w1", "w0")
-  model_type <- paste(
-    c("bscm", icpt, x, w, error),
-    collapse = "_"
-  )
-
+  
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
   if (is.null(stan_args$control$adapt_delta)) {
@@ -296,20 +290,21 @@ bscm <- function(
     stan_args$iter <- 5000L
     stan_args$warmup <- 2500L
   }
-  stan_args$object <- stanmodels[[model_type]]
-  if (is.null(stan_args$pars) && is.null(stan_args$include)) {
-    exclude_these <- c(
-      "eta",
-      "omega_",
-      if (has_icpt) "a",
-      if (has_w) "xi"
-    )
-    if (length(exclude_these) > 0L) {
-      stan_args$pars <- exclude_these
-      stan_args$include <- FALSE
-    }
+  stan_args$object <- stanmodels$bscm
+  stan_args$include <- FALSE
+  exclude_pars <- c(
+    if (!has_icpt) "alpha",
+    if (!has_x) "beta",
+    if (!has_w) c("gamma", "sigma_gamma"),
+    if (error != "ar1") "rho"
+  )
+  exclude_extras <- c("eta", "omega_", "a", "xi")
+  if (is.null(stan_args$pars)) {
+    stan_args$pars <- c(exclude_pars, exclude_extras)
+  } else {
+    stan_args$pars <- union(stan_args$pars, exclude_extras)
   }
-
+  
   input_stats <- bscm_stats(Y, Z, T_pre, X = if (has_x) X)
   stan_args$data <- create_standata(
     input_stats,
@@ -318,30 +313,33 @@ bscm <- function(
     Z,
     has_icpt,
     omega_prior,
-    X_y = if (has_x) X_y,
-    X_z = if (has_x) X_z,
-    tv_idx = if (has_w) tv_idx,
-    df = df,
-    cv = as.integer(!compute_predictions),
-    prior_only = prior_only
+    X_y,
+    X_z,
+    tv_idx,
+    df,
+    ar1_error = error == "ar1",
+    prior_only
   )
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
-      create_inits(stan_args$data, omega_prior, error),
+      create_inits(stan_args$data),
       simplify = FALSE
     )
   }
-
+  
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
-  out <- list(stanfit = fit)
-  if (save_data) {
-    out$data <- data
-  }
+  stan_args$data$sample_y_rep <- compute_predictions
+  gq <- rstan::gqs(
+    stanmodels$generated_quantities, 
+    data = stan_args$data,
+    draws = as.matrix(fit)
+  )
   times <- unique(data[[time]])
   priors <- stan_args$data[startsWith(names(stan_args$data), "pr_")]
-  out$setup <- dplyr::lst(
+  priors <- priors[length(priors) > 0]
+  setup <- dplyr::lst(
     outcome,
     treatment,
     treated,
@@ -356,19 +354,25 @@ bscm <- function(
     beta_names,
     gamma_names,
     df,
-    model_type,
     priors,
     omega_prior,
     error,
-    prior_only
+    prior_only,
+    excluded_pars = stan_args$pars
+  )
+  out <- list(
+    stanfit = fit, 
+    y_mean = as.matrix(gq, "y_mean"),
+    y_rep = if (compute_predictions) as.matrix(gq, "y_rep") else "Not sampled",
+    data = if (save_data) data else NULL,
+    setup = setup
   )
   class(out) <- "bscmfit"
-
-  if (
-    mcmc_diagnostics &&
-      ndraws(out) > 50L &&
-      !identical(stan_args$algorithm, "Fixed_param")
-  ) {
+  
+  run_diags <-  mcmc_diagnostics &&
+    ndraws(out) > 50L &&
+    !identical(stan_args$algorithm, "Fixed_param")
+  if (run_diags) {
     out$converge <- check_mcmc_diagnostics.bscmfit(out)
   }
   out$elapsed_time <- list(

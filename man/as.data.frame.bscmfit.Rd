@@ -23,7 +23,13 @@
 
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
-\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}.}
+\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}. Other possible
+choices are \code{"gamma"} (time-varying regression coefficients), \code{"xi"}
+(spline coefficients used to construct \code{"gamma"}), \code{eta}
+(gaussian variables used to construct donor weights in case of logistic
+normal prior), \code{"a"}(intercept corresponding to centered
+predictors and donors), and \verb{"lp__}
+(log-posterior values without constants).}
 
 \item{include}{[\code{logical(1)}]\cr If \code{TRUE} (the default), output includes
 only the variables defined by the argument \code{parameters}. If \code{FALSE}, these
@@ -38,7 +44,9 @@ A \code{data.frame} containing model parameters in a wide format.
 }
 \description{
 Returns a \code{data.frame} representation of the posterior sample of the model
-parameters.
+parameters. For samples from posterior predictive distribution,
+see \code{\link[=posterior_epred]{posterior_epred()}} and \code{\link[=posterior_predict]{posterior_predict()}}. For donor
+weights, use \code{\link[=donor_weights]{donor_weights()}}.
 }
 \examples{
 head(as.data.frame(fit_single_treated, parameters = c("alpha", "sigma")))

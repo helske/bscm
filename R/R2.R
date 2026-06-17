@@ -115,7 +115,7 @@ bayes_R2.bscmfit <- function(
   unit <- get_unit(object)
   T_pre <- get_T_pre(object)
 
-  y_mean <- posterior::as_draws_rvars(as_draws(object, "y_mean"))$y_mean
+  y_mean <- posterior::as_draws_rvars(object$y_mean)$y_mean
   sigma <- posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
 
   r2 <- vector("list", N)

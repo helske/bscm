@@ -42,7 +42,7 @@ fitted.bscmfit <- function(
     "{unit}" := rep(treated, each = T_total),
     "{time}" := rep(times, times = N),
     "{treatment}" := treatments,
-    y_mean = c(posterior::as_draws_rvars(as_draws(object, "y_mean"))$y_mean)
+    y_mean = c(posterior::as_draws_rvars(object$y_mean)$y_mean)
   )
   if (summary) {
     d <- d |>

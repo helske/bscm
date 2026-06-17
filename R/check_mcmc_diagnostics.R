@@ -54,7 +54,6 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
   n_low_bfmi <- sum(rstan::get_bfmi(get_stanfit(x)) < 0.2)
 
   sumr <- x |>
-    as_draws(parameters = c("y_mean", "y_rep"), include = FALSE) |>
     posterior::summarise_draws(posterior::default_convergence_measures())
   idx <- c(
     which.max(sumr$rhat),

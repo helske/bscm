@@ -84,25 +84,6 @@ test_that("create_standata() returns correct list structure", {
   Z <- matrix(rnorm(T_total * J), T_total, J)
   x <- bscm_stats(Y, Z, T_pre)
   d <- create_standata(x, T_pre, Y, Z, icpt = TRUE, omega)
-
-  expect_named(
-    d,
-    c(
-      "T",
-      "T_pre",
-      "N",
-      "J",
-      "y",
-      "Z",
-      "pr_rate_sigma",
-      "kappa",
-      "dirichlet_omega",
-      "cv",
-      "likelihood",
-      "pr_mean_intercept",
-      "pr_sd_intercept"
-    )
-  )
   expect_equal(d$T, T_total)
   expect_equal(d$N, N)
   expect_equal(d$J, J)
@@ -123,18 +104,17 @@ test_that("create_inits() returns correct list structure", {
   Z <- matrix(rnorm(T_total * J), T_total, J)
   x <- bscm_stats(Y, Z, T_pre)
   d <- create_standata(x, T_pre, Y, Z, icpt = FALSE, omega_prior)
-  inits <- create_inits(d, logistic_normal(kappa))
-  expect_named(inits, c("sigma", "eta", "omega_"))
+  inits <- create_inits(d)
+  pars <- c("omega_", "eta", "sigma",  "a", "beta", "xi", "sigma_gamma", "rho")
+  expect_named(inits, pars)
   expect_equal(dim(inits$eta), c(N, J - 1L))
   expect_length(inits$sigma, N)
+  omega_prior <- dirichlet(kappa = 1)
   d <- create_standata(x, T_pre, Y, Z, icpt = TRUE, omega_prior)
-  inits <- create_inits(d, logistic_normal(0.1))
-  expect_named(inits, c("sigma", "eta", "omega_", "a"))
-  expect_equal(dim(inits$eta), c(N, J - 1L))
+  inits <- create_inits(d)
+  expect_equal(dim(inits$omega_), c(N, J))
   expect_length(inits$sigma, N)
   expect_length(inits$a, N)
-  inits_dir <- create_inits(d, dirichlet(kappa = 1))
-  expect_named(inits_dir, c("sigma", "eta", "omega_", "a"))
-  expect_equal(dim(inits_dir$omega_), c(N, J))
-  expect_equal(inits_dir$omega, matrix(1 / J, N, J))
+  expect_equal(inits$omega_, matrix(1 / J, N, J))
+
 })

@@ -12,32 +12,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x0_w0_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x0_w0_iid_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x1_w0_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x1_w0_iid_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x1_w1_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a0_x1_w1_iid_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x0_w0_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x0_w0_iid_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x1_w0_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x1_w0_iid_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x1_w1_ar1_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_a1_x1_w1_iid_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4generated_quantities_mod();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x0_w0_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x0_w0_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x0_w0_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x0_w0_iid_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x1_w0_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x1_w0_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x1_w0_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x1_w0_iid_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x1_w1_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x1_w1_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a0_x1_w1_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a0_x1_w1_iid_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x0_w0_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x0_w0_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x0_w0_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x0_w0_iid_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x1_w0_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x1_w0_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x1_w0_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x1_w0_iid_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x1_w1_ar1_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x1_w1_ar1_mod, 0},
-    {"_rcpp_module_boot_stan_fit4bscm_a1_x1_w1_iid_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_a1_x1_w1_iid_mod, 0},
+    {"_rcpp_module_boot_stan_fit4bscm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_mod, 0},
+    {"_rcpp_module_boot_stan_fit4generated_quantities_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4generated_quantities_mod, 0},
     {NULL, NULL, 0}
 };
 

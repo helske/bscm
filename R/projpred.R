@@ -86,7 +86,7 @@ get_refmodel.bscmfit <- function(object, ...) {
   ref_predfun <- function(fit, newdata = NULL) {
     if (is.null(newdata)) {
       newdata <- fit$proj$data[, fit$setup$donors, drop = FALSE]
-      eta <- t(as.matrix(fit$stanfit, "y_mean"))
+      eta <- t(fit$y_mean)
       eta <- eta[1:fit$setup$T_pre, , drop = FALSE]
     } else {
       stop(

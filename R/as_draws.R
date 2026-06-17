@@ -1,4 +1,4 @@
-#' Return posterior draws from BSCM fit
+#' Return posterior draws from BSCM fit as a draws object 
 #'
 #' @inheritParams as.data.frame.bscmfit
 #' @param inc_warmup \[`logical(1)`]\cr Whether to include warmup draws.
@@ -20,7 +20,7 @@ as_draws.bscmfit <- function(
   include = TRUE,
   ...
 ) {
-  all_pars <- setdiff(get_stanfit(x)@model_pars, c("omega_raw", "a"))
+  all_pars <- setdiff(get_stanfit(x)@model_pars, x$setup$excluded_pars)
   if (is.null(parameters)) {
     parameters <- c("alpha", "beta", "sigma", "sigma_gamma", "rho")
     parameters <- intersect(parameters, all_pars)

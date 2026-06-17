@@ -3,7 +3,7 @@
 \name{as_draws.bscmfit}
 \alias{as_draws.bscmfit}
 \alias{as_draws}
-\title{Return posterior draws from BSCM fit}
+\title{Return posterior draws from BSCM fit as a draws object}
 \usage{
 \method{as_draws}{bscmfit}(x, parameters = NULL, inc_warmup = FALSE, include = TRUE, ...)
 }
@@ -12,7 +12,13 @@
 
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
-\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}.}
+\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}. Other possible
+choices are \code{"gamma"} (time-varying regression coefficients), \code{"xi"}
+(spline coefficients used to construct \code{"gamma"}), \code{eta}
+(gaussian variables used to construct donor weights in case of logistic
+normal prior), \code{"a"}(intercept corresponding to centered
+predictors and donors), and \verb{"lp__}
+(log-posterior values without constants).}
 
 \item{inc_warmup}{[\code{logical(1)}]\cr Whether to include warmup draws.
 Default is \code{FALSE}.}
@@ -30,7 +36,7 @@ An object of class \code{draws_array} containing the posterior draws of
 the specified parameters.
 }
 \description{
-Return posterior draws from BSCM fit
+Return posterior draws from BSCM fit as a draws object
 }
 \examples{
 head(as_draws(fit_single_treated, parameters = c("alpha", "sigma")))

@@ -13,7 +13,14 @@
 #' @export posterior_predict
 #' @export
 posterior_predict.bscmfit <- function(object, ...) {
-  as.matrix(get_stanfit(object), pars = "y_rep")
+  stopifnot_(
+    is.matrix(object$y_rep),
+    c(
+      "Model does not contain samples of `y_rep`.",
+      i = "Re-estimate the model using {.arg compute_predictions} as TRUE."
+    )
+  )
+  object$y_rep
 }
 #' Posterior Draws of the Expected Predictive Distribution
 #'
@@ -28,7 +35,7 @@ posterior_predict.bscmfit <- function(object, ...) {
 #' @export posterior_epred
 #' @export
 posterior_epred.bscmfit <- function(object, ...) {
-  as.matrix(get_stanfit(object), pars = "y_mean")
+  object$y_mean
 }
 #' Posterior Draws of the Linear Predictor
 #'
@@ -46,5 +53,5 @@ posterior_epred.bscmfit <- function(object, ...) {
 #' @export posterior_linpred
 #' @export
 posterior_linpred.bscmfit <- function(object, transform = FALSE, ...) {
-  as.matrix(get_stanfit(object), pars = "y_mean")
+  object$y_mean
 }

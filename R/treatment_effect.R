@@ -54,8 +54,8 @@ treatment_effect.bscmfit <- function(
   unit <- get_unit(x)
   treated <- get_treated(x)
   treatment <- get_treatment(x)
-  effect <- get_stan_y(x) -
-    posterior::as_draws_rvars(as_draws(x, "y_rep"))$y_rep
+  y_rep <- posterior_predict(x)
+  effect <- get_stan_y(x) - posterior::as_draws_rvars(y_rep)$y_rep
   treatments <- unlist(
     lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
   )
