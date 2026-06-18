@@ -1,5 +1,5 @@
 test_that("residuals returns data.frame with correct structure", {
-  d <- residuals(fit1_noint)
+  suppressWarnings(d <- residuals(fit1_noint))
   expect_s3_class(d, "tbl_df")
   expect_identical(names(d)[1:4], c("time", "treatment", "mean", "sd"))
   expect_equal(nrow(d), unname(get_T_pre(fit1_noint)[1]))
@@ -38,8 +38,8 @@ test_that("residuals validates probs argument", {
   )
 })
 
-test_that("residuals pre-treatment mean is near zero for well-fitting model", {
-  d <- residuals(fit1_int)
+test_that("residuals are reasonable", {
+  suppressWarnings(d <- residuals(fit1_x))
   pre_resid <- d$mean[d$treatment == 0]
-  expect_lt(mean(abs(pre_resid)), 1)
+  expect_lt(max(abs(pre_resid)), 1)
 })

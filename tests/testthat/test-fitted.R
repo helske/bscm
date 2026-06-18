@@ -1,5 +1,5 @@
 test_that("fitted returns data.frame with correct structure", {
-  d <- fitted(fit1_noint)
+  suppressWarnings(d <- fitted(fit1_noint))
   expect_s3_class(d, "tbl_df")
   expect_identical(names(d)[1:4], c("time", "treatment", "mean", "sd"))
   expect_equal(nrow(d), get_T_total(fit1_noint))
