@@ -24,7 +24,9 @@
 #' multiple_treated |>
 #'   dplyr::mutate(treated = any(treatment), .by = id) |> 
 #'   ggplot2::ggplot(ggplot2::aes(time, y)) +
-#'   ggplot2::geom_line(aes(group = id, colour = treated, alpha = treated)) +
+#'   ggplot2::geom_line(
+#'     ggplot2::aes(group = id, colour = treated, alpha = treated)
+#'   ) +
 #'   ggplot2::scale_alpha_manual(values = c(0.3, 1)) +
 #'   ggplot2::theme_bw() 
 NULL
