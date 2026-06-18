@@ -5,9 +5,9 @@
 \alias{single_treated}
 \title{Simulated example data with single treated unit}
 \format{
-A data frame with 1785 rows and 5 columns:
+A data frame with 2550 rows and 5 columns:
 \itemize{
-\item time: Time index from ranging from -30 to 4.
+\item time: Time index from ranging from -40 to 9.
 \item id: Unit index variable `ranging from 1 to 31.
 \item y: Outcome variable.
 \item x: Time-varying predictor.
@@ -16,9 +16,9 @@ A data frame with 1785 rows and 5 columns:
 }
 \description{
 This simulated data is generated based on a latent factor model with three
-factors, 35 time points and 51 units. For the first unit (\code{id = 1}),
-a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
-\eqn{t=0,\ldots,5} is added to an outcome \code{y}.
+factors, 50 time points and 51 units. For the first unit (\code{id = 1}),
+a "treatment" \eqn{\tau = 1 + t} for the last 10 time points
+\eqn{t=0,\ldots,9} is added to an outcome \code{y}.
 To see exactly how the data was generated, see \code{data-raw} folder on the
 Github repository of the package.
 }

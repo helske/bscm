@@ -13,22 +13,24 @@ A data frame with 1,550 rows and 5 columns:
 \item x: Time-varying predictor.
 \item z: Time-varying predictor.
 \item treatment: Binary indicator variable where 1 corresponds to the treatment.
-\item tau: True treatment effect.
-\item psi1: First latent factor.
-\item psi2: Second latent factor.
-\item lambda1: Loadings of the first factor.
-\item lambda2: Loadings of the second factor.
 }
 }
 \description{
 This simulated data is generated based on a latent factor model with two
 factors, 40 time points and 53 units. For the first three units,
-a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
-\eqn{t=0,\ldots,4} is added to an outcome \code{y}.
+a "treatment" \eqn{\tau = 2} for the last 5 time points
+\eqn{t=0,\ldots,4} is added to an outcome \code{y}. There are two time-varying
+covariates \code{x} and \code{z}, with latter one having time-varying effect on \code{y}.
 To see exactly how the data was generated, see \code{data-raw} folder on the
 Github repository of the package.
 }
 \examples{
 head(multiple_treated)
+multiple_treated |>
+  dplyr::mutate(treated = any(treatment), .by = id) |> 
+  ggplot2::ggplot(ggplot2::aes(time, y)) +
+  ggplot2::geom_line(aes(group = id, colour = treated, alpha = treated)) +
+  ggplot2::scale_alpha_manual(values = c(0.3, 1)) +
+  ggplot2::theme_bw() 
 }
 \keyword{datasets}

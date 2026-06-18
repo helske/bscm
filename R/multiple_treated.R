@@ -2,8 +2,9 @@
 #'
 #' This simulated data is generated based on a latent factor model with two
 #' factors, 40 time points and 53 units. For the first three units,
-#' a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
-#' \eqn{t=0,\ldots,4} is added to an outcome `y`.
+#' a "treatment" \eqn{\tau = 2} for the last 5 time points
+#' \eqn{t=0,\ldots,4} is added to an outcome `y`. There are two time-varying 
+#' covariates `x` and `z`, with latter one having time-varying effect on `y`.
 #' To see exactly how the data was generated, see `data-raw` folder on the
 #' Github repository of the package.
 #'
@@ -17,12 +18,13 @@
 #'  * x: Time-varying predictor.
 #'  * z: Time-varying predictor.
 #'  * treatment: Binary indicator variable where 1 corresponds to the treatment.
-#'  * tau: True treatment effect.
-#'  * psi1: First latent factor.
-#'  * psi2: Second latent factor.
-#'  * lambda1: Loadings of the first factor.
-#'  * lambda2: Loadings of the second factor.
 #' @name multiple_treated
 #' @examples
 #' head(multiple_treated)
+#' multiple_treated |>
+#'   dplyr::mutate(treated = any(treatment), .by = id) |> 
+#'   ggplot2::ggplot(ggplot2::aes(time, y)) +
+#'   ggplot2::geom_line(aes(group = id, colour = treated, alpha = treated)) +
+#'   ggplot2::scale_alpha_manual(values = c(0.3, 1)) +
+#'   ggplot2::theme_bw() 
 NULL

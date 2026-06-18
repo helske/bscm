@@ -1,16 +1,16 @@
 #' Simulated example data with single treated unit
 #'
 #' This simulated data is generated based on a latent factor model with three
-#' factors, 35 time points and 51 units. For the first unit (`id = 1`),
-#' a "treatment" \eqn{\tau = 1 + t} for the last 5 time points
-#' \eqn{t=0,\ldots,5} is added to an outcome `y`.
+#' factors, 50 time points and 51 units. For the first unit (`id = 1`),
+#' a "treatment" \eqn{\tau = 1 + t} for the last 10 time points
+#' \eqn{t=0,\ldots,9} is added to an outcome `y`.
 #' To see exactly how the data was generated, see `data-raw` folder on the
 #' Github repository of the package.
 #' @docType data
 #' @keywords datasets
 #' @format
-#' A data frame with 1785 rows and 5 columns:
-#'  * time: Time index from ranging from -30 to 4.
+#' A data frame with 2550 rows and 5 columns:
+#'  * time: Time index from ranging from -40 to 9.
 #'  * id: Unit index variable `ranging from 1 to 31.
 #'  * y: Outcome variable.
 #'  * x: Time-varying predictor.

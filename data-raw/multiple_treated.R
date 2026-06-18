@@ -16,7 +16,7 @@ lambda <- rbind(
   rbeta(J + N, 2, 2)
 )
 lambda[2, 1:N] <- rbeta(N, 5, 2)
-y <- c(psi %*% lambda)
+f <- c(psi %*% lambda)
 # additional predictors
 x <- matrix(0, T_total, J + N)
 for (j in seq_len(J + N)) {
@@ -26,28 +26,28 @@ z <- matrix(0, T_total, J + N)
 for (j in seq_len(J + N)) {
   z[, j] <- lambda[1, j] * psi[, 1] + 2 * lambda[2, j] + rnorm(T_total)
 }
+# time-varying regression coefficient for z
+gamma <- cumsum(cumsum(rnorm(T_total, 0, 0.05)))
+
+# noise term
+epsilon <- rnorm((J + N) * T_total)
+
 multiple_treated <- data.frame(
   time = seq_len(T_total) - (T_total - 4),
   id = rep(seq_len(J + N), each = T_total),
-  y = y,
+  f = c(f),
   x = c(x),
   z = c(z),
+  gamma = gamma,
   psi1 = psi[, 1],
   psi2 = psi[, 2],
   lambda1 = rep(lambda[1, ], each = T_total),
-  lambda2 = rep(lambda[2, ], each = T_total)
+  lambda2 = rep(lambda[2, ], each = T_total),
+  epsilon = epsilon
 ) |>
   dplyr::mutate(
-    treatment = ifelse(id <= N & time >= 0, 1, 0),
-    .before = psi1
-  ) |>
-  dplyr::mutate(
-    # true effect is t, t = time points since treatment
-    tau = ifelse(treatment, cumsum(treatment), 0),
-    .by = id,
-    .before = psi1
-  ) |>
-  dplyr::mutate(
-    y = -5 + y + x + z + tau * treatment + rnorm(n())
-  )
+    treatment = as.integer(id <= N & time >= 0),
+    y = 5 + f + x + gamma * z + 2 * treatment + epsilon
+  ) |> 
+  dplyr::select(time, id, y, x, z, treatment)
 usethis::use_data(multiple_treated, overwrite = TRUE)
