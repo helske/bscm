@@ -9,7 +9,7 @@ test_that("fitted returns data.frame with correct structure", {
   expect_equal(d$id, rep(get_treated(fitN_int), each = get_T_total(fitN_int)))
 })
 
-test_that("fitted returns posterior samples when summary = FALSE", {
+test_that("fitted returns posterior draws when summary = FALSE", {
   d <- fitted(fit1_int, summary = FALSE)
   expect_s3_class(d, "tbl_df")
   expect_true(posterior::is_rvar(d$y_mean))

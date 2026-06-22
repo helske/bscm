@@ -48,6 +48,6 @@ multiple_treated <- data.frame(
   dplyr::mutate(
     treatment = as.integer(id <= N & time >= 0),
     y = 5 + f + x + gamma * z + 2 * treatment + epsilon
-  ) |> 
+  ) |>
   dplyr::select(time, id, y, x, z, treatment)
 usethis::use_data(multiple_treated, overwrite = TRUE)

@@ -8,7 +8,7 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @aliases fitted
 #' @export
 #' @examples

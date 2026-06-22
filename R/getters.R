@@ -14,6 +14,7 @@ has_intercept <- \(x) x$setup$has_intercept
 has_predictors <- \(x) length(x$setup$beta_names) > 0L
 has_tv_coefs <- \(x) length(x$setup$gamma_names) > 0L
 get_predictors <- \(x) x$setup$predictors
+has_ar1_error <- \(x) x$setup$error == "ar1"
 
 #' @noRd
 get_stan_y <- function(x) {

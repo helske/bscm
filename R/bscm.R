@@ -137,19 +137,19 @@
 #' )
 #' fit
 bscm <- function(
-    formula,
-    data,
-    treatment = "treatment",
-    time = "time",
-    unit = "id",
-    error = "iid",
-    omega_prior = dirichlet(kappa = 1),
-    prior_only = FALSE,
-    mcmc_diagnostics = TRUE,
-    save_data = TRUE,
-    priors = "default",
-    compute_predictions = TRUE,
-    ...
+  formula,
+  data,
+  treatment = "treatment",
+  time = "time",
+  unit = "id",
+  error = "iid",
+  omega_prior = dirichlet(kappa = 1),
+  prior_only = FALSE,
+  mcmc_diagnostics = TRUE,
+  save_data = TRUE,
+  priors = "default",
+  compute_predictions = TRUE,
+  ...
 ) {
   check_bscm_arguments(
     formula,
@@ -261,7 +261,7 @@ bscm <- function(
         i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
       )
     )
-    
+
     donor_idx <- which(!colnames(treatment_table) %in% treated)
     X_z <- X[donor_idx, , , drop = FALSE]
     X_y <- X[treated_idx, , , drop = FALSE]
@@ -280,7 +280,7 @@ bscm <- function(
       )
     }
   }
-  
+
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
   if (is.null(stan_args$control$adapt_delta)) {
@@ -304,7 +304,7 @@ bscm <- function(
   } else {
     stan_args$pars <- union(stan_args$pars, exclude_extras)
   }
-  
+
   input_stats <- bscm_stats(Y, Z, T_pre, X = if (has_x) X)
   stan_args$data <- create_standata(
     input_stats,
@@ -327,12 +327,12 @@ bscm <- function(
       simplify = FALSE
     )
   }
-  
+
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions
   gq <- rstan::gqs(
-    stanmodels$generated_quantities, 
+    stanmodels$generated_quantities,
     data = stan_args$data,
     draws = as.matrix(fit)
   )
@@ -361,15 +361,15 @@ bscm <- function(
     excluded_pars = stan_args$pars
   )
   out <- list(
-    stanfit = fit, 
+    stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),
     y_rep = if (compute_predictions) as.matrix(gq, "y_rep") else "Not sampled",
     data = if (save_data) data else NULL,
     setup = setup
   )
   class(out) <- "bscmfit"
-  
-  run_diags <-  mcmc_diagnostics &&
+
+  run_diags <- mcmc_diagnostics &&
     ndraws(out) > 50L &&
     !identical(stan_args$algorithm, "Fixed_param")
   if (run_diags) {

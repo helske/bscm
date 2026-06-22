@@ -105,7 +105,7 @@ test_that("create_inits() returns correct list structure", {
   x <- bscm_stats(Y, Z, T_pre)
   d <- create_standata(x, T_pre, Y, Z, icpt = FALSE, omega_prior)
   inits <- create_inits(d)
-  pars <- c("omega_", "eta", "sigma",  "a", "beta", "xi", "sigma_gamma", "rho")
+  pars <- c("omega_", "eta", "sigma", "a", "beta", "xi", "sigma_gamma", "rho")
   expect_named(inits, pars)
   expect_equal(dim(inits$eta), c(N, J - 1L))
   expect_length(inits$sigma, N)
@@ -116,5 +116,4 @@ test_that("create_inits() returns correct list structure", {
   expect_length(inits$sigma, N)
   expect_length(inits$a, N)
   expect_equal(inits$omega_, matrix(1 / J, N, J))
-
 })

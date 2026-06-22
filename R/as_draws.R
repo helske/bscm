@@ -1,4 +1,4 @@
-#' Return posterior draws from BSCM fit as a draws object 
+#' Return posterior draws from BSCM fit as a draws object
 #'
 #' @inheritParams as.data.frame.bscmfit
 #' @param inc_warmup \[`logical(1)`]\cr Whether to include warmup draws.

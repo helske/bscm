@@ -14,7 +14,7 @@ treatment_effect <- function(x, ...) {
 #' multiple treated units. If `FALSE`, unit-specific effects are returned.
 #' @param ... Ignored.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname treatment_effect
 #' @aliases treatment_effect
 #' @export

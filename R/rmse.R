@@ -12,12 +12,12 @@ rmse <- function(x, ...) {
 #' @param summary \[`logical(1)`]\cr If `TRUE` (the default), returns posterior
 #'   mean, standard deviation, posterior quantiles (as defined by the
 #'   `probs` argument), and MCMC convergence measures.
-#'   If `FALSE`, returns the posterior samples instead.
+#'   If `FALSE`, returns the posterior draws instead.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname rmse
 #' @aliases rmse
 #' @export

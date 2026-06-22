@@ -5,13 +5,7 @@
 \alias{coef}
 \title{Extract regression coefficients of a Bayesian synthetic control model}
 \usage{
-\method{coef}{bscmfit}(
-  object,
-  type = c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
-  summary = TRUE,
-  probs = c(0.025, 0.975),
-  ...
-)
+\method{coef}{bscmfit}(object, type = NULL, summary = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
@@ -19,8 +13,9 @@
 \item{type}{[\code{character()}]\cr Type of coefficients to return. Should be
 one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
 \code{"gamma"} (time-varying regression coefficients), \code{"sigma_gamma"}
-(SDs of time-varying coefficients),
-\code{"rho"} (autoregressive coefficients of the residuals).}
+(SDs of time-varying coefficients), and
+\code{"rho"} (autoregressive coefficients of the residuals). The default \code{NULL}
+corresponds to all terms above contained in the model.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
@@ -33,8 +28,8 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
-posterior samples (\code{summary = FALSE}) in long format.
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
+list of \code{tibbles} of posterior samples (\code{summary = FALSE}).
 }
 \description{
 Extract regression coefficients of a Bayesian synthetic control model

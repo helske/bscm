@@ -47,8 +47,7 @@ data {
   vector<lower = 0>[N * icpt] pr_sd_intercept;  // prior SD of intercept
   vector[K] pr_mean_beta;                       // prior mean of beta
   vector<lower = 0>[K] pr_sd_beta;              // prior SD of beta
-  vector<lower = 0>[L] pr_shape_sigma_gamma;    // sigma_gamma ~ Gamma()
-  vector<lower = 0>[L] pr_rate_sigma_gamma;
+  vector<lower = 0>[L] pr_sd_sigma_gamma;
   vector<lower = 0>[N * ar1] pr_shape1_rho;     // 0.5 * (1 + rho) ~ Beta()
   vector<lower = 0>[N * ar1] pr_shape2_rho;
   int<lower = 0, upper = 1> likelihood;         // if 0, sample from prior only
@@ -151,7 +150,7 @@ model {
   }
   a ~ normal(pr_mean_intercept, pr_sd_intercept);
   beta ~ normal(pr_mean_beta, pr_sd_beta);
-  sigma_gamma ~ gamma(pr_shape_sigma_gamma, pr_rate_sigma_gamma);
+  sigma_gamma ~ normal(0, pr_sd_sigma_gamma);
   to_vector(xi) ~ std_normal();
   0.5 * (1 + rho) ~ beta(pr_shape1_rho, pr_shape2_rho);
   if (likelihood) {

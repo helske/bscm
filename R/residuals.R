@@ -10,7 +10,7 @@
 #'   points.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @aliases residuals
 #' @export
 #' @examples

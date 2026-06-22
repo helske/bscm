@@ -13,7 +13,7 @@ synthetic_control <- function(x, ...) {
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname synthetic_control
 #' @aliases synthetic_control
 #' @export

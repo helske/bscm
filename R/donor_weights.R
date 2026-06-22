@@ -8,7 +8,7 @@ donor_weights <- function(x, ...) {
 #' @inheritParams rmse.bscmfit
 #' @param ... Ignored.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname donor_weights
 #' @aliases donor_weights
 #' @export

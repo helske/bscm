@@ -11,7 +11,7 @@ test_that("residuals returns data.frame with correct structure", {
   )
 })
 
-test_that("residuals returns posterior samples when summary = FALSE", {
+test_that("residuals returns posterior draws when summary = FALSE", {
   d <- residuals(fit1_int, summary = FALSE)
   expect_s3_class(d, "tbl_df")
   expect_true(posterior::is_rvar(d$residuals))

@@ -14,7 +14,7 @@ effective_donors <- function(x, ...) {
 #' multiple treated units. The default is `FALSE`.
 #' @param ... Ignored.
 #' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
-#'   posterior samples (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname effective_donors
 #' @aliases effective_donors
 #' @export
