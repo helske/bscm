@@ -95,7 +95,7 @@ lfo.bscmfit <- function(
   unit <- get_unit(x)
   treatment <- get_treatment(x)
   treated <- get_treated(x)
-  omega_prior <- get_omega_prior(x)
+  priors <- get_priors(x)
 
   refit_at <- function(t_lfo) {
     d <- x$data |>
@@ -112,7 +112,7 @@ lfo.bscmfit <- function(
       compute_predictions = FALSE,
       mcmc_diagnostics = FALSE,
       save_data = FALSE,
-      omega_prior = omega_prior,
+      priors = priors,
       refresh = 0,
       ...
     )

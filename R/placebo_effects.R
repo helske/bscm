@@ -76,7 +76,7 @@ placebo_effects.bscmfit <- function(
   unit <- get_unit(x)
   treated <- get_treated(x)
   data <- x$data
-  omega_prior <- get_omega_prior(x)
+  priors <- get_priors(x)
   if (identical(type, "donor")) {
     placebo_labels <- c(treated, donors)
     effects <- rmses <- diagnostics_list <-
@@ -102,7 +102,7 @@ placebo_effects.bscmfit <- function(
         x,
         data = d,
         mcmc_diagnostics = FALSE,
-        omega_prior = omega_prior,
+        priors = priors,
         ...
       )
       effects[[i + 1L]] <- treatment_effect(fit, probs = probs)
@@ -132,7 +132,7 @@ placebo_effects.bscmfit <- function(
         x,
         data = d,
         mcmc_diagnostics = FALSE,
-        omega_prior = omega_prior,
+        priors = priors,
         ...
       )
       effects[[i]] <- treatment_effect(fit, probs = probs)

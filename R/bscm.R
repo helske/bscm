@@ -35,24 +35,6 @@
 #' intercept for all units, instead of unit-specific intercepts
 #' (e.g., fixed effects).
 #'
-#' The prior for the weight vector \eqn{\omega} is controlled by the
-#' `omega_prior` argument. Two families are supported:
-#'
-#' - Logistic normal ([logistic_normal()]): \eqn{\omega =
-#'   \textrm{softmax}(\eta)} with \eqn{\eta \sim N(0, \kappa^2 I)} constrained
-#'   to sum to zero. Larger \eqn{\kappa} induces sparser weights.
-#' - Symmetric Dirichlet ([dirichlet()]): \eqn{\omega \sim
-#'   \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
-#'   concentrate weight on few donors while \eqn{\kappa > 1} pulls encourages
-#'   more uniform weights. The default prior is
-#'   \eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over
-#'   probability simplices.
-#'
-#' You should test different values to assess sensitivity of results,
-#' and potentially run [bscm::loo()] or [bscm::lfo()] for cross-validation
-#' based selection (although it can be inconclusive for small and moderate
-#' number of pre-treatment time points and/or donors).
-#'
 #' When model contains covariates \eqn{X}, their effect is subtracted from
 #' donors, i.e., for treated unit \eqn{i},
 #' \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)},
@@ -61,20 +43,6 @@
 #' vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 #' the effect of covariates \eqn{X_j \beta} for that donor. Note that
 #' \eqn{\beta} is common across donors and the treated units.
-#'
-#' The default priors for intercept \eqn{\alpha_i} and standard deviation
-#' \eqn{\sigma_i} of the noise term are
-#' \eqn{\alpha_i \sim N(m_i, s_i^2)} and
-#' \eqn{\sigma_i \sim exponential(l_i)},
-#' where by default `m_i = mean(y_i)`, `s_i = 2 * sd(y_i)`,
-#' `l_i = 1 / sd(y_i)`, with `y_i` being the vector of pretreatment
-#' outcomes of treated unit \eqn{i}.
-#'
-#' The default prior for the coefficient \eqn{\beta_k} is
-#' \eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2s_y / s_{x,k}} and
-#' \eqn{s_y} and  \eqn{s_{x,k}} are the pre-treatment median standard
-#' deviations of the outcomes for treated units and covariates \eqn{x_k} for
-#' all units.
 #'
 #' @param formula \[`formula`]\cr The model formula containing the outcome
 #' variable on the left-hand side and optional time-varying predictors on
@@ -90,16 +58,12 @@
 #' @param error \[`character(1)`]\cr Assumed error structure of the model.
 #'   Either `"iid"` (independent and identically distributed errors) or
 #'   `"ar1"` (first-order autoregressive process). Default is `"iid"`.
+#' @param priors \[`list()`]\cr List of prior definitions for the model
+#'   parameters. See [bscm_prior()] for details on the available prior
+#' families and how to define them. If `NULL` (the default), default
+#' priors are used.
 #' @param prior_only \[`logical(1)`]\cr If `TRUE`, samples from prior
 #'   predictive distribution. Default is `FALSE`.
-#' @param priors \[`list()` or `character(1)`]\cr List of prior definitions
-#'   or `"default"`, latter being only supported option at the
-#'   moment for parameters other than weight vector \eqn{\omega}. See details.
-#' @param omega_prior \[`omega_prior`]\cr Prior for the donor weight vector
-#'   \eqn{\omega}, created by [logistic_normal()] or [dirichlet()], where both
-#'   constructors take argument `kappa` which defines the scale and
-#'   concentration parameter of the corresponding distribution.
-#'   Defaults to `dirichlet(kappa = 1)`. See details.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
 #'   output of [bscm()] includes the results of MCMC diagnostics checks
 #'   performed by [check_mcmc_diagnostics.bscmfit()]. Note that regardless
@@ -131,7 +95,7 @@
 #' # skip diagnostics and use small number of iterations for CRAN checks
 #' fit <- bscm(
 #'   y ~ 1, single_treated, "treatment", "time", "id",
-#'   omega_prior = dirichlet(0.5),
+#'   priors = list(omega = dirichlet_pr(0.5)),
 #'   chains = 1, cores = 1, refresh = 0, iter = 1000,
 #'   mcmc_diagnostics = FALSE
 #' )
@@ -143,11 +107,10 @@ bscm <- function(
   time = "time",
   unit = "id",
   error = "iid",
-  omega_prior = dirichlet(kappa = 1),
+  priors = NULL,
   prior_only = FALSE,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
-  priors = "default",
   compute_predictions = TRUE,
   ...
 ) {
@@ -157,10 +120,8 @@ bscm <- function(
     treatment,
     time,
     unit,
-    omega_prior,
     mcmc_diagnostics,
     save_data,
-    priors,
     compute_predictions,
     prior_only
   )
@@ -169,9 +130,9 @@ bscm <- function(
   formula <- parsed_formula$x_formula
   has_icpt <- parsed_formula$icpt
   predictors <- parsed_formula$predictors
-  has_x <- length(predictors > 0)
-  has_w <- length(parsed_formula$w_terms > 0)
-  df <- parsed_formula$df
+  has_x <- length(predictors) > 0
+  has_w <- length(parsed_formula$w_terms) > 0
+  spline_df <- parsed_formula$spline_df
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
@@ -225,7 +186,7 @@ bscm <- function(
   )
   J <- ncol(Z)
   beta_names <- gamma_names <- NULL
-  X_y <- X_z <- NULL
+  X_y <- X_z <- X <- NULL
   tv_idx <- numeric(0)
   if (has_x) {
     X <- stats::model.matrix(formula, data = data)
@@ -253,11 +214,12 @@ bscm <- function(
         beta_names
       )
     )
-    warnifnot_(
-      length(constant_sd) == 0 || !has_icpt,
+    stopifnot_(
+      length(constant_sd) == 0,
       c(
-        "Model has unit-specific intercepts and predictors which do not vary in 
-        the pre-treatment period for any units.",
+        "{cli::qty(length(constant_sd))} 
+        Model has predictor{?s} which {?is/are} constant in 
+        the pre-treatment period for all units.",
         i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
       )
     )
@@ -280,7 +242,27 @@ bscm <- function(
       )
     }
   }
-
+  setup <- dplyr::lst(
+    outcome,
+    treatment,
+    treated,
+    donors,
+    unit,
+    time,
+    times = unique(data[[time]]),
+    T_pre,
+    T_total,
+    has_icpt = has_icpt,
+    has_x = has_x,
+    has_w = has_w,
+    has_ar1 = error == "ar1",
+    predictors,
+    beta_names,
+    gamma_names,
+    tv_idx,
+    spline_df,
+    prior_only
+  )
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
   if (is.null(stan_args$control$adapt_delta)) {
@@ -304,26 +286,30 @@ bscm <- function(
   } else {
     stan_args$pars <- union(stan_args$pars, exclude_extras)
   }
-
-  input_stats <- bscm_stats(Y, Z, T_pre, X = if (has_x) X)
+  setup$excluded_pars <- stan_args$pars
+  
+  if (setup$has_w) {
+    spline_def <- build_spline(T_total, T_pre, spline_df)
+  } else {
+    spline_def <- NULL
+  }
+  descriptives <- compute_descriptives(Y, Z, T_pre, X)
+  priors <- define_priors(priors, descriptives, setup, spline_def)
   stan_args$data <- create_standata(
-    input_stats,
-    T_pre,
+    setup,
+    priors,
     Y,
     Z,
-    has_icpt,
-    omega_prior,
     X_y,
     X_z,
-    tv_idx,
-    df,
-    ar1_error = error == "ar1",
+    spline_def,
     prior_only
   )
+
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
-      create_inits(stan_args$data),
+      create_inits(stan_args$data, descriptives, spline_def),
       simplify = FALSE
     )
   }
@@ -336,36 +322,14 @@ bscm <- function(
     data = stan_args$data,
     draws = as.matrix(fit)
   )
-  times <- unique(data[[time]])
-  priors <- stan_args$data[startsWith(names(stan_args$data), "pr_")]
-  priors <- priors[length(priors) > 0]
-  setup <- dplyr::lst(
-    outcome,
-    treatment,
-    treated,
-    donors,
-    unit,
-    time,
-    times,
-    T_pre,
-    T_total,
-    has_intercept = has_icpt,
-    predictors,
-    beta_names,
-    gamma_names,
-    df,
-    priors,
-    omega_prior,
-    error,
-    prior_only,
-    excluded_pars = stan_args$pars
-  )
+
   out <- list(
     stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),
     y_rep = if (compute_predictions) as.matrix(gq, "y_rep") else "Not sampled",
     data = if (save_data) data else NULL,
-    setup = setup
+    setup = setup,
+    priors = priors
   )
   class(out) <- "bscmfit"
 

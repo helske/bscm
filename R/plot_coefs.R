@@ -113,10 +113,10 @@ plot_coefs_varying <- function(x, probs, combine, alpha, scales) {
     d <- coef(x, type = "gamma", summary = TRUE, probs = probs)
   } else {
     d_beta <- coef(x, type = "beta", summary = FALSE)$beta |>
-      dplyr::mutate(parameter = sub("^beta_", "", parameter)) |>
-      dplyr::filter(parameter %in% x$setup$gamma_names)
+      dplyr::mutate(parameter = sub("^beta_", "", .data$parameter)) |>
+      dplyr::filter(.data$parameter %in% x$setup$gamma_names)
     d_gamma <- coef(x, type = "gamma", summary = FALSE)$gamma |>
-      dplyr::mutate(parameter = sub("^gamma_", "", parameter))
+      dplyr::mutate(parameter = sub("^gamma_", "", .data$parameter))
     d <- d_gamma |>
       dplyr::left_join(d_beta, by = "parameter") |>
       dplyr::mutate(

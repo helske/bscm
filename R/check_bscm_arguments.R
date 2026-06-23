@@ -8,10 +8,8 @@ check_bscm_arguments <- function(
   treatment,
   time,
   unit,
-  omega_prior,
   mcmc_diagnostics,
   save_data,
-  priors,
   compute_predictions,
   prior_only
 ) {
@@ -88,18 +86,8 @@ check_bscm_arguments <- function(
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
   stopifnot_(
-    inherits(omega_prior, "omega_prior"),
-    "Argument {.arg omega_prior} must be an {.cls omega_prior} object created
-    by {.fn logistic_normal} or {.fn dirichlet}."
-  )
-  stopifnot_(
     checkmate::test_flag(mcmc_diagnostics),
     "Argument {.arg mcmc_diagnostics} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    identical(priors, "default"),
-    "Argument {.arg priors} is not equal to {.val 'default'}. Only default 
-    priors for intercept and sigma are currently supported."
   )
   stopifnot_(
     checkmate::test_flag(save_data),
@@ -134,5 +122,18 @@ test_summary <- function(summary) {
   stopifnot_(
     checkmate::test_flag(summary),
     "Argument {.arg summary} must be a single {.cls logical} value."
+  )
+}
+
+check_real <- function(x, param) {
+  stopifnot_(
+    checkmate::test_numeric(x, any.missing = FALSE, finite = TRUE),
+    "Argument {.arg {param}} must be finite real number(s)."
+  )
+}
+check_positive <- function(x, param) {
+  stopifnot_(
+    checkmate::test_numeric(x, lower = 0, any.missing = FALSE, finite = TRUE),
+    "Argument {.arg {param}} must contain positive number(s)."
   )
 }

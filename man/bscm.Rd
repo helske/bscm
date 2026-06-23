@@ -11,11 +11,10 @@ bscm(
   time = "time",
   unit = "id",
   error = "iid",
-  omega_prior = dirichlet(kappa = 1),
+  priors = NULL,
   prior_only = FALSE,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
-  priors = "default",
   compute_predictions = TRUE,
   ...
 )
@@ -41,11 +40,10 @@ identifying different units. Default is \code{"id"}.}
 Either \code{"iid"} (independent and identically distributed errors) or
 \code{"ar1"} (first-order autoregressive process). Default is \code{"iid"}.}
 
-\item{omega_prior}{[\code{omega_prior}]\cr Prior for the donor weight vector
-\eqn{\omega}, created by \code{\link[=logistic_normal]{logistic_normal()}} or \code{\link[=dirichlet]{dirichlet()}}, where both
-constructors take argument \code{kappa} which defines the scale and
-concentration parameter of the corresponding distribution.
-Defaults to \code{dirichlet(kappa = 1)}. See details.}
+\item{priors}{[\code{list()}]\cr List of prior definitions for the model
+parameters. See \code{\link[=bscm_prior]{bscm_prior()}} for details on the available prior
+families and how to define them. If \code{NULL} (the default), default
+priors are used.}
 
 \item{prior_only}{[\code{logical(1)}]\cr If \code{TRUE}, samples from prior
 predictive distribution. Default is \code{FALSE}.}
@@ -60,10 +58,6 @@ generate warnings regarding convergence and other sampling issues.}
 object returned by  \code{\link[=bscm]{bscm()}} includes the input \code{data.frame}
 (argument \code{data}), after dropping unused factor levels and potentially
 rearranging data by \code{unit} and \code{time} variables.}
-
-\item{priors}{[\code{list()} or \code{character(1)}]\cr List of prior definitions
-or \code{"default"}, latter being only supported option at the
-moment for parameters other than weight vector \eqn{\omega}. See details.}
 
 \item{compute_predictions}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
 posterior predictive draws (\code{y_rep}) are computed during sampling. Set to
@@ -120,25 +114,6 @@ of intercept: Defining formula such as \code{y ~ 0 + intercept + x}, where
 intercept for all units, instead of unit-specific intercepts
 (e.g., fixed effects).
 
-The prior for the weight vector \eqn{\omega} is controlled by the
-\code{omega_prior} argument. Two families are supported:
-\itemize{
-\item Logistic normal (\code{\link[=logistic_normal]{logistic_normal()}}): \eqn{\omega =
-  \textrm{softmax}(\eta)} with \eqn{\eta \sim N(0, \kappa^2 I)} constrained
-to sum to zero. Larger \eqn{\kappa} induces sparser weights.
-\item Symmetric Dirichlet (\code{\link[=dirichlet]{dirichlet()}}): \eqn{\omega \sim
-  \textrm{Dirichlet}(\kappa, \ldots, \kappa)}. Values \eqn{\kappa < 1}
-concentrate weight on few donors while \eqn{\kappa > 1} pulls encourages
-more uniform weights. The default prior is
-\eqn{Dirichlet(\kappa = 1)} which corresponds to uniform prior over
-probability simplices.
-}
-
-You should test different values to assess sensitivity of results,
-and potentially run \code{\link[=loo]{loo()}} or \code{\link[=lfo]{lfo()}} for cross-validation
-based selection (although it can be inconclusive for small and moderate
-number of pre-treatment time points and/or donors).
-
 When model contains covariates \eqn{X}, their effect is subtracted from
 donors, i.e., for treated unit \eqn{i},
 \eqn{y_i \sim N(\alpha_i + X_i\beta + Z^\ast\omega_i, \sigma_i^2)},
@@ -147,26 +122,12 @@ where column \eqn{j} of \eqn{Z^\ast} is
 vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
-
-The default priors for intercept \eqn{\alpha_i} and standard deviation
-\eqn{\sigma_i} of the noise term are
-\eqn{\alpha_i \sim N(m_i, s_i^2)} and
-\eqn{\sigma_i \sim exponential(l_i)},
-where by default \code{m_i = mean(y_i)}, \code{s_i = 2 * sd(y_i)},
-\code{l_i = 1 / sd(y_i)}, with \code{y_i} being the vector of pretreatment
-outcomes of treated unit \eqn{i}.
-
-The default prior for the coefficient \eqn{\beta_k} is
-\eqn{\beta_k \sim N(0, s_k^2)}, where \eqn{s_k = 2s_y / s_{x,k}} and
-\eqn{s_y} and  \eqn{s_{x,k}} are the pre-treatment median standard
-deviations of the outcomes for treated units and covariates \eqn{x_k} for
-all units.
 }
 \examples{
 # skip diagnostics and use small number of iterations for CRAN checks
 fit <- bscm(
   y ~ 1, single_treated, "treatment", "time", "id",
-  omega_prior = dirichlet(0.5),
+  priors = list(omega = dirichlet_pr(0.5)),
   chains = 1, cores = 1, refresh = 0, iter = 1000,
   mcmc_diagnostics = FALSE
 )

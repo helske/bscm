@@ -28,6 +28,9 @@ formula. Currently only supported model is one without extra predictors.
 There are also other restrictions, namely lack of support for K-fold. For
 obtaining predictions based on the projected model, the \code{newdata} argument
 needs the data in wide format, see examples.
+
+This function is experimental and currently only a single treated unit is
+supported.
 }
 \examples{
 \donttest{

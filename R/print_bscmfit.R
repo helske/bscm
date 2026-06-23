@@ -10,7 +10,7 @@ print.bscmfit <- function(x, ...) {
   T_total <- get_T_total(x)
   N <- get_N(x)
   J <- get_J(x)
-  ar1 <- if (x$setup$error == "ar1") {
+  ar1 <- if (x$setup$has_ar1) {
     " with AR(1) residuals"
   } else {
     ""

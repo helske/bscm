@@ -14,7 +14,7 @@ control model}
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
 \code{probs} argument), and MCMC convergence measures.
-If \code{FALSE}, returns the posterior samples instead.}
+If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
@@ -23,7 +23,7 @@ Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
-posterior samples (\code{summary = FALSE}) in long format.
+posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
 Returns posterior draws (or summaries) of expected values \code{y_mean} of the

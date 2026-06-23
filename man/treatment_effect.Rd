@@ -32,14 +32,14 @@ multiple treated units. If \code{FALSE}, unit-specific effects are returned.}
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
 \code{probs} argument), and MCMC convergence measures.
-If \code{FALSE}, returns the posterior samples instead.}
+If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-posterior samples (\code{summary = FALSE}) in long format.
+posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
 Treatment effect estimates of a Bayesian synthetic control model

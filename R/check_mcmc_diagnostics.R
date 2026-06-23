@@ -8,13 +8,6 @@
 #' [posterior::default_convergence_measures()] for details on the definitions
 #' of these.
 #'
-#' Typical reasons for sampling issues can be a result of short pre-treatment
-#' period and/or too many/few donors, units have very different series so that
-#' the convex hull assumption is not even approximately plausible. Other
-#' reasons include using priors which are incompatible with the data.
-#' In addition, too large standard deviation \eqn{kappa} can
-#' cause numerical issues (divergences) with Stan.
-#'
 #' @export
 #' @rdname check_mcmc_diagnostics
 #' @param x \[`bscmfit`]\cr The model fit object.

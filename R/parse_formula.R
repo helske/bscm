@@ -41,7 +41,7 @@ tv <- function(tv_formula, df = 20) {
   structure(
     list(
       terms = tv_term_labels,
-      df = df
+      spline_df = df
     ),
     class = "tv_term"
   )
@@ -58,7 +58,7 @@ tv <- function(tv_formula, df = 20) {
 #'   - `tv_terms`: character vector of time-varying term labels
 #'   - `has_intercept`: logical
 #'   - `predictors`: character vector of predictor variable names
-#'   - `df`: Degrees of freedom variable passed on to [splines::bs()].
+#'   - `spline_df`: Degrees of freedom variable passed on to [splines::bs()].
 #' @noRd
 parse_bscm_formula <- function(formula) {
   xt <- stats::terms(formula, specials = "tv")
@@ -91,7 +91,7 @@ parse_bscm_formula <- function(formula) {
   tv_call <- xt_vars[[tv_idx + 1L]]
   tv_object <- eval(tv_call)
 
-  tv_df <- tv_object$df
+  spline_df <- tv_object$spline_df
   tv_term_labels <- tv_object$terms
 
   # Drop the tv() term from the original formula
@@ -125,6 +125,6 @@ parse_bscm_formula <- function(formula) {
     x_formula = full_formula,
     w_formula = tv_formula,
     w_terms = tv_term_labels,
-    df = tv_df
+    spline_df = spline_df
   )
 }

@@ -71,6 +71,9 @@ tryCatch(
       treatment = "treatment",
       time = "time",
       unit = "id",
+      priors = list(
+        intercept = normal_pr(0, 1), sigma_gamma = exponential_pr(1)
+      ),
       chains = 2,
       iter = 200,
       init = 0,

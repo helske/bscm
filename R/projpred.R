@@ -13,6 +13,9 @@
 #' There are also other restrictions, namely lack of support for K-fold. For
 #' obtaining predictions based on the projected model, the `newdata` argument
 #' needs the data in wide format, see examples.
+#' 
+#' This function is experimental and currently only a single treated unit is 
+#' supported.
 #'
 #' @param object A `bscmfit` object from [bscm()].
 #' @param ... Additional arguments passed to [projpred::init_refmodel()].
@@ -68,7 +71,6 @@ get_refmodel.bscmfit <- function(object, ...) {
   }
   T_total <- get_T_total(object)
   T_pre <- get_T_pre(object)
-  has_intercept <- has_intercept(object)
   outcome <- get_outcome(object)
   proj_data <- object$data |>
     dplyr::pull(.data[[outcome]]) |>
@@ -77,7 +79,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     stats::setNames(units)
   proj_data <- proj_data[1:T_pre, , drop = FALSE]
   rhs <- paste(donors, collapse = " + ")
-  if (has_intercept) {
+  if (has_intercept(object)) {
     proj_formula <- stats::as.formula(paste(treated, "~", rhs))
   } else {
     proj_formula <- stats::as.formula(paste(treated, "~ 0 +", rhs))

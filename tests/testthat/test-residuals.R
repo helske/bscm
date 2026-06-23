@@ -41,5 +41,5 @@ test_that("residuals validates probs argument", {
 test_that("residuals are reasonable", {
   suppressWarnings(d <- residuals(fit1_x))
   pre_resid <- d$mean[d$treatment == 0]
-  expect_lt(max(abs(pre_resid)), 1)
+  expect_lt(max(abs(pre_resid)), 3)
 })

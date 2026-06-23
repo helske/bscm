@@ -30,14 +30,6 @@ parameters. See \code{\link[rstan:check_hmc_diagnostics]{rstan::check_hmc_diagno
 \code{\link[posterior:draws_summary]{posterior::default_convergence_measures()}} for details on the definitions
 of these.
 }
-\details{
-Typical reasons for sampling issues can be a result of short pre-treatment
-period and/or too many/few donors, units have very different series so that
-the convex hull assumption is not even approximately plausible. Other
-reasons include using priors which are incompatible with the data.
-In addition, too large standard deviation \eqn{kappa} can
-cause numerical issues (divergences) with Stan.
-}
 \examples{
 check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
 }

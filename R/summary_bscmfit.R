@@ -20,16 +20,25 @@
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   probs <- sort_probs(probs)
   cf <- rho <- NULL
-  ar1_error <- object$setup$error == "ar1"
-  if (has_intercept(object) || has_predictors(object) || ar1_error) {
+  coefs <- c(
+    if (has_intercept(object)) "alpha",
+    if (has_predictors(object)) "beta",
+    if (has_tv_coefs(object)) "sigma_gamma",
+    if (has_ar1_error(object)) "rho"
+  )
+  if (length(coefs) > 0) {
     cf <- coef(
       object,
       probs = probs,
-      type = c("alpha", "beta", "sigma_gamma", "rho")
+      type = coefs
     )
   }
   s <- sigma(object, probs = probs) |>
     dplyr::mutate(variable = "Residual SD")
+  r2 <- bayes_R2(object, probs = probs) |>
+    dplyr::mutate(variable = "Bayesian R2")
+  eff <- effective_donors(object, probs = probs) |>
+    dplyr::mutate(variable = "Effective number of donors")
   treatment <- get_treatment(object)
   att <- treatment_effect(
     object,
@@ -41,8 +50,8 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
     dplyr::mutate(
       variable = dplyr::if_else(
         .data$variable == 0,
-        "Pre-treatment effect",
-        "Post-treatment effect"
+        "Average pre-treatment effect",
+        "Average post-treatment effect"
       )
     )
   rmses <- rmse(object, average = FALSE, probs = probs) |>
@@ -54,7 +63,7 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
         "Post-treatment RMSE"
       )
     )
-  sumr <- dplyr::bind_rows(cf, s, att, rmses)
+  sumr <- dplyr::bind_rows(cf, s, r2, eff, att, rmses)
   class(sumr) <- c("summary_bscmfit", class(sumr))
   sumr |> dplyr::relocate("variable", .before = 1L)
 }

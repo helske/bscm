@@ -15,24 +15,10 @@ test_that("bscmfit$setup has correct structure", {
   setup <- fit1_int$setup
   expect_type(setup, "list")
   expected_fields <- c(
-    "outcome",
-    "treatment",
-    "treated",
-    "donors",
-    "unit",
-    "time",
-    "times",
-    "T_pre",
-    "T_total",
-    "has_intercept",
-    "predictors",
-    "beta_names",
-    "gamma_names",
-    "df",
-    "priors",
-    "omega_prior",
-    "error",
-    "prior_only"
+    "outcome", "treatment", "treated", "donors", "unit", "time", 
+    "times", "T_pre", "T_total", "has_icpt", "has_x", "has_w", "has_ar1", 
+    "predictors", "beta_names", "gamma_names", "tv_idx", "spline_df", 
+    "prior_only", "excluded_pars"
   )
   expect_true(all(expected_fields %in% names(setup)))
 })
@@ -45,8 +31,8 @@ test_that("bscmfit$setup values are correct", {
   expect_equal(setup$unit, "id")
   expect_equal(setup$time, "time")
   expect_equal(setup$T_pre, 40L)
-  expect_equal(setup$T_total, 45L)
-  expect_true(setup$has_intercept)
+  expect_equal(setup$T_total, 50L)
+  expect_true(setup$has_icpt)
   expect_equal(setup$predictors, character(0))
   expect_null(setup$beta_names)
   expect_equal(length(setup$donors), 50L)
@@ -54,8 +40,8 @@ test_that("bscmfit$setup values are correct", {
   expect_equal(get_predictors(fitN_xz), c("x", "z"))
   expect_true(has_intercept(fitN_xz))
   expect_equal(get_treated(fitN_xz), c("1", "2", "3"))
-  expect_equal(fit1_noint$setup$error, "ar1")
-  expect_equal(fit1_int$setup$error, "iid")
+  expect_equal(fit1_noint$setup$has_ar1, has_ar1_error(fit1_noint))
+  expect_false(fit1_int$setup$has_ar1)
 })
 
 test_that("bscmfit$setup with tv() has correct structure", {

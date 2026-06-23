@@ -10,7 +10,9 @@ R package for Bayesian Synthetic Control Models (Helske 2026, in-preparation).
 Key features:
 * Time-varying covariates, optionally with time-varying coefficients as splines.
 * Multiple treated units, with or without staggered adoption.
-* Customizable Dirichlet and logistic normal priors for donor weights.
+* Weakly informative default priors and user-defined priors are supported.
+* Computationally and statistically efficient posterior sampling via 
+  pre-compiled [Stan](https://mc-stan.org/) models.
 * Convenient methods for extracting posterior summaries or draws of 
   treatment effects, synthetic control series, donor weights, RMSE, 
   Bayesian R^2, and other quantities of interest.

@@ -20,7 +20,7 @@ corresponds to all terms above contained in the model.}
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
 \code{probs} argument), and MCMC convergence measures.
-If \code{FALSE}, returns the posterior samples instead.}
+If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
@@ -29,7 +29,7 @@ Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-list of \code{tibbles} of posterior samples (\code{summary = FALSE}).
+list of \code{tibbles} of posterior draws (\code{summary = FALSE}).
 }
 \description{
 Extract regression coefficients of a Bayesian synthetic control model

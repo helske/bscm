@@ -10,11 +10,11 @@ get_T_pre <- \(x) stats::setNames(x$setup$T_pre, x$setup$treated)
 get_T_total <- \(x) x$setup$T_total
 get_N <- \(x) length(x$setup$treated)
 get_J <- \(x) length(x$setup$donors)
-has_intercept <- \(x) x$setup$has_intercept
-has_predictors <- \(x) length(x$setup$beta_names) > 0L
-has_tv_coefs <- \(x) length(x$setup$gamma_names) > 0L
+has_intercept <- \(x) x$setup$has_icpt
+has_predictors <- \(x) x$setup$has_x
+has_tv_coefs <- \(x) x$setup$has_w
 get_predictors <- \(x) x$setup$predictors
-has_ar1_error <- \(x) x$setup$error == "ar1"
+has_ar1_error <- \(x) x$setup$has_ar1
 
 #' @noRd
 get_stan_y <- function(x) {
