@@ -2,15 +2,15 @@ test_that("summary returns a bscmfit_summary", {
   suppressWarnings(s <- summary(fit1_int))
   expect_s3_class(s, "summary_bscmfit")
   expect_equal(
-    s$variable, 
+    s$variable,
     c(
-      "Intercept", 
+      "Intercept",
       "Residual SD",
       "Bayesian R2",
       "Effective number of donors",
-      "Average pre-treatment effect", 
-      "Average post-treatment effect", 
-      "Pre-treatment RMSE", 
+      "Average pre-treatment effect",
+      "Average post-treatment effect",
+      "Pre-treatment RMSE",
       "Post-treatment RMSE"
     )
   )

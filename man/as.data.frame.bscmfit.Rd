@@ -23,7 +23,7 @@
 
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
-\code{c("alpha", "beta", "sigma", "sigma_gamma", "rho")}. Other possible
+\code{c("alpha", "beta", "sigma", "kappa", "rho")}. Other possible
 choices are \code{"gamma"} (time-varying regression coefficients) and \verb{"lp__}
 (log-posterior values without constants).}
 

@@ -61,7 +61,7 @@ currently supported prior distributions are \code{normal_pr(location, scale)} an
 prior corresponds to a value of the intercept when donors and predictors
 corresponding to time-constant coefficients are centered.
 
-For parameters constrained to be positive (\code{sigma}, \code{sigma_gamma}),
+For parameters constrained to be positive (\code{sigma}, \code{kappa}),
 supported distributions are \code{exponential_pr(rate)}, \code{gamma_pr(shape, rate)},
 and \code{half_normal_pr(scale)}.
 
@@ -71,15 +71,15 @@ supported prior distribution for this is \code{beta_pr(shape1, shape2)}.
 
 For the donor weight vector \code{omega}, supported priors are
 \code{dirichlet_pr(concentration)} and \code{logistic_normal_pr(scale)}. The
-(symmetric) Dirichlet prior with concentration \eqn{\alpha} is defined as
-\eqn{\omega \sim \text{Dirichlet}(\kappa, \ldots, \kappa)}.
-Values \eqn{\alpha < 1} concentrate weight on few donors;
-\eqn{\alpha = 1} is uniform over the simplex; \eqn{\alpha > 1}
-pulls weights toward the center of the simplex.
-Logistic normal with with scale \eqn{\sigma} is defined as
+(symmetric) Dirichlet prior with concentration \eqn{\alpha_\omega} defined as
+\eqn{\omega \sim \text{Dirichlet}(\alpha_\omega, \ldots,\alpha_\omega)}.
+Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
+\eqn{\alpha_\omega = 1} is uniform over the simplex, and
+\eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
+Logistic normal with with scale \eqn{\sigma_\alpha} is defined as
 \eqn{\omega = \text{softmax}(\eta)},
-where \eqn{\eta \sim N(0, \sigma^2 I)} constrained to sum to zero. Larger
-\code{scale} induces more concentrated (sparser) weights.
+where \eqn{\eta \sim N(0, \sigma_\alpha^2 I)} constrained to sum to zero.
+Larger \code{scale} induces more concentrated (sparser) weights.
 }
 \examples{
 normal_pr(c(0, 0), c(1, 2))

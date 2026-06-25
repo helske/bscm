@@ -15,10 +15,26 @@ test_that("bscmfit$setup has correct structure", {
   setup <- fit1_int$setup
   expect_type(setup, "list")
   expected_fields <- c(
-    "outcome", "treatment", "treated", "donors", "unit", "time", 
-    "times", "T_pre", "T_total", "has_icpt", "has_x", "has_w", "has_ar1", 
-    "predictors", "beta_names", "gamma_names", "tv_idx", "spline_df", 
-    "prior_only", "excluded_pars"
+    "outcome",
+    "treatment",
+    "treated",
+    "donors",
+    "unit",
+    "time",
+    "times",
+    "T_pre",
+    "T_total",
+    "has_icpt",
+    "has_x",
+    "has_w",
+    "has_ar1",
+    "predictors",
+    "beta_names",
+    "gamma_names",
+    "tv_idx",
+    "spline_df",
+    "prior_only",
+    "excluded_pars"
   )
   expect_true(all(expected_fields %in% names(setup)))
 })

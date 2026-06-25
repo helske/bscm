@@ -23,7 +23,7 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   coefs <- c(
     if (has_intercept(object)) "alpha",
     if (has_predictors(object)) "beta",
-    if (has_tv_coefs(object)) "sigma_gamma",
+    if (has_tv_coefs(object)) "kappa",
     if (has_ar1_error(object)) "rho"
   )
   if (length(coefs) > 0) {

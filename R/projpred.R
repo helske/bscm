@@ -8,14 +8,15 @@
 #'
 #' Projection are based on only on the pretreatment period.
 #'
+#' This function is experimental and currently only a single treated unit is
+#' supported.
+#'
 #' For projpred integration, donors are treated as separate "predictors" in the
 #' formula. Currently only supported model is one without extra predictors.
 #' There are also other restrictions, namely lack of support for K-fold. For
 #' obtaining predictions based on the projected model, the `newdata` argument
 #' needs the data in wide format, see examples.
-#' 
-#' This function is experimental and currently only a single treated unit is 
-#' supported.
+#'
 #'
 #' @param object A `bscmfit` object from [bscm()].
 #' @param ... Additional arguments passed to [projpred::init_refmodel()].

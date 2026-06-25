@@ -11,7 +11,7 @@
 #' prior corresponds to a value of the intercept when donors and predictors
 #' corresponding to time-constant coefficients are centered.
 #'
-#' For parameters constrained to be positive (`sigma`, `sigma_gamma`),
+#' For parameters constrained to be positive (`sigma`, `kappa`),
 #' supported distributions are `exponential_pr(rate)`, `gamma_pr(shape, rate)`,
 #' and `half_normal_pr(scale)`.
 #'
@@ -21,15 +21,15 @@
 #'
 #' For the donor weight vector `omega`, supported priors are
 #' `dirichlet_pr(concentration)` and `logistic_normal_pr(scale)`. The
-#' (symmetric) Dirichlet prior with concentration \eqn{\alpha} is defined as
-#' \eqn{\omega \sim \text{Dirichlet}(\kappa, \ldots, \kappa)}.
-#' Values \eqn{\alpha < 1} concentrate weight on few donors;
-#' \eqn{\alpha = 1} is uniform over the simplex; \eqn{\alpha > 1}
-#' pulls weights toward the center of the simplex.
-#' Logistic normal with with scale \eqn{\sigma} is defined as
+#' (symmetric) Dirichlet prior with concentration \eqn{\alpha_\omega} defined as
+#' \eqn{\omega \sim \text{Dirichlet}(\alpha_\omega, \ldots,\alpha_\omega)}.
+#' Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
+#' \eqn{\alpha_\omega = 1} is uniform over the simplex, and
+#' \eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
+#' Logistic normal with with scale \eqn{\sigma_\alpha} is defined as
 #' \eqn{\omega = \text{softmax}(\eta)},
-#' where \eqn{\eta \sim N(0, \sigma^2 I)} constrained to sum to zero. Larger
-#' `scale` induces more concentrated (sparser) weights.
+#' where \eqn{\eta \sim N(0, \sigma_\alpha^2 I)} constrained to sum to zero.
+#' Larger `scale` induces more concentrated (sparser) weights.
 #'
 #' @param location \[`numeric(1)`]\cr Location parameter for normal and
 #'   Student-t priors.
@@ -156,7 +156,7 @@ gamma_pr <- function(shape, rate) {
 #' @rdname bscm_prior
 exponential_pr <- function(rate) {
   check_positive(rate, "rate")
-  
+
   structure(
     list(
       distribution = "exponential",
@@ -198,7 +198,7 @@ beta_pr <- function(shape1, shape2) {
 #' @rdname bscm_prior
 half_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-  
+
   structure(
     list(
       distribution = "half_normal",
@@ -213,7 +213,7 @@ half_normal_pr <- function(scale) {
 #' @rdname bscm_prior
 dirichlet_pr <- function(concentration) {
   check_positive(concentration, "concentration")
-  
+
   structure(
     list(
       distribution = "dirichlet",
@@ -228,7 +228,7 @@ dirichlet_pr <- function(concentration) {
 #' @rdname bscm_prior
 logistic_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-  
+
   structure(
     list(
       distribution = "logistic_normal",
@@ -325,14 +325,13 @@ get_priors.bscmfit <- function(x, ...) {
 }
 
 default_priors <- function(descriptives, setup, spline_def) {
-  
   N <- length(setup$treated)
   pr_sigma <- exponential_pr(signif(1 / descriptives$sd_e, 2))
   pr_omega <- dirichlet_pr(rep(1, N))
-  pr_alpha <- pr_beta <- pr_sigma_gamma <- pr_rho <- NULL
+  pr_alpha <- pr_beta <- pr_kappa <- pr_rho <- NULL
   if (setup$has_icpt) {
     pr_alpha <- normal_pr(
-      signif(descriptives$mean_y, 2), 
+      signif(descriptives$mean_y, 2),
       signif(2 * descriptives$sd_e, 2)
     )
   }
@@ -340,7 +339,7 @@ default_priors <- function(descriptives, setup, spline_def) {
     sd_ex <- descriptives$md_sd_e / descriptives$md_sd_x
     pr_beta <- normal_pr(0, signif(2 * sd_ex, 2))
     if (setup$has_w) {
-      pr_sigma_gamma <- half_normal_pr(
+      pr_kappa <- half_normal_pr(
         signif(0.5 * sd_ex[setup$tv_idx] * spline_def$scale, 2)
       )
     }
@@ -353,7 +352,7 @@ default_priors <- function(descriptives, setup, spline_def) {
     omega = pr_omega,
     intercept = pr_alpha,
     beta = pr_beta,
-    sigma_gamma = pr_sigma_gamma,
+    kappa = pr_kappa,
     rho = pr_rho
   )
   priors[lengths(priors) > 0]
@@ -369,7 +368,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     omega = c("dirichlet", "logistic_normal"),
     intercept = c("normal", "student_t"),
     beta = c("normal", "student_t"),
-    sigma_gamma = c("exponential", "gamma", "half_normal"),
+    kappa = c("exponential", "gamma", "half_normal"),
     rho = "beta"
   )
   stopifnot_(
@@ -397,7 +396,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     )
     n_pr <- pr$length
     n_ref <- ref$length
-    
+
     if (n_pr != n_ref) {
       stopifnot_(
         n_pr == 1,

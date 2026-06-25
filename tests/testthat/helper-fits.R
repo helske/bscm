@@ -72,7 +72,8 @@ tryCatch(
       time = "time",
       unit = "id",
       priors = list(
-        intercept = normal_pr(0, 1), sigma_gamma = exponential_pr(1)
+        intercept = normal_pr(0, 1),
+        kappa = exponential_pr(1)
       ),
       chains = 2,
       iter = 200,

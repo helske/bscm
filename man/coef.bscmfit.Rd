@@ -12,7 +12,7 @@
 
 \item{type}{[\code{character()}]\cr Type of coefficients to return. Should be
 one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
-\code{"gamma"} (time-varying regression coefficients), \code{"sigma_gamma"}
+\code{"gamma"} (time-varying regression coefficients), \code{"kappa"}
 (SDs of time-varying coefficients), and
 \code{"rho"} (autoregressive coefficients of the residuals). The default \code{NULL}
 corresponds to all terms above contained in the model.}

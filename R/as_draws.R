@@ -22,7 +22,7 @@ as_draws.bscmfit <- function(
 ) {
   all_pars <- setdiff(get_stanfit(x)@model_pars, x$setup$excluded_pars)
   if (is.null(parameters)) {
-    parameters <- c("alpha", "beta", "sigma", "sigma_gamma", "rho")
+    parameters <- c("alpha", "beta", "sigma", "kappa", "rho")
     parameters <- intersect(parameters, all_pars)
   } else {
     if (is.null(include)) {

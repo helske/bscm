@@ -3,7 +3,7 @@ build_spline <- function(T_total, T_pre, spline_df) {
   d <- diag(spline_df)
   M <- B %*% lower.tri(d, diag = TRUE)
   T0 <- min(T_pre)
-  a <- c(crossprod(M, rep(1:0, c(T0, T_total - T0))))
+  a <- colSums(M[1:T0, ])
   Q <- qr.Q(qr(cbind(a, d)))[, -1]
   A <- M %*% Q
   t0 <- floor(nrow(B) / 2)
@@ -25,7 +25,7 @@ compute_descriptives <- function(Y, Z, T_pre, X = NULL) {
     "Outcome variable cannot be constant in the pre-treatment period. 
     Found `sd(z) < sqrt(.Machine$double.eps)`."
   )
-  
+
   mean_y <- vapply(seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1))
   # residual SD with uniform donor weights (ignoring predictors)
   mean_sc <- rowMeans(Z)
@@ -55,7 +55,7 @@ prior_to_stan <- function(x, type) {
     omega = 1L,
     intercept = 3L,
     beta = 3L,
-    sigma_gamma = 2L,
+    kappa = 2L,
     rho = 2L
   )
   if (type == "omega") {
@@ -63,7 +63,7 @@ prior_to_stan <- function(x, type) {
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-  
+
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -116,14 +116,14 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-    setup,
-    priors,
-    Y,
-    Z,
-    X_y = NULL,
-    X_z = NULL,
-    spline_def = NULL,
-    prior_only = FALSE
+  setup,
+  priors,
+  Y,
+  Z,
+  X_y = NULL,
+  X_z = NULL,
+  spline_def = NULL,
+  prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -163,9 +163,9 @@ create_standata <- function(
     ),
     unlist(
       lapply(
-        c("sigma", "omega", "intercept", "beta", "sigma_gamma", "rho"),
+        c("sigma", "omega", "intercept", "beta", "kappa", "rho"),
         \(i) prior_to_stan(priors[[i]], i)
-      ), 
+      ),
       recursive = FALSE
     )
   )
@@ -180,7 +180,7 @@ create_inits <- function(x, d, spline_def) {
     eta <- matrix(0, x$N, x$J - 1)
   }
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
-  a <- beta <- rho <- sigma_gamma <- array(0, 0)
+  a <- beta <- rho <- kappa <- array(0, 0)
   xi <- matrix(0, 0, 0)
   if (x$use_alpha) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
@@ -190,7 +190,7 @@ create_inits <- function(x, d, spline_def) {
     beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_ex))
     if (x$use_gamma) {
       xi <- matrix(0, x$D - 1, x$L)
-      sigma_gamma <- array(
+      kappa <- array(
         stats::runif(x$L, 0.1, 0.5) * sd_ex * spline_def$scale
       )
     }
@@ -198,5 +198,5 @@ create_inits <- function(x, d, spline_def) {
   if (x$use_ar1) {
     rho <- array(stats::runif(x$N, 0, 0.5))
   }
-  dplyr::lst(omega_, eta, sigma, a, beta, xi, sigma_gamma, rho)
+  dplyr::lst(omega_, eta, sigma, a, beta, xi, kappa, rho)
 }

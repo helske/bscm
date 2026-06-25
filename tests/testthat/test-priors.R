@@ -16,10 +16,10 @@ test_that("scalars are recycled in prior constructors", {
     beta_pr(shape1 = 5, shape2 = c(2, 3, 1)),
     structure(
       list(
-        distribution = "beta", 
-        shape1 = rep(5, 3), 
-        shape2 = c(2, 3, 1), 
-        npar = 2, 
+        distribution = "beta",
+        shape1 = rep(5, 3),
+        shape2 = c(2, 3, 1),
+        npar = 2,
         length = 3L
       ),
       class = "bscm_prior"
@@ -29,10 +29,10 @@ test_that("scalars are recycled in prior constructors", {
     gamma_pr(c(2, 3, 1), 0.1),
     structure(
       list(
-        distribution = "gamma", 
-        shape = c(2, 3, 1), 
-        rate = rep(0.1, 3), 
-        npar = 2, 
+        distribution = "gamma",
+        shape = c(2, 3, 1),
+        rate = rep(0.1, 3),
+        npar = 2,
         length = 3L
       ),
       class = "bscm_prior"

@@ -4,7 +4,7 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
-#'   `"gamma"` (time-varying regression coefficients), `"sigma_gamma"`
+#'   `"gamma"` (time-varying regression coefficients), `"kappa"`
 #'   (SDs of time-varying coefficients), and
 #'   `"rho"` (autoregressive coefficients of the residuals). The default `NULL`
 #'   corresponds to all terms above contained in the model.
@@ -31,7 +31,7 @@ coef.bscmfit <- function(
   test_summary(summary)
   probs <- sort_probs(probs)
   available_types <- intersect(
-    c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
+    c("alpha", "beta", "gamma", "kappa", "rho"),
     setdiff(
       get_stanfit(object)@model_pars,
       object$setup$excluded_pars
@@ -43,14 +43,14 @@ coef.bscmfit <- function(
     type <- try_(
       match.arg(
         type,
-        c("alpha", "beta", "gamma", "sigma_gamma", "rho"),
+        c("alpha", "beta", "gamma", "kappa", "rho"),
         several.ok = TRUE
       )
     )
     stopifnot_(
       !inherits(type, "try-error"),
       'Argument {.arg type} must be a subset of
-    {{"alpha", "beta", "gamma", "sigma_gamma", "rho"}}'
+    {{"alpha", "beta", "gamma", "kappa", "rho"}}'
     )
 
     unavailable <- setdiff(type, available_types)
@@ -63,7 +63,7 @@ coef.bscmfit <- function(
   unit <- get_unit(object)
   time <- get_time(object)
 
-  d_alpha <- d_beta <- d_gamma <- d_sigma_gamma <- d_rho <- NULL
+  d_alpha <- d_beta <- d_gamma <- d_kappa <- d_rho <- NULL
   if ("alpha" %in% type) {
     treated <- get_treated(object)
     d_alpha <- dplyr::tibble(
@@ -105,17 +105,17 @@ coef.bscmfit <- function(
         dplyr::select(-"gamma", -"variable")
     }
   }
-  if ("sigma_gamma" %in% type) {
-    d_sigma_gamma <- dplyr::tibble(
-      parameter = paste0("sigma_gamma_", object$setup$gamma_names),
-      sigma_gamma = posterior::as_draws_rvars(
-        as_draws(object, "sigma_gamma")
-      )$sigma_gamma
+  if ("kappa" %in% type) {
+    d_kappa <- dplyr::tibble(
+      parameter = paste0("kappa_", object$setup$gamma_names),
+      kappa = posterior::as_draws_rvars(
+        as_draws(object, "kappa")
+      )$kappa
     )
     if (summary) {
-      d_sigma_gamma <- d_sigma_gamma |>
-        dplyr::mutate(summarise_with_probs(.data$sigma_gamma, probs)) |>
-        dplyr::select(-"sigma_gamma", -"variable")
+      d_kappa <- d_kappa |>
+        dplyr::mutate(summarise_with_probs(.data$kappa, probs)) |>
+        dplyr::select(-"kappa", -"variable")
     }
   }
   if ("rho" %in% type) {
@@ -137,7 +137,7 @@ coef.bscmfit <- function(
       d_alpha,
       d_beta,
       d_rho,
-      d_sigma_gamma,
+      d_kappa,
       d_gamma
     ) |>
       dplyr::relocate(
@@ -150,7 +150,7 @@ coef.bscmfit <- function(
       alpha = d_alpha,
       beta = d_beta,
       gamma = d_gamma,
-      sigma_gamma = d_sigma_gamma
+      kappa = d_kappa
     )
     out <- out[lengths(out) > 0]
   }

@@ -277,7 +277,7 @@ bscm <- function(
   exclude_pars <- c(
     if (!has_icpt) "alpha",
     if (!has_x) "beta",
-    if (!has_w) c("gamma", "sigma_gamma"),
+    if (!has_w) c("gamma", "kappa"),
     if (error != "ar1") "rho"
   )
   exclude_extras <- c("eta", "omega_", "a", "xi")
@@ -287,7 +287,7 @@ bscm <- function(
     stan_args$pars <- union(stan_args$pars, exclude_extras)
   }
   setup$excluded_pars <- stan_args$pars
-  
+
   if (setup$has_w) {
     spline_def <- build_spline(T_total, T_pre, spline_df)
   } else {
