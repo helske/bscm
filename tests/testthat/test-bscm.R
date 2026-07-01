@@ -58,13 +58,18 @@ test_that("compute_descriptives() computes correct summary statistics", {
   X <- simplify2array(
     lapply(seq_len(K), \(k) matrix(rnorm((N + J) * T_total), N + J, T_total))
   )
-  x <- compute_descriptives(Y, Z, T_pre, X)
-
+  X_y <- X[seq_len(N), , ]
+  X_z <- X[N + seq_len(J), , ]
+  x <- compute_descriptives(Y, Z, T_pre, X_y, X_z)
+  
   expect_equal(x$mean_y[1], mean(Y[seq_len(T_pre[1]), 1]))
   expect_equal(x$mean_y[2], mean(Y[seq_len(T_pre[2]), 2]))
   expect_equal(
     x$sd_e[1],
-    sd(Y[seq_len(T_pre[1]), 1] - rowMeans(Z[seq_len(T_pre[1]), ]))
+    min(
+      sd(Y[seq_len(T_pre[1]), 1]),
+      sd(Y[seq_len(T_pre[1]), 1] - rowMeans(Z[seq_len(T_pre[1]), ]))
+    )
   )
-  expect_length(x$md_sd_x, K)
+  expect_length(x$sd_x, K)
 })
