@@ -326,21 +326,22 @@ get_priors.bscmfit <- function(x, ...) {
 
 default_priors <- function(descriptives, setup, spline_def) {
   N <- length(setup$treated)
-  pr_sigma <- exponential_pr(signif(1 / descriptives$sd_e, 2))
+  s <- pmin(descriptives$sd_y, descriptives$sd_yz)
+  pr_sigma <- exponential_pr(signif(1 / s, 2))
   pr_omega <- dirichlet_pr(rep(1, N))
   pr_alpha <- pr_beta <- pr_kappa <- pr_rho <- NULL
   if (setup$has_icpt) {
     pr_alpha <- normal_pr(
       signif(descriptives$mean_y, 2),
-      signif(2 * descriptives$sd_e, 2)
+      signif(2 * s, 2)
     )
   }
   if (setup$has_x) {
-    sd_ex <- descriptives$md_sd_e / descriptives$md_sd_x
-    pr_beta <- normal_pr(0, signif(2 * sd_ex, 2))
+    sd_yx <- sqrt(mean(s^2) / descriptives$sd_x^2)
+    pr_beta <- normal_pr(0, signif(2 * sd_yx, 2))
     if (setup$has_w) {
       pr_kappa <- half_normal_pr(
-        signif(0.5 * sd_ex[setup$tv_idx] * spline_def$scale, 2)
+        signif(0.5 * sd_yx[setup$tv_idx] * spline_def$scale, 2)
       )
     }
   }

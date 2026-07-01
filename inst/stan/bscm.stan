@@ -55,6 +55,7 @@ data {
   matrix[K, 3] pr_pars_beta;
   matrix[L, 2] pr_pars_kappa;
   matrix[use_ar1 ? N : 0, 2] pr_pars_rho;
+  int<lower=0, upper=1> noncentered_xi;
 }
 transformed data {
   int T0 = min(T_pre);
@@ -140,8 +141,12 @@ transformed parameters {
   }
   // time-varying regression coefficients
   matrix[use_gamma ? T : 0, L] gamma;
-  for (l in 1 : L) {
-    gamma[ : , l] = A * (kappa[l] * xi[ : , l]);
+  if (noncentered_xi) {
+    for (l in 1 : L) {
+      gamma[ : , l] = A * kappa[l] * xi[ : , l];
+    }
+  } else {
+    gamma = A * xi;
   }
 }
 model {
@@ -168,14 +173,14 @@ model {
     a ~ normal(pr_pars_intercept[ : , 1], pr_pars_intercept[ : , 2]);
   } else if (pr_dist_intercept == 2) {
     a ~ student_t(pr_pars_intercept[ : , 1], pr_pars_intercept[ : , 2],
-                  pr_pars_intercept[ : , 3]);
+    pr_pars_intercept[ : , 3]);
   }
   // prior for beta
   if (pr_dist_beta == 1) {
     beta ~ normal(pr_pars_beta[ : , 1], pr_pars_beta[ : , 2]);
   } else if (pr_dist_beta == 2) {
     beta ~ student_t(pr_pars_beta[ : , 1], pr_pars_beta[ : , 2],
-                     pr_pars_beta[ : , 3]);
+    pr_pars_beta[ : , 3]);
   }
   // prior for gamma
   if (pr_dist_kappa == 3) {
@@ -185,7 +190,13 @@ model {
   } else if (pr_dist_kappa == 6) {
     kappa ~ normal(0, pr_pars_kappa[ : , 1]);
   }
-  to_vector(xi) ~ std_normal();
+  if (noncentered_xi) {
+    to_vector(xi) ~ std_normal();
+  } else {
+    for (l in 1 : L) {
+      xi[ : , l] ~ normal(0, kappa[l]);
+    }
+  }
   // prior for rho
   if (pr_dist_rho == 5) {
     0.5 * (1 + rho) ~ beta(pr_pars_rho[ : , 1], pr_pars_rho[ : , 2]);

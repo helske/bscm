@@ -11,28 +11,34 @@
 #'   functions. Default is `df = 20` which is quite arbitrary, so it is good to
 #'   test various choices of `df`. Typically it is better to choose too large
 #'   than too small value, as the random walk prior of the spline coefficients
-#'   will regularize overfitting. Downside of large `df` is increased
-#'   computational cost.
+#'   will regularize overfitting.
+#' @param noncentered \[`logical(1)`]\cr If `TRUE`, the spline
+#'   coefficients are sampled using a non-centered parameterization.
+#'   If `FALSE` (the default), a centered parameterization is used.
+#'   Depending on the case, one of these might lead to more efficient and
+#'   numerically stable sampling, so if you encounter divergences,
+#'   try changing this.
 #' @return Object of class `tv_term` (a `list`).
 #' @export
-tv <- function(tv_formula, df = 20) {
+tv <- function(tv_formula, df = 20, noncentered = FALSE) {
   stopifnot_(
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."
   )
-
   stopifnot_(
     checkmate::test_int(df, lower = 4),
     "Argument {.arg df} of {.code tv()} must be an integer larger than 4."
   )
-
+  stopifnot_(
+    checkmate::test_flag(noncentered),
+    "Argument {.arg noncentered} of {.code tv()} must be a logical value."
+  )
   tv_terms_obj <- stats::terms(tv_formula, specials = "tv")
   nested_tv <- attr(tv_terms_obj, "specials")$tv
   stopifnot_(
     is.null(nested_tv),
     "Nested {.code tv()} terms are not supported."
   )
-
   tv_term_labels <- attr(tv_terms_obj, "term.labels")
   stopifnot_(
     length(tv_term_labels) > 0L,
@@ -41,7 +47,8 @@ tv <- function(tv_formula, df = 20) {
   structure(
     list(
       terms = tv_term_labels,
-      spline_df = df
+      spline_df = df,
+      noncentered_xi = noncentered
     ),
     class = "tv_term"
   )
@@ -58,7 +65,9 @@ tv <- function(tv_formula, df = 20) {
 #'   - `tv_terms`: character vector of time-varying term labels
 #'   - `has_intercept`: logical
 #'   - `predictors`: character vector of predictor variable names
-#'   - `spline_df`: Degrees of freedom variable passed on to [splines::bs()].
+#'   - `spline_df`: degrees of freedom variable passed on to [splines::bs()].
+#'   - `noncentered_xi`: logical indicating whether to use non-centered
+#'      parameterization for spline coefficients.
 #' @noRd
 parse_bscm_formula <- function(formula) {
   xt <- stats::terms(formula, specials = "tv")
@@ -74,7 +83,8 @@ parse_bscm_formula <- function(formula) {
         x_formula = formula,
         w_formula = NULL,
         w_terms = character(0),
-        df = 0
+        df = 0,
+        noncentered_xi = TRUE
       )
     )
   }
@@ -125,6 +135,7 @@ parse_bscm_formula <- function(formula) {
     x_formula = full_formula,
     w_formula = tv_formula,
     w_terms = tv_term_labels,
-    spline_df = spline_df
+    spline_df = spline_df,
+    noncentered_xi = tv_object$noncentered_xi
   )
 }

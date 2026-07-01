@@ -88,11 +88,6 @@ plot_coefs_fixed <- function(x, probs) {
   qs <- paste0("q", 100 * probs)
   d$variable <- factor(d$variable, levels = d$variable)
   ggplot(d, aes(.data$mean, .data$variable)) +
-    geom_vline(
-      xintercept = 0,
-      linetype = "dashed",
-      colour = "grey70"
-    ) +
     geom_linerange(
       aes(xmin = .data[[qs[1]]], xmax = .data[[qs[2]]])
     ) +
@@ -131,11 +126,6 @@ plot_coefs_varying <- function(x, probs, combine, alpha, scales) {
   }
   d |>
     ggplot(aes(.data[[time_var]], mean)) +
-    geom_hline(
-      yintercept = 0,
-      linetype = "dashed",
-      colour = "grey70"
-    ) +
     geom_ribbon(
       aes(ymin = .data[[qs[1]]], ymax = .data[[qs[2]]]),
       fill = "#77AADD",

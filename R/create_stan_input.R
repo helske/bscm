@@ -1,4 +1,4 @@
-build_spline <- function(T_total, T_pre, spline_df) {
+build_spline <- function(T_total, T_pre, spline_df, noncentered) {
   B <- splines::bs(seq_len(T_total), df = spline_df, intercept = TRUE)
   d <- diag(spline_df)
   M <- B %*% lower.tri(d, diag = TRUE)
@@ -6,11 +6,11 @@ build_spline <- function(T_total, T_pre, spline_df) {
   a <- colSums(M[1:T0, ])
   Q <- qr.Q(qr(cbind(a, d)))[, -1]
   A <- M %*% Q
-  t0 <- floor(nrow(B) / 2)
-  scale <- 1 / sqrt(sum(cumsum(rev(B[t0, ] - B[t0 - 1, ]))^2))
-  list(A = A, D = spline_df, scale = scale)
+  t_mid <- floor(T0 / 2)
+  scale <- 1 / sqrt(sum(cumsum(rev(B[t_mid, ] - B[t_mid - 1, ]))^2))
+  list(A = A, D = spline_df, scale = scale, noncentered_xi = noncentered)
 }
-compute_descriptives <- function(Y, Z, T_pre, X = NULL) {
+compute_descriptives <- function(Y, Z, T_pre, X_y = NULL, X_z = NULL) {
   N <- ncol(Y)
   sd_y <- vapply(seq_len(N), \(i) sd(Y[seq_len(T_pre[i]), i]), numeric(1))
   stopifnot_(
@@ -28,22 +28,32 @@ compute_descriptives <- function(Y, Z, T_pre, X = NULL) {
 
   mean_y <- vapply(seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1))
   # residual SD with uniform donor weights (ignoring predictors)
-  mean_sc <- rowMeans(Z)
-  sd_e <- vapply(
+  mean_z <- rowMeans(Z)
+  sd_yz <- vapply(
     seq_len(N),
-    \(i) {
-      sd(Y[seq_len(T_pre[i]), i] - mean_sc[seq_len(T_pre[i])])
-    },
+    \(i) sd(Y[seq_len(T_pre[i]), i] - mean_z[seq_len(T_pre[i])]),
     numeric(1)
   )
   out <- list(
     mean_y = mean_y,
-    sd_e = sd_e,
-    md_sd_e = stats::median(sd_e)
+    sd_y = sd_y,
+    sd_yz = sd_yz,
+    sd_e = pmin(sd_y, sd_yz)
   )
-  if (!is.null(X)) {
-    sd_x_by_unit <- apply(X[, seq_len(min_T_pre), , drop = FALSE], c(1, 3), sd)
-    out$md_sd_x <- apply(sd_x_by_unit, 2, stats::median)
+  if (!is.null(X_y)) {
+    K <- dim(X_y)[3]
+    sd_x <- apply(X_y[, seq_len(min_T_pre), , drop = FALSE], c(1, 3), sd) |>
+      matrix(nrow = N, ncol = K)
+    out$mean_sd_x <- colMeans(sd_x)
+    mean_xz <- apply(X_z[, seq_len(min_T_pre), , drop = FALSE], c(2, 3), mean)
+    sd_xz <- vapply(
+      seq_len(N),
+      \(i) apply(X_y[i, seq_len(min_T_pre), ] - mean_xz, 2, sd),
+      numeric(K)
+    ) |>
+      matrix(nrow = K, ncol = N)
+    out$mean_sd_xz <- rowMeans(sd_xz)
+    out$sd_x <- pmin(out$mean_sd_x, out$mean_sd_xz)
   }
   out
 }
@@ -130,8 +140,9 @@ create_standata <- function(
   J <- ncol(Z)
   K <- length(setup$beta_names)
   L <- length(setup$gamma_names)
-  D <- 1
+  D <- 1L
   A <- matrix(0, T_total, 0)
+  noncentered_xi <- 0L
   if (K == 0) {
     X_y <- array(0, c(0, T_total, K))
     X_z <- array(0, c(0, T_total, K))
@@ -139,6 +150,7 @@ create_standata <- function(
   if (!is.null(spline_def)) {
     D <- spline_def$D
     A <- spline_def$A
+    noncentered_xi <- as.integer(spline_def$noncentered_xi)
   }
   c(
     list(
@@ -159,7 +171,8 @@ create_standata <- function(
       X_z = X_z,
       tv_idx = array(setup$tv_idx),
       A = A,
-      likelihood = as.integer(!prior_only)
+      likelihood = as.integer(!prior_only),
+      noncentered_xi = noncentered_xi
     ),
     unlist(
       lapply(
@@ -186,12 +199,12 @@ create_inits <- function(x, d, spline_def) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
   }
   if (x$use_beta) {
-    sd_ex <- d$md_sd_e / d$md_sd_x
-    beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_ex))
+    sd_yx <- sqrt(mean(d$sd_e^2) / d$sd_x^2)
+    beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_yx))
     if (x$use_gamma) {
       xi <- matrix(0, x$D - 1, x$L)
       kappa <- array(
-        stats::runif(x$L, 0.1, 0.5) * sd_ex * spline_def$scale
+        stats::runif(x$L, 0.1, 0.5) * sd_yx[x$tv_idx] * spline_def$scale
       )
     }
   }

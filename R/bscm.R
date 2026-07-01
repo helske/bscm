@@ -133,6 +133,7 @@ bscm <- function(
   has_x <- length(predictors) > 0
   has_w <- length(parsed_formula$w_terms) > 0
   spline_df <- parsed_formula$spline_df
+  noncentered_xi <- parsed_formula$noncentered_xi
   stopifnot_(
     !is.null(data[[outcome]]),
     "Can't find outcome variable {.var {outcome}} in {.arg data}."
@@ -261,6 +262,7 @@ bscm <- function(
     gamma_names,
     tv_idx,
     spline_df,
+    noncentered_xi,
     prior_only
   )
   stan_args <- list(...)
@@ -273,27 +275,32 @@ bscm <- function(
     stan_args$warmup <- 2500L
   }
   stan_args$object <- stanmodels$bscm
-  stan_args$include <- FALSE
-  exclude_pars <- c(
-    if (!has_icpt) "alpha",
-    if (!has_x) "beta",
-    if (!has_w) c("gamma", "kappa"),
-    if (error != "ar1") "rho"
-  )
-  exclude_extras <- c("eta", "omega_", "a", "xi")
-  if (is.null(stan_args$pars)) {
-    stan_args$pars <- c(exclude_pars, exclude_extras)
+  if (is.null(stan_args$include)) {
+    stan_args$include <- FALSE
+    exclude_pars <- c(
+      if (!has_icpt) "alpha",
+      if (!has_x) "beta",
+      if (!has_w) c("gamma", "kappa"),
+      if (error != "ar1") "rho"
+    )
+    exclude_extras <- c("eta", "omega_", "a", "xi")
+    if (is.null(stan_args$pars)) {
+      stan_args$pars <- c(exclude_pars, exclude_extras)
+    } else {
+      stan_args$pars <- union(stan_args$pars, exclude_extras)
+    }
+    setup$excluded_pars <- stan_args$pars
   } else {
-    stan_args$pars <- union(stan_args$pars, exclude_extras)
+    if (!stan_args$include) {
+      setup$excluded_pars <- stan_args$pars
+    }
   }
-  setup$excluded_pars <- stan_args$pars
-
   if (setup$has_w) {
-    spline_def <- build_spline(T_total, T_pre, spline_df)
+    spline_def <- build_spline(T_total, T_pre, spline_df, noncentered_xi)
   } else {
     spline_def <- NULL
   }
-  descriptives <- compute_descriptives(Y, Z, T_pre, X)
+  descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z)
   priors <- define_priors(priors, descriptives, setup, spline_def)
   stan_args$data <- create_standata(
     setup,

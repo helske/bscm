@@ -4,7 +4,7 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, df = 20)
+tv(tv_formula, df = 20, noncentered = FALSE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
@@ -14,8 +14,14 @@ defining the the time-varying part of the BSCM formula.}
 functions. Default is \code{df = 20} which is quite arbitrary, so it is good to
 test various choices of \code{df}. Typically it is better to choose too large
 than too small value, as the random walk prior of the spline coefficients
-will regularize overfitting. Downside of large \code{df} is increased
-computational cost.}
+will regularize overfitting.}
+
+\item{noncentered}{[\code{logical(1)}]\cr If \code{TRUE}, the spline
+coefficients are sampled using a non-centered parameterization.
+If \code{FALSE} (the default), a centered parameterization is used.
+Depending on the case, one of these might lead to more efficient and
+numerically stable sampling, so if you encounter divergences,
+try changing this.}
 }
 \value{
 Object of class \code{tv_term} (a \code{list}).

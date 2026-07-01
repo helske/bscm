@@ -9,7 +9,6 @@ data {
   array[N] int<lower=1, upper=T> T_pre; // number of pre-treatment time points
   int<lower=use_beta> K; // number of covariates
   int<lower=use_gamma, upper=K> L; // number of time-varying coefficients
-  int<lower=1> D; // number of spline coefficients + 1
   array[N] vector[T] y; // treated
   matrix[T, J] Z; // donors
   array[use_beta ? N : 0] matrix[T, K] X_y; // covariates for treated
