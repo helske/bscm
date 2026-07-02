@@ -75,7 +75,8 @@ treatment_effect.bscmfit <- function(
         effect = posterior::rvar_mean(effect),
         .by = "time_since_treatment"
       ) |>
-      dplyr::arrange(time_since_treatment)
+      dplyr::arrange(time_since_treatment) |> 
+      dplyr::rename("{get_time(x)}" := time_since_treatment)
   } else {
     d <- dplyr::select(d, -"time_since_treatment")
   }

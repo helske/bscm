@@ -132,7 +132,7 @@ plot_coefs_varying <- function(x, probs, combine, alpha, scales) {
       alpha = alpha
     ) +
     geom_line(colour = "#0C7BDC") +
-    scale_x_continuous(limits = range(d$time)) +
+    scale_x_continuous(limits = range(d[[time_var]])) +
     facet_wrap(~variable, scales = scales) +
     labs(x = time_var, y = "Value") +
     theme_bw()

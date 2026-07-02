@@ -5,7 +5,7 @@ test_that("treatment_effect returns data.frame with correct structure", {
   expect_equal(nrow(d), get_T_total(fit1_noint))
 
   d <- treatment_effect(fitN_int)
-  expect_equal(d$time_since_treatment, get_times(fitN_int))
+  expect_equal(d$time, get_times(fitN_int))
 
   d <- treatment_effect(fitN_int, average = FALSE)
   expect_equal(d$time, rep(get_times(fitN_int), 3))

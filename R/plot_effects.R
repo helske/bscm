@@ -60,7 +60,7 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
     d <- treatment_effect(x, average = TRUE, probs = probs, for_plots = TRUE)
     d |>
       dplyr::rename(ymin = dplyr::all_of(qcols[[1L]]), ymax = dplyr::all_of(qcols[[2L]])) |>
-      ggplot(aes(time_since_treatment, mean)) +
+      ggplot(aes(time, mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
       geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25) +
       geom_line(colour = "#DDAA33") +
