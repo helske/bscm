@@ -1,7 +1,9 @@
 #' Visualize BSCM estimates
 #'
 #' A plot of the posterior mean and posterior interval of the treatment effect
-#' and synthetic control over time.
+#' and synthetic control over time for single treated unit models. For models
+#' with multiple treated units, plots the average treatment effect over time
+#' since treatment across all treated units.
 #'
 #' @param x \[`bscmfit`]\cr object.
 #' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of
@@ -25,6 +27,9 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with 
     values between 0 and 1."
   )
+  if (get_N(x) > 1L) {
+    return(plot_effects(x, probs = probs))
+  }
   outcome <- get_outcome(x)
   treated <- get_treated(x)
   time <- get_time(x)
@@ -33,7 +38,6 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
 
   d_effects <- treatment_effect(
     x,
-    type = "time",
     average = FALSE,
     probs = probs,
     for_plots = TRUE
@@ -52,12 +56,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     dplyr::select(dplyr::all_of(c(unit, time, treatment, outcome))) |>
     dplyr::rename(dplyr::any_of(lookup)) |>
     dplyr::mutate(type = "Synthetic control", treatment = factor(treatment))
-
-  wrap <- facet_grid(
-    rows = vars(type),
-    cols = if (get_N(x) > 1) vars(unit),
-    scales = "free_y"
-  )
+  
   d_plot |>
     ggplot(aes(time, mean)) +
     geom_ribbon(
@@ -70,6 +69,6 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +
     scale_fill_manual(values = c("#EECC66", "#77AADD")) +
     guides(fill = "none", colour = "none", shape = "none") +
-    wrap +
+    facet_grid(rows = vars(type), scales = "free_y") +
     theme_bw()
 }

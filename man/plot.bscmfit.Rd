@@ -20,7 +20,9 @@ A \code{ggplot} object
 }
 \description{
 A plot of the posterior mean and posterior interval of the treatment effect
-and synthetic control over time.
+and synthetic control over time for single treated unit models. For models
+with multiple treated units, plots the average treatment effect over time
+since treatment across all treated units.
 }
 \examples{
 plot(fit_single_treated, probs = c(0.05, 0.95))

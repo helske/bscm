@@ -8,13 +8,7 @@
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
 #' @param ... Ignored.
-#' @return A data frame with posterior summaries of
-#'   * If part of the estimated model, posterior summaries of intercept terms,
-#'     time-invariant regression coefficients, standard deviations of
-#'     time-varying regression coefficients, residual standard deviations,
-#'     and autoregressive coefficients of residuals.
-#'   * Average RMSE for pre- and post-treatment periods
-#'   * Average treatment effect (over post-treatment period and treated units)
+#' @return A data frame with various posterior summaries of the model.
 #' @aliases summary
 #' @export
 summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
@@ -40,9 +34,8 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
   eff <- effective_donors(object, probs = probs) |>
     dplyr::mutate(variable = "Effective number of donors")
   treatment <- get_treatment(object)
-  att <- treatment_effect(
+  att <- average_treatment_effect(
     object,
-    type = "average",
     average = FALSE,
     probs = probs
   ) |>

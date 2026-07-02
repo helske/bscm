@@ -5,9 +5,9 @@
 #' [leave_donor_out()] or [placebo_effects()], it additionally overlays the
 #' posterior mean of the treatment effect from each leave-out or placebo fit.
 #'
-#' For models with multiple treated units, `plot_effects.bscmfit()` returns a
-#' named list of per-unit plots, while methods for leave-out or placebo outputs
-#' return a signle plot of the average treatment effect.
+#' For models with multiple treated units, `plot_effects.bscmfit()` defaults
+#' to plotting the average treatment effect over time since treatment. Supply a
+#' `unit` identifier to plot the effect for a specific treated unit instead.
 #'
 #' @param x \[`bscmfit`, `bscm_ldo`, or `bscm_placebo_effects`]\cr Object from
 #'   [bscm()], [leave_donor_out()], or [placebo_effects()].
@@ -15,19 +15,21 @@
 #'   the posterior interval. Default is `c(0.025, 0.975)`. For `bscm_ldo` and
 #'   `bscm_placebo_effects` objects, defaults to the outermost probabilities
 #'   used in [leave_donor_out()] or [placebo_effects()].
+#' @param unit \[`character(1)` or `numeric(1)` or `NULL`]\cr For models with
+#'   multiple treated units, the identifier of the specific treated unit to
+#'   plot. If `NULL` (the default), the average treatment effect across all
+#'   treated units is plotted.
 #' @param ... Ignored.
-#' @return A `ggplot` object, or a named list of `ggplot` objects when
-#'   `x` is a `bscmfit` with multiple treated units.
+#' @return A `ggplot` object.
 #' @export
 plot_effects <- function(x, ...) {
   UseMethod("plot_effects", x)
 }
-
 #' @rdname plot_effects
 #' @export
 #' @examples
 #' plot_effects(fit_single_treated)
-plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
+plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
   ymin <- ymax <- NULL
   stopifnot_(
     checkmate::test_numeric(
@@ -42,41 +44,48 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
   )
   treated <- get_treated(x)
   time <- get_time(x)
-  unit <- get_unit(x)
+  unit_col <- get_unit(x)
   N <- get_N(x)
-
-  d_effects <- treatment_effect(
-    x,
-    type = "time",
-    average = FALSE,
-    probs = probs,
-    for_plots = TRUE
-  )
-  lookup <- stats::setNames(
-    c(unit, time, paste0("q", 100 * probs)),
-    c("unit", "time", "ymin", "ymax")
-  )
-  d_plot <- d_effects |> dplyr::rename(dplyr::any_of(lookup))
-
-  plots <- stats::setNames(vector("list", N), treated)
-  for (i in treated) {
-    plots[[i]] <- d_plot |>
-      dplyr::filter(unit == i) |>
-      ggplot(aes(time, mean)) +
+  qcols <- paste0("q", 100 * sort(probs))
+  
+  if (!is.null(unit)) {
+    stopifnot_(
+      unit %in% treated,
+      "Argument {.arg unit} must be one of the treated units:
+      {.val {treated}}."
+    )
+  }
+  
+  if (is.null(unit) && N > 1L) {
+    d <- treatment_effect(x, average = TRUE, probs = probs, for_plots = TRUE)
+    d |>
+      dplyr::rename(ymin = dplyr::all_of(qcols[[1L]]), ymax = dplyr::all_of(qcols[[2L]])) |>
+      ggplot(aes(time_since_treatment, mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_ribbon(
-        aes(ymin = ymin, ymax = ymax),
-        fill = "#EECC66",
-        alpha = 0.25
-      ) +
+      geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25) +
+      geom_line(colour = "#DDAA33") +
+      labs(x = "Time since treatment", y = "Average treatment effect") +
+      theme_bw()
+  } else {
+    target <- if (!is.null(unit)) unit else treated[[1L]]
+    d <- treatment_effect(x, average = FALSE, probs = probs, for_plots = TRUE)
+    if (unit_col %in% names(d)) {
+      d <- d |>
+        dplyr::filter(.data[[unit_col]] == .env$target) |>
+        dplyr::select(-dplyr::all_of(unit_col))
+    }
+    d |>
+      dplyr::rename(ymin = dplyr::all_of(qcols[[1L]]), ymax = dplyr::all_of(qcols[[2L]])) |>
+      ggplot(aes(.data[[time]], mean)) +
+      geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+      geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25) +
       geom_line(colour = "#DDAA33") +
       labs(
         x = time,
-        y = paste0("Treatment effect", if (N > 1L) paste0(" for ", i))
+        y = paste0("Treatment effect", if (N > 1L) paste0(" for ", target))
       ) +
       theme_bw()
   }
-  if (N == 1L) plots[[1L]] else plots
 }
 #' @rdname plot_effects
 #' @export

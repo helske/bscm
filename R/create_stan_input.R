@@ -10,22 +10,38 @@ build_spline <- function(T_total, T_pre, spline_df, noncentered) {
   scale <- 1 / sqrt(sum(cumsum(rev(B[t_mid, ] - B[t_mid - 1, ]))^2))
   list(A = A, D = spline_df, scale = scale, noncentered_xi = noncentered)
 }
-compute_descriptives <- function(Y, Z, T_pre, X_y = NULL, X_z = NULL) {
+
+#' Compute descriptive statistics to be used with default priors
+#' @noRd
+compute_descriptives <- function(
+    Y, Z, T_pre, X_y = NULL, X_z = NULL, beta_names = NULL) {
+  
+  pooled_within_sd <- function(s, n) {
+    sqrt(stats::weighted.mean(s^2, w = n - 1))
+  }
   N <- ncol(Y)
-  sd_y <- vapply(seq_len(N), \(i) sd(Y[seq_len(T_pre[i]), i]), numeric(1))
+  sd_y_by_unit <- vapply(
+    seq_len(N), \(i) sd(Y[seq_len(T_pre[i]), i]), numeric(1)
+  )
+  constant_sd <- which(sd_y_by_unit < sqrt(.Machine$double.eps))
   stopifnot_(
-    all(sd_y > sqrt(.Machine$double.eps)),
-    "Outcome variable cannot be constant in the pre-treatment period. 
-    Found `sd(y) < sqrt(.Machine$double.eps)`."
+    length(constant_sd) == 0L,
+    c(
+      "Outcome variable cannot be constant in the pre-treatment period.",
+      i = "Found SD < {sqrt(.Machine$double.eps)} for {constant_sd}."
+    )
   )
   min_T_pre <- min(T_pre)
   sd_z <- apply(Z[seq_len(min_T_pre), , drop = FALSE], 2, sd)
+  constant_sd <- which(sd_z < sqrt(.Machine$double.eps))
   stopifnot_(
-    any(sd_z > sqrt(.Machine$double.eps)),
-    "Outcome variable cannot be constant in the pre-treatment period. 
-    Found `sd(z) < sqrt(.Machine$double.eps)`."
+    length(constant_sd) == 0L,
+    c(
+      "Outcome variable cannot be constant in the pre-treatment period.",
+      i = "Found SD < {sqrt(.Machine$double.eps)} for {constant_sd}."
+    )
   )
-
+  
   mean_y <- vapply(seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1))
   # residual SD with uniform donor weights (ignoring predictors)
   mean_z <- rowMeans(Z)
@@ -36,24 +52,38 @@ compute_descriptives <- function(Y, Z, T_pre, X_y = NULL, X_z = NULL) {
   )
   out <- list(
     mean_y = mean_y,
-    sd_y = sd_y,
-    sd_yz = sd_yz,
-    sd_e = pmin(sd_y, sd_yz)
+    sd_e = pmin(sd_y_by_unit, sd_yz)
   )
   if (!is.null(X_y)) {
+    out$sd_y <- pooled_within_sd(sd_y_by_unit, T_pre)
     K <- dim(X_y)[3]
-    sd_x <- apply(X_y[, seq_len(min_T_pre), , drop = FALSE], c(1, 3), sd) |>
-      matrix(nrow = N, ncol = K)
-    out$mean_sd_x <- colMeans(sd_x)
-    mean_xz <- apply(X_z[, seq_len(min_T_pre), , drop = FALSE], c(2, 3), mean)
-    sd_xz <- vapply(
-      seq_len(N),
-      \(i) apply(X_y[i, seq_len(min_T_pre), ] - mean_xz, 2, sd),
-      numeric(K)
-    ) |>
-      matrix(nrow = K, ncol = N)
-    out$mean_sd_xz <- rowMeans(sd_xz)
-    out$sd_x <- pmin(out$mean_sd_x, out$mean_sd_xz)
+    sd_x_by_unit <- matrix(nrow = N, ncol = K)
+    for (i in seq_len(N)) {
+      sd_x_by_unit[i, ] <- apply(
+        X_y[i, seq_len(T_pre[i]), , drop = FALSE], 3, sd
+      )
+    }
+    constant_sd <- which(
+      stats::setNames(
+        apply(sd_x_by_unit, 2, max) < sqrt(.Machine$double.eps),
+        beta_names
+      )
+    )
+    stopifnot_(
+      length(constant_sd) == 0,
+      c(
+        "{cli::qty(length(constant_sd))}
+    Model has predictor{?s} which {?is/are} constant in
+    the pre-treatment period for all treated units.",
+        i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
+      )
+    )
+    out$sd_x <- apply(
+      sd_x_by_unit,
+      2,
+      pooled_within_sd,
+      n = T_pre
+    )
   }
   out
 }
@@ -73,7 +103,7 @@ prior_to_stan <- function(x, type) {
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-
+  
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -126,14 +156,14 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-  setup,
-  priors,
-  Y,
-  Z,
-  X_y = NULL,
-  X_z = NULL,
-  spline_def = NULL,
-  prior_only = FALSE
+    setup,
+    priors,
+    Y,
+    Z,
+    X_y = NULL,
+    X_z = NULL,
+    spline_def = NULL,
+    prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -199,7 +229,7 @@ create_inits <- function(x, d, spline_def) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
   }
   if (x$use_beta) {
-    sd_yx <- sqrt(mean(d$sd_e^2) / d$sd_x^2)
+    sd_yx <- d$sd_y / d$sd_x
     beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_yx))
     if (x$use_gamma) {
       xi <- matrix(0, x$D - 1, x$L)

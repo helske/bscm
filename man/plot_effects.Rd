@@ -9,7 +9,7 @@
 \usage{
 plot_effects(x, ...)
 
-\method{plot_effects}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{plot_effects}{bscmfit}(x, probs = c(0.025, 0.975), unit = NULL, ...)
 
 \method{plot_effects}{bscm_ldo}(x, probs = NULL, ...)
 
@@ -25,10 +25,14 @@ plot_effects(x, ...)
 the posterior interval. Default is \code{c(0.025, 0.975)}. For \code{bscm_ldo} and
 \code{bscm_placebo_effects} objects, defaults to the outermost probabilities
 used in \code{\link[=leave_donor_out]{leave_donor_out()}} or \code{\link[=placebo_effects]{placebo_effects()}}.}
+
+\item{unit}{[\code{character(1)} or \code{numeric(1)} or \code{NULL}]\cr For models with
+multiple treated units, the identifier of the specific treated unit to
+plot. If \code{NULL} (the default), the average treatment effect across all
+treated units is plotted.}
 }
 \value{
-A \code{ggplot} object, or a named list of \code{ggplot} objects when
-\code{x} is a \code{bscmfit} with multiple treated units.
+A \code{ggplot} object.
 }
 \description{
 \code{plot_effects()} plots the posterior mean and posterior interval of the
@@ -37,9 +41,9 @@ treatment effect over time. For the output of
 posterior mean of the treatment effect from each leave-out or placebo fit.
 }
 \details{
-For models with multiple treated units, \code{plot_effects.bscmfit()} returns a
-named list of per-unit plots, while methods for leave-out or placebo outputs
-return a signle plot of the average treatment effect.
+For models with multiple treated units, \code{plot_effects.bscmfit()} defaults
+to plotting the average treatment effect over time since treatment. Supply a
+\code{unit} identifier to plot the effect for a specific treated unit instead.
 }
 \examples{
 plot_effects(fit_single_treated)

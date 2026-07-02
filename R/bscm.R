@@ -101,18 +101,18 @@
 #' )
 #' fit
 bscm <- function(
-  formula,
-  data,
-  treatment = "treatment",
-  time = "time",
-  unit = "id",
-  error = "iid",
-  priors = NULL,
-  prior_only = FALSE,
-  mcmc_diagnostics = TRUE,
-  save_data = TRUE,
-  compute_predictions = TRUE,
-  ...
+    formula,
+    data,
+    treatment = "treatment",
+    time = "time",
+    unit = "id",
+    error = "iid",
+    priors = NULL,
+    prior_only = FALSE,
+    mcmc_diagnostics = TRUE,
+    save_data = TRUE,
+    compute_predictions = TRUE,
+    ...
 ) {
   check_bscm_arguments(
     formula,
@@ -185,6 +185,8 @@ bscm <- function(
     all(!is.na(Y)) && all(!is.na(Z)),
     "Missing values are not supported."
   )
+  colnames(Y) <- treated
+  colnames(Z) <- donors
   J <- ncol(Z)
   beta_names <- gamma_names <- NULL
   X_y <- X_z <- X <- NULL
@@ -204,27 +206,6 @@ bscm <- function(
     X <- simplify2array(
       lapply(seq_len(K), \(k) matrix(X[, k], n_units, T_total, TRUE))
     )
-    sd_x_by_unit <- apply(
-      X[, seq_len(min(T_pre)), , drop = FALSE],
-      c(1, 3),
-      sd
-    )
-    constant_sd <- which(
-      stats::setNames(
-        apply(sd_x_by_unit, 2, max) < sqrt(.Machine$double.eps),
-        beta_names
-      )
-    )
-    stopifnot_(
-      length(constant_sd) == 0,
-      c(
-        "{cli::qty(length(constant_sd))} 
-        Model has predictor{?s} which {?is/are} constant in 
-        the pre-treatment period for all units.",
-        i = "Found {?a/} constant predictor{?s} {names(constant_sd)}."
-      )
-    )
-
     donor_idx <- which(!colnames(treatment_table) %in% treated)
     X_z <- X[donor_idx, , , drop = FALSE]
     X_y <- X[treated_idx, , , drop = FALSE]
@@ -300,7 +281,7 @@ bscm <- function(
   } else {
     spline_def <- NULL
   }
-  descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z)
+  descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z, beta_names)
   priors <- define_priors(priors, descriptives, setup, spline_def)
   stan_args$data <- create_standata(
     setup,
@@ -312,7 +293,7 @@ bscm <- function(
     spline_def,
     prior_only
   )
-
+  
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
@@ -320,7 +301,7 @@ bscm <- function(
       simplify = FALSE
     )
   }
-
+  
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions
@@ -329,7 +310,7 @@ bscm <- function(
     data = stan_args$data,
     draws = as.matrix(fit)
   )
-
+  
   out <- list(
     stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),
@@ -339,7 +320,7 @@ bscm <- function(
     priors = priors
   )
   class(out) <- "bscmfit"
-
+  
   run_diags <- mcmc_diagnostics &&
     ndraws(out) > 50L &&
     !identical(stan_args$algorithm, "Fixed_param")

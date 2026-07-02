@@ -16,15 +16,7 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-A data frame with posterior summaries of
-\itemize{
-\item If part of the estimated model, posterior summaries of intercept terms,
-time-invariant regression coefficients, standard deviations of
-time-varying regression coefficients, residual standard deviations,
-and autoregressive coefficients of residuals.
-\item Average RMSE for pre- and post-treatment periods
-\item Average treatment effect (over post-treatment period and treated units)
-}
+A data frame with various posterior summaries of the model.
 }
 \description{
 Generates posterior summary statistics for a Bayesian synthetic control

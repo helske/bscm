@@ -108,7 +108,7 @@ test_that("bscm() rejects constant outcome in pre-treatment", {
   )
 })
 
-test_that("bscm() rejects constant predictor for all units", {
+test_that("bscm() errors with constant predictor for all treated", {
   d <- single_treated
   d$x <- 1
   expect_error(

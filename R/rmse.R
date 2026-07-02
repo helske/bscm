@@ -45,7 +45,7 @@ rmse.bscmfit <- function(
   unit <- get_unit(x)
   N <- get_N(x)
   treatment <- get_treatment(x)
-  d <- treatment_effect(x, type = "time", average = FALSE, summary = FALSE)
+  d <- treatment_effect(x, average = FALSE, summary = FALSE)
   cols <- c(unit, treatment)
   d <- d |>
     dplyr::summarise(
