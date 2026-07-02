@@ -137,6 +137,6 @@ residual_acf <- function(x, max_lag = 5L, probs = c(0.025, 0.975)) {
     ac = posterior::rvar(t(acf_mat))
   )
   d |>
-    dplyr::mutate(summarise_with_probs(ac, probs, for_plots = TRUE)) |>
+    dplyr::mutate(summarise_with_probs(.data$ac, probs, for_plots = TRUE)) |>
     dplyr::select(-"ac", -"variable")
 }

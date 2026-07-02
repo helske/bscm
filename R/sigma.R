@@ -26,7 +26,7 @@ sigma.bscmfit <- function(
   )
   if (summary) {
     d <- d |>
-      dplyr::mutate(summarise_with_probs(sigma, probs)) |>
+      dplyr::mutate(summarise_with_probs(.data$sigma, probs)) |>
       dplyr::select(-"sigma", -"variable")
   }
   if (length(treated) == 1) {

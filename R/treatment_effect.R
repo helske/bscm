@@ -72,17 +72,17 @@ treatment_effect.bscmfit <- function(
   if (average) {
     d <- d |>
       dplyr::summarise(
-        effect = posterior::rvar_mean(effect),
+        effect = posterior::rvar_mean(.data$effect),
         .by = "time_since_treatment"
       ) |>
-      dplyr::arrange(time_since_treatment) |> 
-      dplyr::rename("{get_time(x)}" := time_since_treatment)
+      dplyr::arrange(.data$time_since_treatment) |> 
+      dplyr::rename("{get_time(x)}" := .data$time_since_treatment)
   } else {
     d <- dplyr::select(d, -"time_since_treatment")
   }
   if (summary) {
     d <- d |>
-      dplyr::mutate(summarise_with_probs(effect, probs, for_plots)) |>
+      dplyr::mutate(summarise_with_probs(.data$effect, probs, for_plots)) |>
       dplyr::select(-"effect", -"variable")
   }
   if (N == 1) {
@@ -132,12 +132,12 @@ average_treatment_effect.bscmfit <- function(
   cols <- c(if (!average) unit, treatment)
   d <- effects_draws(x) |>
     dplyr::summarise(
-      effect = posterior::rvar_mean(effect),
+      effect = posterior::rvar_mean(.data$effect),
       .by = dplyr::all_of(cols)
     )
   if (summary) {
     d <- d |>
-      dplyr::mutate(summarise_with_probs(effect, probs)) |>
+      dplyr::mutate(summarise_with_probs(.data$effect, probs)) |>
       dplyr::select(-"effect", -"variable")
   }
   if (N == 1) {

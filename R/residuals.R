@@ -36,7 +36,7 @@ residuals.bscmfit <- function(
     dplyr::select(-"y_mean")
   if (summary) {
     d <- d |>
-      dplyr::mutate(summarise_with_probs(residuals, probs)) |>
+      dplyr::mutate(summarise_with_probs(.data$residuals, probs)) |>
       dplyr::select(-"residuals", -"variable")
   }
   if (pretreatment_only) {

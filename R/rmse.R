@@ -24,11 +24,11 @@ rmse <- function(x, ...) {
 #' @examples
 #' rmse(fit_single_treated)
 rmse.bscmfit <- function(
-  x,
-  average = FALSE,
-  summary = TRUE,
-  probs = c(0.025, 0.975),
-  ...
+    x,
+    average = FALSE,
+    summary = TRUE,
+    probs = c(0.025, 0.975),
+    ...
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
@@ -54,11 +54,14 @@ rmse.bscmfit <- function(
     )
   if (average && N > 1) {
     d <- d |>
-      dplyr::summarise(rmse = posterior::rvar_mean(rmse), .by = .env$treatment)
+      dplyr::summarise(
+        rmse = posterior::rvar_mean(.data$rmse), 
+        .by = .env$treatment
+      )
   }
   if (summary) {
     d <- d |>
-      dplyr::mutate(summarise_with_probs(rmse, probs)) |>
+      dplyr::mutate(summarise_with_probs(.data$rmse, probs)) |>
       dplyr::select(-"rmse", -"variable")
   }
   if (N == 1) {
