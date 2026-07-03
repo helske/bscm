@@ -6,8 +6,9 @@ build_spline <- function(T_total, T_pre, spline_df, noncentered) {
   a <- colSums(M[1:T0, ])
   Q <- qr.Q(qr(cbind(a, d)))[, -1]
   A <- M %*% Q
-  t_mid <- floor(T0 / 2)
-  scale <- 1 / sqrt(sum(cumsum(rev(B[t_mid, ] - B[t_mid - 1, ]))^2))
+  scale <- 1 / sqrt(mean(rowSums(diff(A)^2)))
+  # t_mid <- floor(T0 / 2)
+  # scale <- 1 / sqrt(sum(cumsum(rev(B[t_mid, ] - B[t_mid - 1, ]))^2))
   list(A = A, D = spline_df, scale = scale, noncentered_xi = noncentered)
 }
 
@@ -234,7 +235,7 @@ create_inits <- function(x, d, spline_def) {
     if (x$use_gamma) {
       xi <- matrix(0, x$D - 1, x$L)
       kappa <- array(
-        stats::runif(x$L, 0.1, 0.5) * sd_yx[x$tv_idx] * spline_def$scale
+        stats::runif(x$L, 0.01, 0.05) * sd_yx[x$tv_idx] * spline_def$scale
       )
     }
   }

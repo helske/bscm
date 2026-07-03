@@ -17,11 +17,11 @@
 #' coef(fit_single_treated)
 #' coef(fit_single_treated, type = "beta")
 coef.bscmfit <- function(
-  object,
-  type = NULL,
-  summary = TRUE,
-  probs = c(0.025, 0.975),
-  ...
+    object,
+    type = NULL,
+    summary = TRUE,
+    probs = c(0.025, 0.975),
+    ...
 ) {
   stopifnot_(
     has_intercept(object) || has_predictors(object) || has_ar1_error(object),
@@ -30,13 +30,13 @@ coef.bscmfit <- function(
   )
   test_summary(summary)
   probs <- sort_probs(probs)
-  available_types <- intersect(
-    c("alpha", "beta", "gamma", "kappa", "rho"),
-    setdiff(
-      get_stanfit(object)@model_pars,
-      object$setup$excluded_pars
-    )
+  pars <- c(
+    has_intercept(object), 
+    has_predictors(object),
+    rep(has_tv_coefs(object), 2),
+    has_ar1_error(object)
   )
+  available_types <- c("alpha", "beta", "gamma", "kappa", "rho")[pars]
   if (is.null(type)) {
     type <- available_types
   } else {
@@ -52,7 +52,7 @@ coef.bscmfit <- function(
       'Argument {.arg type} must be a subset of
     {{"alpha", "beta", "gamma", "kappa", "rho"}}'
     )
-
+    
     unavailable <- setdiff(type, available_types)
     stopifnot_(
       length(unavailable) == 0L,
@@ -62,7 +62,7 @@ coef.bscmfit <- function(
   N <- get_N(object)
   unit <- get_unit(object)
   time <- get_time(object)
-
+  
   d_alpha <- d_beta <- d_gamma <- d_kappa <- d_rho <- NULL
   if ("alpha" %in% type) {
     treated <- get_treated(object)

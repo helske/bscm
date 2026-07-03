@@ -203,11 +203,11 @@ model {
   }
   if (likelihood) {
     matrix[T, N] Z_term = cZ * omega;
-    if (K > 0) {
+    if (use_beta) {
       for (k in 1 : K) {
         Z_term -= beta[k] * cX_z[k] * omega;
       }
-      if (L > 0) {
+      if (use_gamma) {
         for (l in 1 : L) {
           Z_term -= diag_pre_multiply(gamma[ : , l], W_z[l] * omega);
         }
@@ -239,7 +239,7 @@ generated quantities {
     for (i in 1 : N) {
       alpha[i] -= Z_mean * omega[ : , i];
     }
-    if (K > 0) {
+    if (use_beta) {
       alpha -= X_y_mean * beta;
       vector[J] xzb = X_z_mean * beta;
       for (i in 1 : N) {

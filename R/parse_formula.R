@@ -8,19 +8,19 @@
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
 #' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
-#'   functions. Default is `df = 20` which is quite arbitrary, so it is good to
+#'   functions. Default `df = 10` somewhat is arbitrary, so it is good to
 #'   test various choices of `df`. Typically it is better to choose too large
 #'   than too small value, as the random walk prior of the spline coefficients
 #'   will regularize overfitting.
-#' @param noncentered \[`logical(1)`]\cr If `TRUE`, the spline
+#' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline
 #'   coefficients are sampled using a non-centered parameterization.
-#'   If `FALSE` (the default), a centered parameterization is used.
+#'   If `FALSE`, a centered parameterization is used.
 #'   Depending on the case, one of these might lead to more efficient and
 #'   numerically stable sampling, so if you encounter divergences,
 #'   try changing this.
 #' @return Object of class `tv_term` (a `list`).
 #' @export
-tv <- function(tv_formula, df = 20, noncentered = FALSE) {
+tv <- function(tv_formula, df = 10, noncentered = TRUE) {
   stopifnot_(
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."

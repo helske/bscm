@@ -340,7 +340,7 @@ default_priors <- function(d, setup, spline_def) {
     pr_beta <- normal_pr(0, signif(2 * sd_yx, 2))
     if (setup$has_w) {
       pr_kappa <- half_normal_pr(
-        signif(0.5 * sd_yx[setup$tv_idx] * spline_def$scale, 2)
+        signif(0.1 * sd_yx[setup$tv_idx] * spline_def$scale, 2)
       )
     }
   }
