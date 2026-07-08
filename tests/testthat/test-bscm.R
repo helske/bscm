@@ -43,6 +43,10 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
     bscm(y ~ 1, data = single_treated[, -2], treatment = "treatment"),
     "Can't find unit index variable `id` in `data`\\."
   )
+  expect_error(
+    bscm(y ~ treatment, data = single_treated, treatment = "treatment"),
+    "must not contain the treatment variable"
+  )
 })
 
 

@@ -88,3 +88,19 @@ test_that("has_tv_coefs is FALSE for standard models and TRUE for tv() models", 
   expect_false(has_tv_coefs(fit1_int))
   expect_true(has_tv_coefs(fitN_tv))
 })
+
+
+test_that("get_standata returns a named list with expected Stan data fields", {
+  x <- get_standata(fit1_int)
+  expect_type(x, "list")
+  expect_true(all(c("J", "N", "T", "T_pre", "y", "Z") %in% names(x)))
+  expect_equal(x$N, get_N(fit1_int))
+  expect_equal(x$J, get_J(fit1_int))
+})
+
+test_that("get_standata errors when no saved data", {
+  fit_nosave <- fit1_int
+  fit_nosave$data <- NULL
+  expect_error(get_standata(fit_nosave), "save_data = TRUE")
+})
+
