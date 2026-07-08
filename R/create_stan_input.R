@@ -15,40 +15,49 @@ build_spline <- function(T_total, T_pre, spline_df, noncentered) {
 #' Compute descriptive statistics to be used with default priors
 #' @noRd
 compute_descriptives <- function(
-    Y, Z, T_pre, X_y = NULL, X_z = NULL, beta_names = NULL) {
-  
+  Y,
+  Z,
+  T_pre,
+  X_y = NULL,
+  X_z = NULL,
+  beta_names = NULL
+) {
   pooled_within_sd <- function(s, n) {
     sqrt(stats::weighted.mean(s^2, w = n - 1))
   }
   N <- ncol(Y)
   sd_y_by_unit <- vapply(
-    seq_len(N), \(i) sd(Y[seq_len(T_pre[i]), i]), numeric(1)
+    seq_len(N),
+    \(i) sd(Y[seq_len(T_pre[i]), i], na.rm = TRUE),
+    numeric(1)
   )
-  constant_sd <- which(sd_y_by_unit < sqrt(.Machine$double.eps))
+  constant_sd <- which(sd_y_by_unit < 1e-8)
   stopifnot_(
     length(constant_sd) == 0L,
     c(
       "Outcome variable cannot be constant in the pre-treatment period.",
-      i = "Found SD < {sqrt(.Machine$double.eps)} for {constant_sd}."
+      i = "Found SD < {1e-8} for unit {names(constant_sd)}."
     )
   )
   min_T_pre <- min(T_pre)
   sd_z <- apply(Z[seq_len(min_T_pre), , drop = FALSE], 2, sd)
-  constant_sd <- which(sd_z < sqrt(.Machine$double.eps))
+  constant_sd <- which(sd_z < 1e-8)
   stopifnot_(
     length(constant_sd) == 0L,
     c(
       "Outcome variable cannot be constant in the pre-treatment period.",
-      i = "Found SD < {sqrt(.Machine$double.eps)} for {constant_sd}."
+      i = "Found SD < {1e-8} for unit {names(constant_sd)}."
     )
   )
-  
-  mean_y <- vapply(seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i]), numeric(1))
+
+  mean_y <- vapply(
+    seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i], na.rm = TRUE), numeric(1)
+  )
   # residual SD with uniform donor weights (ignoring predictors)
   mean_z <- rowMeans(Z)
   sd_yz <- vapply(
     seq_len(N),
-    \(i) sd(Y[seq_len(T_pre[i]), i] - mean_z[seq_len(T_pre[i])]),
+    \(i) sd(Y[seq_len(T_pre[i]), i] - mean_z[seq_len(T_pre[i])], na.rm = TRUE),
     numeric(1)
   )
   out <- list(
@@ -61,12 +70,14 @@ compute_descriptives <- function(
     sd_x_by_unit <- matrix(nrow = N, ncol = K)
     for (i in seq_len(N)) {
       sd_x_by_unit[i, ] <- apply(
-        X_y[i, seq_len(T_pre[i]), , drop = FALSE], 3, sd
+        X_y[i, seq_len(T_pre[i]), , drop = FALSE],
+        3,
+        sd
       )
     }
     constant_sd <- which(
       stats::setNames(
-        apply(sd_x_by_unit, 2, max) < sqrt(.Machine$double.eps),
+        apply(sd_x_by_unit, 2, max) < 1e-8,
         beta_names
       )
     )
@@ -104,7 +115,7 @@ prior_to_stan <- function(x, type) {
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-  
+
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -157,14 +168,14 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-    setup,
-    priors,
-    Y,
-    Z,
-    X_y = NULL,
-    X_z = NULL,
-    spline_def = NULL,
-    prior_only = FALSE
+  setup,
+  priors,
+  Y,
+  Z,
+  X_y = NULL,
+  X_z = NULL,
+  spline_def = NULL,
+  prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -203,7 +214,9 @@ create_standata <- function(
       tv_idx = array(setup$tv_idx),
       A = A,
       likelihood = as.integer(!prior_only),
-      noncentered_xi = noncentered_xi
+      noncentered_xi = noncentered_xi,
+      missing_idx = setup$missing_idx,
+      n_missing = nrow(setup$missing_idx)
     ),
     unlist(
       lapply(

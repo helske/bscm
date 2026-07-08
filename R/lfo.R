@@ -18,17 +18,6 @@ lfo <- function(x, ...) {
 #' constant throughout the evaluation period. In this case, a joint ELPD of
 #' all treated units is computed at each step.
 #'
-#' Two methods are available:
-#'
-#' * **Exact LFO** (`exact = TRUE`): the model is refitted at every step.
-#'   This is exact but expensive.
-#'
-#' * **PSIS-LFO** (`exact = FALSE`, the default): uses Pareto-smoothed
-#'   importance sampling (PSIS) to avoid refitting at every step. The model is
-#'   only refitted when the Pareto `k` diagnostic exceeds `k_thres`. At refit
-#'   points the ELPD is computed exactly; at other points it is approximated
-#'   by PSIS.
-#'
 #' @references
 #' Bürkner PC, Gabry J, and Vehtari A (2020).
 #' Approximate leave-future-out cross-validation for Bayesian time series
@@ -45,15 +34,15 @@ lfo <- function(x, ...) {
 #' @param exact \[`logical(1)`]\cr If `TRUE`, computes exact LFO by refitting
 #'   at every step. If `FALSE` (the default), uses the approximate PSIS-LFO
 #'   method.
-#' @param k_thres \[`numeric(1)`]\cr Threshold for the Pareto `k` diagnostic
+#' @param k_threshold \[`numeric(1)`]\cr Threshold for the Pareto `k` diagnostic
 #'   that triggers a model refit. Default is `0.7`. Ignored when `exact = TRUE`.
 #' @param ... Additional arguments passed on to [bscm()] when refitting.
 #' @return An object of class `bscm_lfo`, a list with components:
 #'   * `ELPD`: Total expected log predictive density.
-#'   * `ELPD_SE`: A crude approximation of standard error of ELDP, ignoring
+#'   * `ELPD_SE`: A crude approximation of standard error of ELPD, ignoring
 #'      serial dependency of ELPD estimates.
 #'   * `ELPDs`: Vector of per-step ELPDs (length `T_pre_min - L`). Element `k`
-#'     is the ELPD for predicting observation `L + k`.
+#'     is the ELPD for predicting observations at `L + k`.
 #'   * `ks`: Pareto `k` values (length `T_pre_min - L - 1`, `NULL` for exact
 #'     LFO).
 #'   * `refits`: Time indices at which the model was re-estimated.
@@ -61,7 +50,7 @@ lfo <- function(x, ...) {
 #'   * `T_pre_min`: The minimum pre-treatment period length across treated
 #'     units.
 #'   * `times`: Vector of all unique time values from the original data.
-#'   * `time_var`: Name of the time variable.
+#'   * `time`: Name of the time variable.
 #'   * `k_thres`: The Pareto k threshold used.
 #' @examples
 #' \donttest{
@@ -75,7 +64,7 @@ lfo.bscmfit <- function(
   x,
   L,
   exact = FALSE,
-  k_thres = 0.7,
+  k_threshold = 0.7,
   ...
 ) {
   stopifnot_(
@@ -91,36 +80,14 @@ lfo.bscmfit <- function(
   )
 
   time <- get_time(x)
-  times <- get_times(x)
-  unit <- get_unit(x)
-  treatment <- get_treatment(x)
-  treated <- get_treated(x)
-  priors <- get_priors(x)
-
+  standata <- get_standata(x)
+  standata$sample_y_rep <- FALSE
   refit_at <- function(t_lfo) {
-    d <- x$data |>
-      dplyr::mutate(
-        "{treatment}" := ifelse(
-          .data[[unit]] %in% .env$treated & .data[[time]] > .env$times[t_lfo],
-          1L,
-          0L
-        )
-      )
-    stats::update(
-      x,
-      data = d,
-      compute_predictions = FALSE,
-      mcmc_diagnostics = FALSE,
-      save_data = FALSE,
-      priors = priors,
-      refresh = 0,
-      ...
-    )
+    standata$T_pre[] <- t_lfo
+    refit_bscm(x, standata)
   }
-
-  treated_data <- x$data |> dplyr::filter(.data[[unit]] %in% .env$treated)
   n_steps <- T_pre_min - L
-  elpds <- rep(NA_real_, n_steps)
+  elpds <- rep(NA, n_steps)
   p <- progressr::progressor(steps = n_steps)
 
   if (exact) {
@@ -129,17 +96,13 @@ lfo.bscmfit <- function(
     for (t in L:(T_pre_min - 1L)) {
       p(sprintf("Fitting model with %d pre-treatment observations.", t))
       fit_t <- refit_at(t)
-      ll_next <- loglik_at_times(fit_t, treated_data, t + 1L)
+      ll_next <- loglik_at_times(fit_t, t + 1L)
       elpds[t - L + 1L] <- log_mean_exp(ll_next[, 1L])
     }
   } else {
     p(sprintf("Fitting model with %d pre-treatment observations.", L))
     fit_past <- refit_at(L)
-    ll_from_refit <- loglik_at_times(
-      fit_past,
-      treated_data,
-      seq(L + 1L, T_pre_min)
-    )
+    ll_from_refit <- loglik_at_times(fit_past, L + 1L, T_pre_min)
 
     elpds[1L] <- log_mean_exp(ll_from_refit[, 1L])
     i_refit <- L
@@ -153,16 +116,12 @@ lfo.bscmfit <- function(
       psis_obj <- suppressWarnings(loo::psis(logratio))
       k <- loo::pareto_k_values(psis_obj)
       ks[step - 1L] <- k
-      if (k > k_thres) {
+      if (k > k_threshold) {
         i_refit <- t
         refits <- c(refits, t)
         p(sprintf("Refitting model with %d pre-treatment observations.", t))
         fit_past <- refit_at(t)
-        ll_from_refit <- loglik_at_times(
-          fit_past,
-          treated_data,
-          seq(t + 1L, T_pre_min)
-        )
+        ll_from_refit <- loglik_at_times(fit_past, t + 1L, T_pre_min)
         elpds[step] <- log_mean_exp(ll_from_refit[, 1L])
       } else {
         p(sprintf("PSIS approximation at step %d (k = %.2f).", t, k))
@@ -180,9 +139,9 @@ lfo.bscmfit <- function(
     refits = refits,
     L = L,
     T_pre_min = T_pre_min,
-    times = times,
-    time_var = time,
-    k_thres = k_thres
+    times = get_times(x),
+    time = get_time(x),
+    k_threshold = k_threshold
   )
   class(out) <- "bscm_lfo"
   out
@@ -201,7 +160,7 @@ print.bscm_lfo <- function(x, ...) {
     "\n",
     approx,
     " LFO starting from ",
-    x$time_var,
+    x$time,
     " = ",
     x$times[x$L],
     sep = ""
@@ -213,7 +172,7 @@ print.bscm_lfo <- function(x, ...) {
       " = ",
       paste(x$times[x$refits], collapse = ", "),
       " (Based on Pareto k threshold of ",
-      x$k_thres,
+      x$k_threshold,
       ")\n",
       sep = ""
     )
@@ -246,7 +205,7 @@ plot.bscm_lfo <- function(x, ...) {
     k = x$ks,
     time = x$times[x$L + seq_len(length(x$ks))]
   )
-  d$threshold <- d$k > x$k_thres
+  d$threshold <- d$k > x$k_threshold
   # avoid NSE notes from R CMD check
   time <- k <- threshold <- NULL
   ggplot(d, aes(x = time, y = k)) +
@@ -257,9 +216,9 @@ plot.bscm_lfo <- function(x, ...) {
       alpha = 0.5
     ) +
     geom_hline(
-      yintercept = x$k_thres,
+      yintercept = x$k_threshold,
       linetype = 2,
-      color = "red2"
+      color = "tomato"
     ) +
     scale_color_manual(values = c("cornflowerblue", "darkblue")) +
     labs(x = x$time_var, y = "Pareto k")

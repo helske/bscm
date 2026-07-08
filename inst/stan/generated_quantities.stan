@@ -15,6 +15,8 @@ data {
   array[use_beta ? J : 0] matrix[T, K] X_z; // covariates for donors
   array[L] int<lower=1, upper=K> tv_idx; // indices of gamma coefs
   int<lower=0, upper=1> sample_y_rep; // if 1, samples y_rep
+  int<lower=0> n_missing; // number of missing treated observations
+  array[n_missing, 2] int missing_idx; // (unit, time) indices of missing obs
 }
 transformed data {
   array[K] matrix[T, J] X_z_;
@@ -45,6 +47,7 @@ parameters {
   vector[use_beta ? K : 0] beta; // regression coefficients
   matrix[use_gamma ? T : 0, L] gamma; // time-varying regression coefficients
   vector[use_ar1 ? N : 0] rho; // autoregressive parameters
+  vector[n_missing] y_imp; // imputed values for missing treated observations
 }
 generated quantities {
   matrix[T, N] y_mean = Z * omega;
@@ -69,11 +72,17 @@ generated quantities {
     if (use_gamma) {
       y_mean[ : , i] += rows_dot_product(W_y[i], gamma);
     }
-    if (use_ar1) {
+  }
+  if (use_ar1) {
+    array[N] vector[T] y_full = y;
+    for (m in 1 : n_missing) {
+      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imp[m];
+    }
+    for (i in 1 : N) {
       int Ti = T_pre[i];
       y_mean[2 : Ti, i] += rho[i]
-                           * (y[i, 1 : (Ti - 1)] - y_mean[1 : (Ti - 1), i]);
-      real u = y[i, Ti] - y_mean[Ti, i];
+                           * (y_full[i, 1 : (Ti - 1)] - y_mean[1 : (Ti - 1), i]);
+      real u = y_full[i, Ti] - y_mean[Ti, i];
       for (t in (Ti + 1) : T) {
         u *= rho[i];
         y_mean[t, i] += u;

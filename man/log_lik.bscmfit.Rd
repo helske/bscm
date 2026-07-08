@@ -5,34 +5,23 @@
 \alias{log_lik}
 \title{Posterior draws of pointwise log-likelihood}
 \usage{
-\method{log_lik}{bscmfit}(object, T_end = NULL, ...)
+\method{log_lik}{bscmfit}(object, ...)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
-
-\item{T_end}{[\code{integer(1)}]\cr A value of the time variable
-(as it appears in the data) up to which log-likelihoods are computed for all
-treated units.}
 
 \item{...}{Ignored.}
 }
 \value{
 A matrix where rows correspond to posterior draws and columns to
-time periods. By default, only pre-treatment observations are
-included for each unit, so output has \code{sum(T_pre)} columns in total. When
-\code{T_end} is supplied, output has \code{N * T_max} columns where \code{T_max} is the
-number of time points from the first period until \code{T_end}. Output columns are
-ordered by unit then time: all (pre-treatment) time points for the first
-treated unit, then the second, and so on.
+observed (non-missing) time periods. Output columns are ordered by unit
+then time: all observed pre-treatment time points for the first treated unit,
+then the second, and so on.
 }
 \description{
 Returns posterior draws of pointwise log-likelihoods of the treated units per
-time point. By default (\code{T_end = NULL}), only pre-treatment observations are
-included (\code{T_pre[i]} time points for unit \code{i}). When \code{T_end} is supplied as a
-value of the time variable, all treated units are evaluated up to and
-including that time point regardless of whether these correspond to pre- or
-post-treatment times.
+pre-treatment time point
 }
 \examples{
-log_lik(fit_single_treated, T_end = -28) |> head()
+log_lik(fit_single_treated) |> head()
 }

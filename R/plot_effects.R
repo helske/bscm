@@ -47,7 +47,7 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
   unit_col <- get_unit(x)
   N <- get_N(x)
   qcols <- paste0("q", 100 * sort(probs))
-  
+
   if (!is.null(unit)) {
     stopifnot_(
       unit %in% treated,
@@ -55,14 +55,21 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
       {.val {treated}}."
     )
   }
-  
+
   if (is.null(unit) && N > 1L) {
     d <- treatment_effect(x, average = TRUE, probs = probs, for_plots = TRUE)
     d |>
-      dplyr::rename(ymin = dplyr::all_of(qcols[[1L]]), ymax = dplyr::all_of(qcols[[2L]])) |>
+      dplyr::rename(
+        ymin = dplyr::all_of(qcols[[1L]]),
+        ymax = dplyr::all_of(qcols[[2L]])
+      ) |>
       ggplot(aes(time, mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25) +
+      geom_ribbon(
+        aes(ymin = ymin, ymax = ymax),
+        fill = "#EECC66",
+        alpha = 0.25
+      ) +
       geom_line(colour = "#DDAA33") +
       labs(x = "Time since treatment", y = "Average treatment effect") +
       theme_bw()
@@ -75,10 +82,17 @@ plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
         dplyr::select(-dplyr::all_of(unit_col))
     }
     d |>
-      dplyr::rename(ymin = dplyr::all_of(qcols[[1L]]), ymax = dplyr::all_of(qcols[[2L]])) |>
+      dplyr::rename(
+        ymin = dplyr::all_of(qcols[[1L]]),
+        ymax = dplyr::all_of(qcols[[2L]])
+      ) |>
       ggplot(aes(.data[[time]], mean)) +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "#EECC66", alpha = 0.25) +
+      geom_ribbon(
+        aes(ymin = ymin, ymax = ymax),
+        fill = "#EECC66",
+        alpha = 0.25
+      ) +
       geom_line(colour = "#DDAA33") +
       labs(
         x = time,

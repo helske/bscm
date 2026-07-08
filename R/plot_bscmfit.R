@@ -56,7 +56,7 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     dplyr::select(dplyr::all_of(c(unit, time, treatment, outcome))) |>
     dplyr::rename(dplyr::any_of(lookup)) |>
     dplyr::mutate(type = "Synthetic control", treatment = factor(treatment))
-  
+
   d_plot |>
     ggplot(aes(time, mean)) +
     geom_ribbon(

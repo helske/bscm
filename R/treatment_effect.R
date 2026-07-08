@@ -46,11 +46,11 @@ treatment_effect <- function(x, ...) {
 #' @examples
 #' treatment_effect(fit_single_treated) |> tail()
 treatment_effect.bscmfit <- function(
-    x,
-    average = TRUE,
-    summary = TRUE,
-    probs = c(0.025, 0.975),
-    ...
+  x,
+  average = TRUE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
 ) {
   probs <- sort_probs(probs)
   test_summary(summary)
@@ -75,8 +75,8 @@ treatment_effect.bscmfit <- function(
         effect = posterior::rvar_mean(.data$effect),
         .by = "time_since_treatment"
       ) |>
-      dplyr::arrange(.data$time_since_treatment) |> 
-      dplyr::rename("{get_time(x)}" := .data$time_since_treatment)
+      dplyr::arrange(.data$time_since_treatment) |>
+      dplyr::rename("{get_time(x)}" := "time_since_treatment")
   } else {
     d <- dplyr::select(d, -"time_since_treatment")
   }
@@ -108,11 +108,11 @@ average_treatment_effect <- function(x, ...) {
 #' @examples
 #' average_treatment_effect(fit_single_treated)
 average_treatment_effect.bscmfit <- function(
-    x,
-    average = TRUE,
-    summary = TRUE,
-    probs = c(0.025, 0.975),
-    ...
+  x,
+  average = TRUE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
 ) {
   probs <- sort_probs(probs)
   test_summary(summary)

@@ -43,7 +43,12 @@
 #' vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 #' the effect of covariates \eqn{X_j \beta} for that donor. Note that
 #' \eqn{\beta} is common across donors and the treated units.
-#'
+#' 
+#' Model can contain missing values in the outcome variable of the treated,
+#' but not of the donors, nor in the covariates. Missing outcomes are 
+#' automatically imputed during MCMC sampling under a missing at random 
+#' (MAR) assumption.
+#' 
 #' @param formula \[`formula`]\cr The model formula containing the outcome
 #' variable on the left-hand side and optional time-varying predictors on
 #' the right-hand side (RHS) of `~`. See details.
@@ -182,9 +187,24 @@ bscm <- function(
     dplyr::pull(.data[[outcome]]) |>
     matrix(nrow = T_total)
   stopifnot_(
-    all(!is.na(Y)) && all(!is.na(Z)),
-    "Missing values are not supported."
+    all(!is.na(Z)),
+    "Missing values in donor units are not supported."
   )
+  missing_idx <- do.call(
+    rbind,
+    lapply(seq_along(T_pre), function(i) {
+      miss <- which(is.na(Y[seq_len(T_pre[i]), i]))
+      if (length(miss) > 0) {
+        cbind(unit = i, time = miss)
+      } else NULL
+    })
+  )
+  if (is.null(missing_idx)) {
+    missing_idx <- matrix(
+      nrow = 0, ncol = 2, dimnames = list(NULL, c("unit", "time"))
+    )
+  }
+  Y[is.na(Y)] <- 0
   colnames(Y) <- treated
   colnames(Z) <- donors
   J <- ncol(Z)
@@ -199,7 +219,7 @@ bscm <- function(
     beta_names <- colnames(X)
     stopifnot_(
       nrow(X) == nrow(data),
-      "Missing values are not supported."
+      "Missing covariate values are not supported."
     )
     K <- ncol(X)
     n_units <- J + N
@@ -238,6 +258,7 @@ bscm <- function(
     has_x = has_x,
     has_w = has_w,
     has_ar1 = error == "ar1",
+    missing_idx = missing_idx,
     predictors,
     beta_names,
     gamma_names,

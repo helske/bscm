@@ -7,7 +7,7 @@
 \usage{
 lfo(x, ...)
 
-\method{lfo}{bscmfit}(x, L, exact = FALSE, k_thres = 0.7, ...)
+\method{lfo}{bscmfit}(x, L, exact = FALSE, k_threshold = 0.7, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The output returned by \code{\link[=bscm]{bscm()}}.}
@@ -23,17 +23,17 @@ estimation, so a value of at least \code{10} is recommended.}
 at every step. If \code{FALSE} (the default), uses the approximate PSIS-LFO
 method.}
 
-\item{k_thres}{[\code{numeric(1)}]\cr Threshold for the Pareto \code{k} diagnostic
+\item{k_threshold}{[\code{numeric(1)}]\cr Threshold for the Pareto \code{k} diagnostic
 that triggers a model refit. Default is \code{0.7}. Ignored when \code{exact = TRUE}.}
 }
 \value{
 An object of class \code{bscm_lfo}, a list with components:
 \itemize{
 \item \code{ELPD}: Total expected log predictive density.
-\item \code{ELPD_SE}: A crude approximation of standard error of ELDP, ignoring
+\item \code{ELPD_SE}: A crude approximation of standard error of ELPD, ignoring
 serial dependency of ELPD estimates.
 \item \code{ELPDs}: Vector of per-step ELPDs (length \code{T_pre_min - L}). Element \code{k}
-is the ELPD for predicting observation \code{L + k}.
+is the ELPD for predicting observations at \code{L + k}.
 \item \code{ks}: Pareto \code{k} values (length \code{T_pre_min - L - 1}, \code{NULL} for exact
 LFO).
 \item \code{refits}: Time indices at which the model was re-estimated.
@@ -41,7 +41,7 @@ LFO).
 \item \code{T_pre_min}: The minimum pre-treatment period length across treated
 units.
 \item \code{times}: Vector of all unique time values from the original data.
-\item \code{time_var}: Name of the time variable.
+\item \code{time}: Name of the time variable.
 \item \code{k_thres}: The Pareto k threshold used.
 }
 }
@@ -55,18 +55,6 @@ must have at least \code{L + 1} pre-treatment observations, and only the first
 \code{min(T_pre)} time points are used so the number of treated units stays
 constant throughout the evaluation period. In this case, a joint ELPD of
 all treated units is computed at each step.
-}
-\details{
-Two methods are available:
-\itemize{
-\item \strong{Exact LFO} (\code{exact = TRUE}): the model is refitted at every step.
-This is exact but expensive.
-\item \strong{PSIS-LFO} (\code{exact = FALSE}, the default): uses Pareto-smoothed
-importance sampling (PSIS) to avoid refitting at every step. The model is
-only refitted when the Pareto \code{k} diagnostic exceeds \code{k_thres}. At refit
-points the ELPD is computed exactly; at other points it is approximated
-by PSIS.
-}
 }
 \examples{
 \donttest{

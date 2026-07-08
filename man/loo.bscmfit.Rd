@@ -6,7 +6,7 @@
 \title{Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic
 control models}
 \usage{
-\method{loo}{bscmfit}(x, r_eff = TRUE, ...)
+\method{loo}{bscmfit}(x, r_eff = TRUE, reloo = FALSE, k_threshold = 0.7, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
@@ -14,6 +14,15 @@ control models}
 \item{r_eff}{[\code{logical(1)}]\cr If \code{TRUE} (the default), \code{\link[loo:loo]{loo::loo()}}
 computes more accurate Monte Carlo error estimates at the cost of
 increased computation time.}
+
+\item{reloo}{[\code{logical(1)}]\cr If \code{TRUE}, observations whose Pareto
+\code{k} diagnostic exceeds \code{k_threshold} are handled by exact
+leave-one-out refits rather than PSIS approximation. Requires
+\code{save_data = TRUE} in the original fit. Default is \code{FALSE}.}
+
+\item{k_threshold}{[\code{numeric(1)}]\cr Threshold for the Pareto \code{k}
+diagnostic that triggers an exact refit when \code{reloo = TRUE}.
+Default is \code{0.7}.}
 
 \item{...}{Additional arguments to \code{\link[loo:loo]{loo::loo()}}.}
 }

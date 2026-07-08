@@ -63,18 +63,18 @@ test_that("bscm() accepts multiple treated units", {
     as.character(setdiff(seq_len(max(d$id)), c(2:3, 6)))
   )
 })
-test_that("bscm() rejects missing values", {
+test_that("bscm() rejects missing values in covariates and  donors", {
   d <- single_treated
-  d$y[10] <- NA
+  d$y[100] <- NA
   expect_error(
     bscm(y ~ 1, data = d, treatment = "treatment"),
-    "Missing values are not supported\\."
+    "Missing values in donor units are not supported\\."
   )
   d <- single_treated
   d$x[10] <- NA
   expect_error(
     bscm(y ~ x, data = d, treatment = "treatment"),
-    "Missing values are not supported\\."
+    "Missing covariate values are not supported\\."
   )
   d <- single_treated
   d$time[10] <- NA

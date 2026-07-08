@@ -61,7 +61,7 @@ test_that("compute_descriptives() computes correct summary statistics", {
   X_y <- X[seq_len(N), , ]
   X_z <- X[N + seq_len(J), , ]
   x <- compute_descriptives(Y, Z, T_pre, X_y, X_z)
-  
+
   expect_equal(x$mean_y[1], mean(Y[seq_len(T_pre[1]), 1]))
   expect_equal(x$mean_y[2], mean(Y[seq_len(T_pre[2]), 2]))
   expect_equal(

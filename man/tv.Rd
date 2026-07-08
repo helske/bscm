@@ -4,14 +4,14 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, df = 20, noncentered = TRUE)
+tv(tv_formula, df = 10, noncentered = TRUE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
 defining the the time-varying part of the BSCM formula.}
 
 \item{df}{[\code{integer(1)}]\cr Integer defining the number of spline basis
-functions. Default is \code{df = 20} which is quite arbitrary, so it is good to
+functions. Default \code{df = 10} somewhat is arbitrary, so it is good to
 test various choices of \code{df}. Typically it is better to choose too large
 than too small value, as the random walk prior of the spline coefficients
 will regularize overfitting.}

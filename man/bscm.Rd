@@ -122,6 +122,11 @@ where column \eqn{j} of \eqn{Z^\ast} is
 vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
+
+Model can contain missing values in the outcome variable of the treated,
+but not of the donors, nor in the covariates. Missing outcomes are
+automatically imputed during MCMC sampling under a missing at random
+(MAR) assumption.
 }
 \examples{
 # skip diagnostics and use small number of iterations for CRAN checks
