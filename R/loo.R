@@ -50,7 +50,7 @@ loo.bscmfit <- function(x,
     as.integer(
       unlist(
         strsplit(
-          sub("^log_lik\\[|\\]$", "", colnames(ll)[bad_k]),
+          gsub("[^0-9,]", "", colnames(ll)[bad_k]),
           ",",
           fixed = TRUE
         )
@@ -59,22 +59,22 @@ loo.bscmfit <- function(x,
     2,
     length(bad_k)
   )
+  missing_idx <- standata$missing_idx
+  standata$n_missing <- standata$n_missing + 1L
   for (k in seq_along(bad_k)) {
     obs <- bad_k[k]
     t <- ti[1, k]
     i <- ti[2, k]
-    standata_mod <- standata
-    standata_mod$missing_idx <- rbind(
-      standata$missing_idx,
+    standata$missing_idx <- rbind(
+      missing_idx,
       c(unit = i, time = t)
     )
-    standata_mod$n_missing <- standata$n_missing + 1L
-    refit <- refit_bscm(x, standata_mod)
+    refit <- refit_bscm(x, standata)
     mu_offset <- (i - 1L) * T_total
     mu_draws <- posterior_epred(refit)
     sigma_draws <- as.matrix(get_stanfit(refit), pars = "sigma")
     ll_exact <- stats::dnorm(
-      standata$Y[i, t],
+      standata$y[i, t],
       mu_draws[, mu_offset + t],
       sigma_draws[, i],
       log = TRUE

@@ -107,7 +107,7 @@ lfo.bscmfit <- function(
     elpds[1L] <- log_mean_exp(ll_from_refit[, 1L])
     i_refit <- L
     refits <- L
-    ks <- rep(NA_real_, n_steps - 1L)
+    ks <- rep(NA, n_steps - 1L)
 
     for (step in seq(2L, n_steps)) {
       t <- L + step - 1L

@@ -33,13 +33,13 @@ treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 An object of class \code{bscm_ldo} with data frames \code{effect},
-\code{rmse}, \code{weights}, and \code{diagnostics}, and a \code{metadata} list. The data
-frames contain posterior summaries for the original fit (\code{step = 0}) and
-for each leave-out run, identified by \code{step}, \code{n_removed}, and
-\code{last_removed}. The \code{metadata} list contains the omitted donors, whether
-donor omission was cumulative, summary probabilities, and model metadata
-needed for plotting. The result can be visualized with \code{\link[=plot_weights]{plot_weights()}} and
-\code{\link[=plot_effects]{plot_effects()}}.
+\code{rmse}, \code{rmse_ratio}, \code{weights}, and \code{diagnostics}, and a \code{metadata} list.
+The data frames contain posterior summaries for the original fit
+(\code{step = 0}) and for each leave-out run, identified by \code{step},
+\code{n_removed}, and \code{last_removed}. The \code{metadata} list contains the
+omitted donors, whether donor omission was cumulative, summary
+probabilities, and model metadata needed for plotting. The result can be
+visualized with \code{\link[=plot_weights]{plot_weights()}} and \code{\link[=plot_effects]{plot_effects()}}.
 }
 \description{
 \code{leave_donor_out()} re-estimates the original model after omitting donors

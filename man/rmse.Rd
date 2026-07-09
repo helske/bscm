@@ -28,11 +28,12 @@ Default is \code{c(0.025, 0.975)}.}
 }
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-posterior draws (\code{summary = FALSE}) in long format.
+posterior draws (\code{summary = FALSE}).
 }
 \description{
-Extract root mean squared errors of a Bayesian synthetic control model
+Returns posterior draws (or summaries) of root mean squared errors (RMSEs)
+for the pre-treatment and post-treatment periods.
 }
 \examples{
-rmse(fit_single_treated)
+rmse(fit_single_treated, probs = c(0.01, 0.5, 0.8))
 }

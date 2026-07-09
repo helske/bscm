@@ -32,13 +32,13 @@ leave_donor_out <- function(x, ...) {
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
 #' @return An object of class `bscm_ldo` with data frames `effect`,
-#'   `rmse`, `weights`, and `diagnostics`, and a `metadata` list. The data
-#'   frames contain posterior summaries for the original fit (`step = 0`) and
-#'   for each leave-out run, identified by `step`, `n_removed`, and
-#'   `last_removed`. The `metadata` list contains the omitted donors, whether
-#'   donor omission was cumulative, summary probabilities, and model metadata
-#'   needed for plotting. The result can be visualized with [plot_weights()] and
-#'   [plot_effects()].
+#'   `rmse`, `rmse_ratio`, `weights`, and `diagnostics`, and a `metadata` list. 
+#'   The data frames contain posterior summaries for the original fit 
+#'   (`step = 0`) and for each leave-out run, identified by `step`, 
+#'   `n_removed`, and `last_removed`. The `metadata` list contains the 
+#'   omitted donors, whether donor omission was cumulative, summary 
+#'   probabilities, and model metadata needed for plotting. The result can be 
+#'   visualized with [plot_weights()] and [plot_effects()].
 #' @rdname leave_donor_out
 #' @aliases leave_donor_out
 #' @export
@@ -74,13 +74,14 @@ leave_donor_out.bscmfit <- function(
     )
   }
   unit <- get_unit(x)
-  effects <- weights <- rmses <- diagnostics <-
+  effects <- weights <- rmses <- rmse_ratios <- diagnostics <-
     stats::setNames(
       vector("list", length(removed_donors) + 1L),
       c("none", names(removed_donors))
     )
   effects[[1]] <- treatment_effect(x, probs = probs)
   rmses[[1]] <- rmse(x, probs = probs)
+  rmse_ratios[[1]] <- rmse_ratio(x, probs = probs)
   weights[[1]] <- donor_weights(x, probs = probs)
   diagnostics[[1]] <- check_mcmc_diagnostics(x, warn = FALSE)
 
@@ -100,6 +101,7 @@ leave_donor_out.bscmfit <- function(
     )
     effects[[i + 1]] <- treatment_effect(fit, probs = probs)
     rmses[[i + 1]] <- rmse(fit, probs = probs)
+    rmse_ratios[[i + 1]] <- rmse_ratio(fit, probs = probs)
     weights[[i + 1]] <- donor_weights(fit, probs = probs)
     diagnostics[[i + 1]] <- check_mcmc_diagnostics(fit, warn = FALSE)
   }
@@ -116,6 +118,7 @@ leave_donor_out.bscmfit <- function(
   out <- list(
     effect = dplyr::bind_rows(effects, .id = "removed_donor"),
     rmse = dplyr::bind_rows(rmses, .id = "removed_donor"),
+    rmse_ratio = dplyr::bind_rows(rmse_ratios, .id = "removed_donor"),
     weights = dplyr::bind_rows(weights, .id = "removed_donor"),
     diagnostics = dplyr::bind_rows(
       lapply(diagnostics, diags2df),

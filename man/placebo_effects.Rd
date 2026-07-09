@@ -19,30 +19,33 @@ Either \code{"donor"} for in-space placebos, \code{"time"} for in-time placebos.
 details.}
 
 \item{L}{[\code{integer(1)}]\cr If \verb{type = "time}, minimum number of observations
-to use for the in-time placebos, i.e. the number of pre-treatment time points
-for the first fit. For too small \code{L}, estimation can be unstable, so you
-should likely use at least \code{L = 10} or so.}
+to use for the in-time placebos, i.e. the number of pre-treatment time
+points for the first fit. For too small \code{L}, estimation can be unstable,
+so you should likely use at least \code{L = 10} or so.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries of the
 treatment effects and RMSE estimates. Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A list with data frames \code{effect}, \code{rmse}, and \code{diagnostics}, and a
-\code{metadata} list. The data frames contain posterior summaries for each run,
-identified by a \code{placebo} column. For \code{type = "donor"}, \code{placebo} is the
-treated unit name for the original fit and the donor name for each placebo
-run. For \code{type = "time"}, \code{placebo} is the assumed treatment start time for
-each run. The \code{metadata} list contains the placebo type, summary
-probabilities, model setup, and the placebo labels used. The result can be
-visualized with \code{\link[=plot_effects]{plot_effects()}}.
+A list with data frames \code{effect}, \code{rmse}, \code{rmse_ratio} and
+\code{diagnostics}, and a \code{metadata} list. The data frames contain posterior
+summaries for each run, identified by a \code{placebo} column. For
+\code{type = "donor"}, \code{placebo} is the treated unit name for the original fit
+and the donor name for each placebo run. For \code{type = "time"}, \code{placebo}
+is the assumed treatment start time for each run. The \code{metadata} list
+contains the placebo type, summary probabilities, model setup, and the
+placebo labels used. The result can be visualized with \code{\link[=plot_effects]{plot_effects()}}.
 }
 \description{
+Estimates in-space and in-time placebo effects based on the model definition
+of previously estimated Bayesian synthetic control model.
+}
+\details{
 For the in-space placebo (\code{type = "donor"}), original model is re-estimated
 using each donor as the treated unit in turn (omitting the original, true
 treated unit). The obtained effect estimates should be around zero, under
 the assumption that the treatment affected only the true treated unit.
-}
-\details{
+
 For the in-time placebo (\code{type = "time"}) we still
 estimate the treatment effect for the original treated, but move the start
 of the treatment from \eqn{L + 1} to \eqn{T_{pre} + 1}, where \eqn{L} is the
@@ -50,4 +53,6 @@ minimum number of pre-treatment time points to use, and \eqn{T_{pre}} is the
 true last pre-treatment time point. In all cases, the obtained treatment
 effects should fluctuate around zero for time points before the true
 treatment time, under the assumption of no anticipation effects.
+
+In both cases, the output includes also the results of the input model.
 }
