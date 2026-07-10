@@ -158,6 +158,7 @@ placebo_effects.bscmfit <- function(
   out <- list(
     effect = dplyr::bind_rows(effects, .id = "placebo"),
     rmse = dplyr::bind_rows(rmses, .id = "placebo"),
+    rmse_ratio = dplyr::bind_rows(rmse_ratios, .id = "placebo"),
     diagnostics = dplyr::bind_rows(
       lapply(diagnostics_list, diags2df),
       .id = "placebo"
