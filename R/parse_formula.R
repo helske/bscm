@@ -8,19 +8,18 @@
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
 #' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
-#'   functions. Default `df = 10` somewhat is arbitrary, so it is good to
-#'   test various choices of `df`. Typically it is better to choose too large
-#'   than too small value, as the random walk prior of the spline coefficients
-#'   will regularize overfitting.
+#'   functions. Default is `df = 10`.
 #' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline
 #'   coefficients are sampled using a non-centered parameterization.
 #'   If `FALSE`, a centered parameterization is used.
 #'   Depending on the case, one of these might lead to more efficient and
 #'   numerically stable sampling, so if you encounter divergences,
 #'   try changing this.
+#' @param type \[`character(1)`]\cr Prior type for spline coeffients. Either 
+#'   `"rw1"` or `"rw2"` for first and second order random walks.
 #' @return Object of class `tv_term` (a `list`).
 #' @export
-tv <- function(tv_formula, df = 10, noncentered = TRUE) {
+tv <- function(tv_formula, df = 10, type = "rw1", noncentered = TRUE) {
   stopifnot_(
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."
@@ -32,6 +31,11 @@ tv <- function(tv_formula, df = 10, noncentered = TRUE) {
   stopifnot_(
     checkmate::test_flag(noncentered),
     "Argument {.arg noncentered} of {.code tv()} must be a logical value."
+  )
+  type <- try_(match.arg(type, c("rw1", "rw2")))
+  stopifnot_(
+    !inherits(type, "try-error"),
+    "Argument {.arg type} must be either {.val rw1} or {.val rw2}."
   )
   tv_terms_obj <- stats::terms(tv_formula, specials = "tv")
   nested_tv <- attr(tv_terms_obj, "specials")$tv
@@ -47,8 +51,9 @@ tv <- function(tv_formula, df = 10, noncentered = TRUE) {
   structure(
     list(
       terms = tv_term_labels,
-      spline_df = df,
-      noncentered_xi = noncentered
+      df = df,
+      type = type,
+      noncentered = noncentered
     ),
     class = "tv_term"
   )
@@ -58,16 +63,17 @@ tv <- function(tv_formula, df = 10, noncentered = TRUE) {
 #'
 #' @param formula A formula potentially containing `tv()`.
 #' @return A list with components:
-#'   - `full_formula`: formula with all terms (for X matrix)
-#'   - `tv_formula`: formula with only tv terms (for column name
-#'     matching), or NULL
-#'   - `has_tv`: logical
-#'   - `tv_terms`: character vector of time-varying term labels
-#'   - `has_intercept`: logical
-#'   - `predictors`: character vector of predictor variable names
-#'   - `spline_df`: degrees of freedom variable passed on to [splines::bs()].
-#'   - `noncentered_xi`: logical indicating whether to use non-centered
-#'      parameterization for spline coefficients.
+#'  * full_formula`: formula with all terms (for X matrix)
+#'  * `tv_formula`: formula with only tv terms (for column name matching), or 
+#'  `NULL`
+#'  * `has_tv`: logical
+#'  * `tv_terms`: character vector of time-varying term labels
+#'  * `has_intercept`: logical
+#'  * `predictors`: character vector of predictor variable names
+#'  * `spline_df`: degrees of freedom
+#'  * `spline_type`: character indicating the type of spline basis to use
+#'  * `noncentered`: logical indicating whether to use non-centered
+#'      parameterization for spline coefficients
 #' @noRd
 parse_bscm_formula <- function(formula) {
   xt <- stats::terms(formula, specials = "tv")
@@ -83,7 +89,8 @@ parse_bscm_formula <- function(formula) {
         x_formula = formula,
         w_formula = NULL,
         w_terms = character(0),
-        df = 0,
+        spline_df = 0,
+        spline_type = "ts",
         noncentered_xi = TRUE
       )
     )
@@ -101,7 +108,7 @@ parse_bscm_formula <- function(formula) {
   tv_call <- xt_vars[[tv_idx + 1L]]
   tv_object <- eval(tv_call)
 
-  spline_df <- tv_object$spline_df
+  spline_df <- tv_object$df
   tv_term_labels <- tv_object$terms
 
   # Drop the tv() term from the original formula
@@ -136,6 +143,7 @@ parse_bscm_formula <- function(formula) {
     w_formula = tv_formula,
     w_terms = tv_term_labels,
     spline_df = spline_df,
-    noncentered_xi = tv_object$noncentered_xi
+    spline_type = tv_object$type,
+    noncentered_xi = tv_object$noncentered
   )
 }

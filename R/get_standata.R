@@ -46,10 +46,10 @@ get_standata.bscmfit <- function(x, ...) {
   
   spline_def <- if (x$setup$has_w) {
     build_spline(
-      x$setup$T_total, x$setup$T_pre, x$setup$spline_df, x$setup$noncentered_xi
+      x$setup$T_total, x$setup$T_pre, x$setup$spline_df, x$setup$spline_type,
+      x$setup$noncentered_xi
     )
   }
-  
   standata <- create_standata(
     x$setup, x$priors, Y, Z, X_y, X_z, spline_def, x$setup$prior_only
   )

@@ -95,14 +95,14 @@ argument \code{treatment}. In case the variable is present also in the
 formula, it is automatically removed.
 
 To specify predictors with time-varying coefficients in \code{formula}, wrap them
-in \code{tv(formula, df)}, e.g., \code{outcome ~ x + tv(~ z, 10)} defines a model where
-\code{x} has a time-constant coefficient and \code{z} has a time-varying coefficient
-following penalized cubic spline with \code{10} spline basis functions and
-random walk prior on the spline coefficients.
+in \code{tv()}, e.g., \code{outcome ~ x + tv(~ z, df = 10, type = "rw1")} defines a
+model where \code{x} has a time-constant coefficient and \code{z} has a time-varying
+coefficient following penalized cubic spline with \code{10} spline basis
+functions and random walk prior on the spline coefficients.
 Terms inside \code{tv()} are automatically also included in the
 time-constant part of the model, since the time-varying coefficients
 are defined to have zero mean in the pre-treatment period (in case of
-multiple treated units, minimum period). Note that possible time-varying
+multiple treated units, minimum period). Note that a common time-varying
 intercept is omitted as it would cancel out in the linear predictor.
 
 Both the time-constant and time-varying regression part is assumed to apply

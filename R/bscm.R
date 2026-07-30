@@ -16,14 +16,14 @@
 #' formula, it is automatically removed.
 #'
 #' To specify predictors with time-varying coefficients in `formula`, wrap them
-#' in `tv(formula, df)`, e.g., `outcome ~ x + tv(~ z, 10)` defines a model where
-#' `x` has a time-constant coefficient and `z` has a time-varying coefficient
-#' following penalized cubic spline with `10` spline basis functions and
-#' random walk prior on the spline coefficients.
+#' in `tv()`, e.g., `outcome ~ x + tv(~ z, df = 10, type = "rw1")` defines a 
+#' model where `x` has a time-constant coefficient and `z` has a time-varying 
+#' coefficient following penalized cubic spline with `10` spline basis 
+#' functions and random walk prior on the spline coefficients.
 #' Terms inside `tv()` are automatically also included in the
 #' time-constant part of the model, since the time-varying coefficients
 #' are defined to have zero mean in the pre-treatment period (in case of
-#' multiple treated units, minimum period). Note that possible time-varying
+#' multiple treated units, minimum period). Note that a common time-varying
 #' intercept is omitted as it would cancel out in the linear predictor.
 #'
 #' Both the time-constant and time-varying regression part is assumed to apply
@@ -138,6 +138,7 @@ bscm <- function(
   has_x <- length(predictors) > 0
   has_w <- length(parsed_formula$w_terms) > 0
   spline_df <- parsed_formula$spline_df
+  spline_type <- parsed_formula$spline_type
   noncentered_xi <- parsed_formula$noncentered_xi
   stopifnot_(
     !is.null(data[[outcome]]),
@@ -264,6 +265,7 @@ bscm <- function(
     gamma_names,
     tv_idx,
     spline_df,
+    spline_type,
     noncentered_xi,
     prior_only
   )
@@ -298,7 +300,9 @@ bscm <- function(
     }
   }
   if (setup$has_w) {
-    spline_def <- build_spline(T_total, T_pre, spline_df, noncentered_xi)
+    spline_def <- build_spline(
+      T_total, T_pre, spline_df, spline_type, noncentered_xi
+    )
   } else {
     spline_def <- NULL
   }

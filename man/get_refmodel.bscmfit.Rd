@@ -18,7 +18,10 @@ An object of class \code{refmodel}.
 \description{
 Creates a \code{refmodel} object from \code{bscmfit} to be used with \code{projpred}
 package. This enables the usage of \code{\link[projpred:varsel]{projpred::varsel()}} and
-\code{\link[projpred:cv_varsel]{projpred::cv_varsel()}} for donor selection.
+\code{\link[projpred:cv_varsel]{projpred::cv_varsel()}} for donor selection. Note that for predictions with
+\code{newdata}, you need to call \code{\link[=proj_predict_bscm]{proj_predict_bscm()}} which is a wrapper of
+\code{\link[projpred:pred-projection]{projpred::proj_predict()}} to which converts the data to the wide format
+used by \code{projpred}.
 }
 \details{
 Projection are based on only on the pretreatment period.
@@ -28,9 +31,7 @@ supported.
 
 For projpred integration, donors are treated as separate "predictors" in the
 formula. Currently only supported model is one without extra predictors.
-There are also other restrictions, namely lack of support for K-fold. For
-obtaining predictions based on the projected model, the \code{newdata} argument
-needs the data in wide format, see examples.
+There are also other restrictions, namely lack of support for K-fold.
 }
 \examples{
 \donttest{

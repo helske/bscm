@@ -125,7 +125,7 @@ rmse_ratio.bscmfit <- function(
   if (summary) {
     d <- d |>
       dplyr::mutate(summarise_with_probs(.data$ratio, probs)) |>
-      dplyr::select(-ratio, -variable)
+      dplyr::select(-"ratio", -"variable")
   }
   
   if (get_N(x) == 1) {

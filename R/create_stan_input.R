@@ -1,26 +1,32 @@
-build_spline <- function(T_total, T_pre, spline_df, noncentered) {
+build_spline <- function(T_total, T_pre, spline_df, type, noncentered, 
+                         scale = "gm") {
   B <- splines::bs(seq_len(T_total), df = spline_df, intercept = TRUE)
   d <- diag(spline_df)
-  M <- B %*% lower.tri(d, diag = TRUE)
-  T0 <- min(T_pre)
-  a <- colSums(M[1:T0, ])
+  L <- lower.tri(d, diag = TRUE)
+  M <- B %*% L
+  if (type == "rw2") M <- M %*% L
+  a <- colSums(M)
   Q <- qr.Q(qr(cbind(a, d)))[, -1]
   A <- M %*% Q
-  scale <- 1 / sqrt(mean(rowSums(diff(A)^2)))
-  # t_mid <- floor(T0 / 2)
-  # scale <- 1 / sqrt(sum(cumsum(rev(B[t_mid, ] - B[t_mid - 1, ]))^2))
-  list(A = A, D = spline_df, scale = scale, noncentered_xi = noncentered)
+  if (scale == "gm") {
+    A <- A / sqrt(exp(mean(log(rowSums(A^2)))))
+  } else {
+    A <- A / sqrt(mean(rowSums(A^2)))
+  }
+  list(
+    A = A, D = ncol(A), noncentered_xi = noncentered, type = type, scale = scale
+  )
 }
 
 #' Compute descriptive statistics to be used with default priors
 #' @noRd
 compute_descriptives <- function(
-  Y,
-  Z,
-  T_pre,
-  X_y = NULL,
-  X_z = NULL,
-  beta_names = NULL
+    Y,
+    Z,
+    T_pre,
+    X_y = NULL,
+    X_z = NULL,
+    beta_names = NULL
 ) {
   pooled_within_sd <- function(s, n) {
     sqrt(stats::weighted.mean(s^2, w = n - 1))
@@ -49,7 +55,7 @@ compute_descriptives <- function(
       i = "Found SD < {1e-8} for unit {names(constant_sd)}."
     )
   )
-
+  
   mean_y <- vapply(
     seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i], na.rm = TRUE), numeric(1)
   )
@@ -115,7 +121,7 @@ prior_to_stan <- function(x, type) {
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-
+  
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -168,32 +174,28 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-  setup,
-  priors,
-  Y,
-  Z,
-  X_y = NULL,
-  X_z = NULL,
-  spline_def = NULL,
-  prior_only = FALSE
+    setup,
+    priors,
+    Y,
+    Z,
+    X_y = NULL,
+    X_z = NULL,
+    spline_def = NULL,
+    prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
   J <- ncol(Z)
   K <- length(setup$beta_names)
   L <- length(setup$gamma_names)
-  D <- 1L
-  A <- matrix(0, T_total, 0)
-  noncentered_xi <- 0L
   if (K == 0) {
     X_y <- array(0, c(0, T_total, K))
     X_z <- array(0, c(0, T_total, K))
   }
-  if (!is.null(spline_def)) {
-    D <- spline_def$D
-    A <- spline_def$A
-    noncentered_xi <- as.integer(spline_def$noncentered_xi)
-  }
+  D <- spline_def$D %||% 0
+  A <- spline_def$A %||% matrix(0, 0, 0)
+  noncentered_xi <- as.integer(spline_def$noncentered %||% 0)
+  
   c(
     list(
       use_alpha = as.integer(setup$has_icpt),
@@ -246,10 +248,8 @@ create_inits <- function(x, d, spline_def) {
     sd_yx <- d$sd_y / d$sd_x
     beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_yx))
     if (x$use_gamma) {
-      xi <- matrix(0, x$D - 1, x$L)
-      kappa <- array(
-        stats::runif(x$L, 0.01, 0.05) * sd_yx[x$tv_idx] * spline_def$scale
-      )
+      xi <- matrix(0, x$D, x$L)
+      kappa <- array(stats::runif(x$L, 0.01, 0.05))
     }
   }
   if (x$use_ar1) {

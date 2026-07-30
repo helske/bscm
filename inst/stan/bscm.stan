@@ -35,13 +35,13 @@ data {
   array[N] int<lower=1, upper=T> T_pre; // number of pre-treatment time points
   int<lower=use_beta> K; // number of covariates
   int<lower=use_gamma, upper=K> L; // number of time-varying coefficients
-  int<lower=1> D; // number of spline coefficients + 1
+  int<lower=0> D; // number of spline coefficients
   array[N] vector[T] y; // treated (0 at missing positions)
   matrix[T, J] Z; // donors
   array[use_beta ? N : 0] matrix[T, K] X_y; // covariates for treated
   array[use_beta ? J : 0] matrix[T, K] X_z; // covariates for donors
   array[L] int<lower=1, upper=K> tv_idx; // indices of gamma coefs
-  matrix[T, D - 1] A; // spline projection matrix
+  matrix[use_gamma ? T : 0, D] A; // spline matrix
   int<lower=0, upper=1> likelihood; // if 0, sample from prior only
   int<lower=0, upper=8> pr_dist_sigma;
   int<lower=0, upper=8> pr_dist_omega;
@@ -126,7 +126,7 @@ parameters {
   vector<lower=0>[N] sigma; // SD of the error term
   vector[use_alpha ? N : 0] a; // working intercept
   vector[use_beta ? K : 0] beta; // regression coefficients
-  matrix[D - 1, use_gamma ? L : 0] xi; // spline coefficients
+  matrix[D, use_gamma ? L : 0] xi; // spline coefficients
   vector<lower=0>[use_gamma ? L : 0] kappa; // SD of RW1 prior xi
   vector<lower=-1, upper=1>[use_ar1 ? N : 0] rho; // autoregressive parameters
   vector[n_missing] y_imp; // imputed values for missing treated observations
@@ -145,9 +145,7 @@ transformed parameters {
   // time-varying regression coefficients
   matrix[use_gamma ? T : 0, L] gamma;
   if (noncentered_xi) {
-    for (l in 1 : L) {
-      gamma[ : , l] = A * kappa[l] * xi[ : , l];
-    }
+    gamma = A * diag_post_multiply(xi, kappa);
   } else {
     gamma = A * xi;
   }

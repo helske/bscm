@@ -4,17 +4,17 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, df = 10, noncentered = TRUE)
+tv(tv_formula, df = 10, type = "rw1", noncentered = TRUE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
 defining the the time-varying part of the BSCM formula.}
 
 \item{df}{[\code{integer(1)}]\cr Integer defining the number of spline basis
-functions. Default \code{df = 10} somewhat is arbitrary, so it is good to
-test various choices of \code{df}. Typically it is better to choose too large
-than too small value, as the random walk prior of the spline coefficients
-will regularize overfitting.}
+functions. Default is \code{df = 10}.}
+
+\item{type}{[\code{character(1)}]\cr Prior type for spline coeffients. Either
+\code{"rw1"} or \code{"rw2"} for first and second order random walks.}
 
 \item{noncentered}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the spline
 coefficients are sampled using a non-centered parameterization.

@@ -7,7 +7,7 @@
 #'
 #' @param x \[`bscmfit`]\cr Output from [bscm()].
 #' @param type \[`character(1)`]\cr Type of coefficients to plot. Either
-#'   `"fixed"` (the default) for time-constant coefficients or `"varying"` for
+#'   `"fixed"` for time-constant coefficients or `"varying"` (the default) for
 #'   time-varying coefficients.
 #' @param combine \[`logical(1)`]\cr If `TRUE` and `type = "varying"`, plot
 #'   the total effect (beta + gamma) instead of gamma alone.
@@ -18,8 +18,6 @@
 #'   (used only when `type = "varying"`). Default is `"free_y"`.
 #' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of
 #'   the posterior interval. Default is `c(0.025, 0.975)`.
-#' @param ... Ignored.
-#' @return A `ggplot` object.
 #' @param ... Ignored.
 #' @return A `ggplot` object.
 #' @export

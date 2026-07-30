@@ -156,7 +156,7 @@ gamma_pr <- function(shape, rate) {
 #' @rdname bscm_prior
 exponential_pr <- function(rate) {
   check_positive(rate, "rate")
-
+  
   structure(
     list(
       distribution = "exponential",
@@ -198,7 +198,7 @@ beta_pr <- function(shape1, shape2) {
 #' @rdname bscm_prior
 half_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-
+  
   structure(
     list(
       distribution = "half_normal",
@@ -213,7 +213,7 @@ half_normal_pr <- function(scale) {
 #' @rdname bscm_prior
 dirichlet_pr <- function(concentration) {
   check_positive(concentration, "concentration")
-
+  
   structure(
     list(
       distribution = "dirichlet",
@@ -228,7 +228,7 @@ dirichlet_pr <- function(concentration) {
 #' @rdname bscm_prior
 logistic_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-
+  
   structure(
     list(
       distribution = "logistic_normal",
@@ -328,7 +328,7 @@ default_priors <- function(d, setup, spline_def) {
   N <- length(setup$treated)
   pr_sigma <- exponential_pr(signif(1 / d$sd_e, 2))
   pr_omega <- dirichlet_pr(rep(1, N))
-  pr_alpha <- pr_beta <- pr_kappa <- pr_rho <- NULL
+  pr_alpha <- pr_beta <- pr_kappa <- pr_nu <- pr_rho <- NULL
   if (setup$has_icpt) {
     pr_alpha <- normal_pr(
       signif(d$mean_y, 2),
@@ -339,9 +339,7 @@ default_priors <- function(d, setup, spline_def) {
     sd_yx <- d$sd_y / d$sd_x
     pr_beta <- normal_pr(0, signif(2 * sd_yx, 2))
     if (setup$has_w) {
-      pr_kappa <- half_normal_pr(
-        signif(0.1 * sd_yx[setup$tv_idx] * spline_def$scale, 2)
-      )
+      pr_kappa <- half_normal_pr(signif(0.5 * sd_yx[setup$tv_idx], 2))
     }
   }
   if (setup$has_ar1) {
@@ -396,7 +394,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     )
     n_pr <- pr$length
     n_ref <- ref$length
-
+    
     if (n_pr != n_ref) {
       stopifnot_(
         n_pr == 1,

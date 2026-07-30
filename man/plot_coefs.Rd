@@ -23,7 +23,7 @@ plot_coefs(x, ...)
 \item{...}{Ignored.}
 
 \item{type}{[\code{character(1)}]\cr Type of coefficients to plot. Either
-\code{"fixed"} (the default) for time-constant coefficients or \code{"varying"} for
+\code{"fixed"} for time-constant coefficients or \code{"varying"} (the default) for
 time-varying coefficients.}
 
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
@@ -40,8 +40,6 @@ Ignored when \code{type = "fixed"}. Default is \code{FALSE}.}
 (used only when \code{type = "varying"}). Default is \code{"free_y"}.}
 }
 \value{
-A \code{ggplot} object.
-
 A \code{ggplot} object.
 }
 \description{
