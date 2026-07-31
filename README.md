@@ -49,20 +49,22 @@ Bayesian synthetic control model y ~ x
 Treated unit: 1 
 Number of donors: 50 
 Number of time periods (pre + post): 40 + 10 
-MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 3.9 seconds for the slowest chain
+MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 6.82 seconds for the slowest chain
 
 MCMC diagnostics indicate no issues. 
 ```
 ``` r
 summary(fit)
-  variable                  mean     sd   q2.5 q97.5  rhat ess_bulk ess_tail mcse_mean
-1 Intercept              0.501   0.369  -0.220 1.22  1.00    12663.    9499.  0.00328 
-2 beta_x                 1.01    0.0709  0.873 1.15  1.00    13039.    8017.  0.000620
-3 Residual SD            0.782   0.109   0.600 1.02  1.00    12359.    8052.  0.000997
-4 Pre-treatment effect  -0.00153 0.176  -0.345 0.346 1.000   12157.    8905.  0.00160 
-5 Post-treatment effect  6.57    0.333   5.93  7.24  1.00    11150.    8971.  0.00316 
-6 Pre-treatment RMSE     1.09    0.152   0.823 1.41  1.00    10114.    9050.  0.00152 
-7 Post-treatment RMSE    7.62    0.336   6.97  8.30  1.00    11346.    9363.  0.00316 
+  variable                          mean      sd   q2.5  q97.5  rhat ess_bulk ess_tail mcse_mean
+1 Intercept                      0.506   0.370   -0.223  1.24   1.00   11183.    9289. 0.00350  
+2 beta_x                         1.01    0.0703   0.874  1.15   1.00   10267.    7509. 0.000695 
+3 Residual SD                    0.781   0.112    0.595  1.03   1.00    8848.    8223. 0.00120  
+4 Bayesian R2                    0.988   0.00352  0.979  0.993  1.00    8757.    8100. 0.0000384
+5 Effective number of donors    23.0     3.70    15.2   29.8    1.00    6816.    8774. 0.0448   
+6 Average pre-treatment effect  -0.00158 0.175   -0.352  0.339  1.00   10068.    8911. 0.00175  
+7 Average post-treatment effect  6.57    0.331    5.94   7.24   1.00   10120.    9078. 0.00329  
+8 Pre-treatment RMSE             1.08    0.152    0.821  1.41   1.00    8384.    8599. 0.00167  
+9 Post-treatment RMSE            7.61    0.332    6.99   8.29   1.00    9860.    9234. 0.00335  
 ```
 And default visualization:
 ``` r
