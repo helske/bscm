@@ -1,7 +1,7 @@
 #' Get input data to Stan from `bscmfit` object
 #'
-#' Reconstructs the data list passed to Stan in [bscm()]. Used by methods such 
-#' as [bscm::loo()] with `reloo = TRUE`.Requires the original data 
+#' Reconstructs the data list passed to Stan in [bscm()]. Used by methods such
+#' as [bscm::loo()] with `reloo = TRUE`.Requires the original data
 #' (`save_data = TRUE`).
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
@@ -28,7 +28,9 @@ get_standata.bscmfit <- function(x, ...) {
   if (x$setup$has_x) {
     unit_var <- x$setup$unit
     X_mat <- stats::model.matrix(x$formula, data = x$data)
-    if (x$setup$has_icpt) X_mat <- X_mat[, -1L, drop = FALSE]
+    if (x$setup$has_icpt) {
+      X_mat <- X_mat[, -1L, drop = FALSE]
+    }
     K <- ncol(X_mat)
     N <- get_N(x)
     J <- get_J(x)
@@ -43,15 +45,25 @@ get_standata.bscmfit <- function(x, ...) {
       lapply(seq_len(K), \(k) matrix(X_z_mat[, k], J, T_total, TRUE))
     )
   }
-  
+
   spline_def <- if (x$setup$has_w) {
     build_spline(
-      x$setup$T_total, x$setup$T_pre, x$setup$spline_df, x$setup$spline_type,
+      x$setup$T_total,
+      x$setup$T_pre,
+      x$setup$spline_df,
+      x$setup$spline_type,
       x$setup$noncentered_xi
     )
   }
   standata <- create_standata(
-    x$setup, x$priors, Y, Z, X_y, X_z, spline_def, x$setup$prior_only
+    x$setup,
+    x$priors,
+    Y,
+    Z,
+    X_y,
+    X_z,
+    spline_def,
+    x$setup$prior_only
   )
   standata$missing_idx <- missing_idx
   standata$n_missing <- nrow(missing_idx)

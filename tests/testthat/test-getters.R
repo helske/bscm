@@ -103,4 +103,3 @@ test_that("get_standata errors when no saved data", {
   fit_nosave$data <- NULL
   expect_error(get_standata(fit_nosave), "save_data = TRUE")
 })
-

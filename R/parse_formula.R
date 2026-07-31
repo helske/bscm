@@ -15,7 +15,7 @@
 #'   Depending on the case, one of these might lead to more efficient and
 #'   numerically stable sampling, so if you encounter divergences,
 #'   try changing this.
-#' @param type \[`character(1)`]\cr Prior type for spline coeffients. Either 
+#' @param type \[`character(1)`]\cr Prior type for spline coeffients. Either
 #'   `"rw1"` or `"rw2"` for first and second order random walks.
 #' @return Object of class `tv_term` (a `list`).
 #' @export
@@ -64,7 +64,7 @@ tv <- function(tv_formula, df = 10, type = "rw1", noncentered = TRUE) {
 #' @param formula A formula potentially containing `tv()`.
 #' @return A list with components:
 #'  * full_formula`: formula with all terms (for X matrix)
-#'  * `tv_formula`: formula with only tv terms (for column name matching), or 
+#'  * `tv_formula`: formula with only tv terms (for column name matching), or
 #'  `NULL`
 #'  * `has_tv`: logical
 #'  * `tv_terms`: character vector of time-varying term labels

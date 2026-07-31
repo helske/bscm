@@ -1,5 +1,5 @@
 #' Re-estimate bscmfit object x using pre-created standata
-#' 
+#'
 #'@noRd
 refit_bscm <- function(x, standata) {
   init <- lapply(x$stanfit@stan_args, `[[`, "init")
@@ -18,16 +18,16 @@ refit_bscm <- function(x, standata) {
   )
   if (!is.null(x$setup$excluded_pars)) {
     stan_args$pars <- x$setup$excluded_pars
-    stan_args$include <-  FALSE
+    stan_args$include <- FALSE
   }
   fit <- do.call(rstan::sampling, stan_args)
- 
+
   gq <- rstan::gqs(
     stanmodels$generated_quantities,
     data = standata,
     draws = as.matrix(fit)
   )
-  
+
   out <- list(
     stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),

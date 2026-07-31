@@ -1,10 +1,18 @@
-build_spline <- function(T_total, T_pre, spline_df, type, noncentered, 
-                         scale = "gm") {
+build_spline <- function(
+  T_total,
+  T_pre,
+  spline_df,
+  type,
+  noncentered,
+  scale = "gm"
+) {
   B <- splines::bs(seq_len(T_total), df = spline_df, intercept = TRUE)
   d <- diag(spline_df)
   L <- lower.tri(d, diag = TRUE)
   M <- B %*% L
-  if (type == "rw2") M <- M %*% L
+  if (type == "rw2") {
+    M <- M %*% L
+  }
   a <- colSums(M)
   Q <- qr.Q(qr(cbind(a, d)))[, -1]
   A <- M %*% Q
@@ -14,19 +22,23 @@ build_spline <- function(T_total, T_pre, spline_df, type, noncentered,
     A <- A / sqrt(mean(rowSums(A^2)))
   }
   list(
-    A = A, D = ncol(A), noncentered_xi = noncentered, type = type, scale = scale
+    A = A,
+    D = ncol(A),
+    noncentered_xi = noncentered,
+    type = type,
+    scale = scale
   )
 }
 
 #' Compute descriptive statistics to be used with default priors
 #' @noRd
 compute_descriptives <- function(
-    Y,
-    Z,
-    T_pre,
-    X_y = NULL,
-    X_z = NULL,
-    beta_names = NULL
+  Y,
+  Z,
+  T_pre,
+  X_y = NULL,
+  X_z = NULL,
+  beta_names = NULL
 ) {
   pooled_within_sd <- function(s, n) {
     sqrt(stats::weighted.mean(s^2, w = n - 1))
@@ -55,9 +67,11 @@ compute_descriptives <- function(
       i = "Found SD < {1e-8} for unit {names(constant_sd)}."
     )
   )
-  
+
   mean_y <- vapply(
-    seq_len(N), \(i) mean(Y[seq_len(T_pre[i]), i], na.rm = TRUE), numeric(1)
+    seq_len(N),
+    \(i) mean(Y[seq_len(T_pre[i]), i], na.rm = TRUE),
+    numeric(1)
   )
   # residual SD with uniform donor weights (ignoring predictors)
   mean_z <- rowMeans(Z)
@@ -121,7 +135,7 @@ prior_to_stan <- function(x, type) {
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-  
+
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -174,14 +188,14 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-    setup,
-    priors,
-    Y,
-    Z,
-    X_y = NULL,
-    X_z = NULL,
-    spline_def = NULL,
-    prior_only = FALSE
+  setup,
+  priors,
+  Y,
+  Z,
+  X_y = NULL,
+  X_z = NULL,
+  spline_def = NULL,
+  prior_only = FALSE
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -195,7 +209,7 @@ create_standata <- function(
   D <- spline_def$D %||% 0
   A <- spline_def$A %||% matrix(0, 0, 0)
   noncentered_xi <- as.integer(spline_def$noncentered %||% 0)
-  
+
   c(
     list(
       use_alpha = as.integer(setup$has_icpt),

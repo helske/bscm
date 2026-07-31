@@ -24,13 +24,13 @@
 #' @export
 #' @examples
 #' loo(fit_single_treated)
-loo.bscmfit <- function(x, 
-                        r_eff = TRUE, 
-                        reloo = FALSE, 
-                        k_threshold = 0.7, 
-                        ...) 
-{
-  
+loo.bscmfit <- function(
+  x,
+  r_eff = TRUE,
+  reloo = FALSE,
+  k_threshold = 0.7,
+  ...
+) {
   ll <- log_lik(x)
   nc <- nchains(x)
   cid <- rep(seq_len(nc), each = ndraws(x) / nc)

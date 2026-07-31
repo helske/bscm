@@ -156,7 +156,7 @@ gamma_pr <- function(shape, rate) {
 #' @rdname bscm_prior
 exponential_pr <- function(rate) {
   check_positive(rate, "rate")
-  
+
   structure(
     list(
       distribution = "exponential",
@@ -198,7 +198,7 @@ beta_pr <- function(shape1, shape2) {
 #' @rdname bscm_prior
 half_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-  
+
   structure(
     list(
       distribution = "half_normal",
@@ -213,7 +213,7 @@ half_normal_pr <- function(scale) {
 #' @rdname bscm_prior
 dirichlet_pr <- function(concentration) {
   check_positive(concentration, "concentration")
-  
+
   structure(
     list(
       distribution = "dirichlet",
@@ -228,7 +228,7 @@ dirichlet_pr <- function(concentration) {
 #' @rdname bscm_prior
 logistic_normal_pr <- function(scale) {
   check_positive(scale, "scale")
-  
+
   structure(
     list(
       distribution = "logistic_normal",
@@ -394,7 +394,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     )
     n_pr <- pr$length
     n_ref <- ref$length
-    
+
     if (n_pr != n_ref) {
       stopifnot_(
         n_pr == 1,

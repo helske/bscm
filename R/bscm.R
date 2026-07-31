@@ -16,9 +16,9 @@
 #' formula, it is automatically removed.
 #'
 #' To specify predictors with time-varying coefficients in `formula`, wrap them
-#' in `tv()`, e.g., `outcome ~ x + tv(~ z, df = 10, type = "rw1")` defines a 
-#' model where `x` has a time-constant coefficient and `z` has a time-varying 
-#' coefficient following penalized cubic spline with `10` spline basis 
+#' in `tv()`, e.g., `outcome ~ x + tv(~ z, df = 10, type = "rw1")` defines a
+#' model where `x` has a time-constant coefficient and `z` has a time-varying
+#' coefficient following penalized cubic spline with `10` spline basis
 #' functions and random walk prior on the spline coefficients.
 #' Terms inside `tv()` are automatically also included in the
 #' time-constant part of the model, since the time-varying coefficients
@@ -43,12 +43,12 @@
 #' vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 #' the effect of covariates \eqn{X_j \beta} for that donor. Note that
 #' \eqn{\beta} is common across donors and the treated units.
-#' 
+#'
 #' Model can contain missing values in the outcome variable of the treated,
-#' but not of the donors, nor in the covariates. Missing outcomes are 
-#' automatically imputed during MCMC sampling under a missing at random 
+#' but not of the donors, nor in the covariates. Missing outcomes are
+#' automatically imputed during MCMC sampling under a missing at random
 #' (MAR) assumption.
-#' 
+#'
 #' @param formula \[`formula`]\cr The model formula containing the outcome
 #' variable on the left-hand side and optional time-varying predictors on
 #' the right-hand side (RHS) of `~`. See details.
@@ -106,18 +106,18 @@
 #' )
 #' fit
 bscm <- function(
-    formula,
-    data,
-    treatment = "treatment",
-    time = "time",
-    unit = "id",
-    error = "iid",
-    priors = NULL,
-    prior_only = FALSE,
-    mcmc_diagnostics = TRUE,
-    save_data = TRUE,
-    compute_predictions = TRUE,
-    ...
+  formula,
+  data,
+  treatment = "treatment",
+  time = "time",
+  unit = "id",
+  error = "iid",
+  priors = NULL,
+  prior_only = FALSE,
+  mcmc_diagnostics = TRUE,
+  save_data = TRUE,
+  compute_predictions = TRUE,
+  ...
 ) {
   check_bscm_arguments(
     formula,
@@ -197,12 +197,16 @@ bscm <- function(
       miss <- which(is.na(Y[seq_len(T_pre[i]), i]))
       if (length(miss) > 0) {
         cbind(unit = i, time = miss)
-      } else NULL
+      } else {
+        NULL
+      }
     })
   )
   if (is.null(missing_idx)) {
     missing_idx <- matrix(
-      nrow = 0, ncol = 2, dimnames = list(NULL, c("unit", "time"))
+      nrow = 0,
+      ncol = 2,
+      dimnames = list(NULL, c("unit", "time"))
     )
   }
   Y[is.na(Y)] <- 0
@@ -301,7 +305,11 @@ bscm <- function(
   }
   if (setup$has_w) {
     spline_def <- build_spline(
-      T_total, T_pre, spline_df, spline_type, noncentered_xi
+      T_total,
+      T_pre,
+      spline_df,
+      spline_type,
+      noncentered_xi
     )
   } else {
     spline_def <- NULL
@@ -318,7 +326,7 @@ bscm <- function(
     spline_def,
     prior_only
   )
-  
+
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
@@ -326,7 +334,7 @@ bscm <- function(
       simplify = FALSE
     )
   }
-  
+
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions
@@ -335,7 +343,7 @@ bscm <- function(
     data = stan_args$data,
     draws = as.matrix(fit)
   )
-  
+
   out <- list(
     stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),
@@ -345,7 +353,7 @@ bscm <- function(
     priors = priors
   )
   class(out) <- "bscmfit"
-  
+
   run_diags <- mcmc_diagnostics &&
     ndraws(out) > 50L &&
     !identical(stan_args$algorithm, "Fixed_param")

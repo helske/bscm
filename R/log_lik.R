@@ -15,13 +15,12 @@
 #' @examples
 #' log_lik(fit_single_treated) |> head()
 log_lik.bscmfit <- function(object, ...) {
-  
   stopifnot_(
     !is.null(object$data),
     "Computing log-likelihood requires the original data. Refit the model
       with {.code save_data = TRUE}."
   )
-  
+
   T_pre <- get_T_pre(object)
   T_total <- get_T_total(object)
   N <- get_N(object)

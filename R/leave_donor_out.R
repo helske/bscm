@@ -32,12 +32,12 @@ leave_donor_out <- function(x, ...) {
 #' treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
 #' @return An object of class `bscm_ldo` with data frames `effect`,
-#'   `rmse`, `rmse_ratio`, `weights`, and `diagnostics`, and a `metadata` list. 
-#'   The data frames contain posterior summaries for the original fit 
-#'   (`step = 0`) and for each leave-out run, identified by `step`, 
-#'   `n_removed`, and `last_removed`. The `metadata` list contains the 
-#'   omitted donors, whether donor omission was cumulative, summary 
-#'   probabilities, and model metadata needed for plotting. The result can be 
+#'   `rmse`, `rmse_ratio`, `weights`, and `diagnostics`, and a `metadata` list.
+#'   The data frames contain posterior summaries for the original fit
+#'   (`step = 0`) and for each leave-out run, identified by `step`,
+#'   `n_removed`, and `last_removed`. The `metadata` list contains the
+#'   omitted donors, whether donor omission was cumulative, summary
+#'   probabilities, and model metadata needed for plotting. The result can be
 #'   visualized with [plot_weights()] and [plot_effects()].
 #' @rdname leave_donor_out
 #' @aliases leave_donor_out

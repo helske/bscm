@@ -2,10 +2,10 @@
 #'
 #' Creates a `refmodel` object from `bscmfit` to be used with `projpred`
 #' package. This enables the usage of [projpred::varsel()] and
-#' [projpred::cv_varsel()] for donor selection. Note that for predictions with 
-#' `newdata`, you need to call [proj_predict_bscm()] which is a wrapper of 
-#' [projpred::proj_predict()] to which converts the data to the wide format 
-#' used by `projpred`. 
+#' [projpred::cv_varsel()] for donor selection. Note that for predictions with
+#' `newdata`, you need to call [proj_predict_bscm()] which is a wrapper of
+#' [projpred::proj_predict()] to which converts the data to the wide format
+#' used by `projpred`.
 #'
 #' @details
 #'
@@ -16,8 +16,8 @@
 #'
 #' For projpred integration, donors are treated as separate "predictors" in the
 #' formula. Currently only supported model is one without extra predictors.
-#' There are also other restrictions, namely lack of support for K-fold. 
-#' 
+#' There are also other restrictions, namely lack of support for K-fold.
+#'
 #' @param object A `bscmfit` object from [bscm()].
 #' @param ... Additional arguments passed to [projpred::init_refmodel()].
 #' @return An object of class `refmodel`.
@@ -46,7 +46,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     "The model fit {.arg object} does not contain the original data. Refit the 
     model with {.arg save_data = FALSE}."
   )
-  
+
   stopifnot_(
     length(get_predictors(object)) == 0L,
     "Reference model construction currently only supports BSCM without
@@ -62,16 +62,16 @@ get_refmodel.bscmfit <- function(object, ...) {
   unit <- get_unit(object)
   time <- get_time(object)
   outcome <- get_outcome(object)
-  
+
   units <- unique(object$data[[unit]])
   proj_units <- make.names(units, unique = TRUE)
-  
+
   if (!identical(units, proj_units)) {
     treated_idx <- which(units == treated)
     treated <- proj_units[treated_idx]
     donors <- proj_units[-treated_idx]
   }
-  
+
   T_pre <- get_T_pre(object)
   proj_data <- as_proj_data(
     object$data,
@@ -82,13 +82,13 @@ get_refmodel.bscmfit <- function(object, ...) {
     proj_units
   )
   proj_data <- proj_data[seq_len(T_pre), , drop = FALSE]
-  
+
   proj_formula <- stats::reformulate(
     donors,
     response = treated,
     intercept = has_intercept(object)
   )
-  
+
   ref_predfun <- function(fit, newdata = NULL) {
     if (!is.null(newdata)) {
       stop(
@@ -101,7 +101,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     }
     t(fit$y_mean[, seq_len(T_pre), drop = FALSE])
   }
-  
+
   proj_predfun <- function(fits, newdata) {
     newdata <- as_proj_data(
       newdata,
@@ -120,7 +120,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     })
     do.call(cbind, preds)
   }
-  
+
   extract_model_data <- function(
     object,
     newdata,
@@ -132,14 +132,14 @@ get_refmodel.bscmfit <- function(object, ...) {
       newdata <- object$proj$data
     }
     N <- nrow(newdata)
-    
+
     list(
       y = if (extract_y) newdata[[treated]],
       weights = rep(1, N),
       offset = rep(0, N)
     )
   }
-  
+
   # Custom div_minimizer for simplex constraint
   div_minimizer <- function(
     formula,
@@ -168,18 +168,18 @@ get_refmodel.bscmfit <- function(object, ...) {
         )
       )
     }
-    
+
     Z_prj <- as.matrix(data[, donors_prj, drop = FALSE])
     J <- ncol(Z_prj)
     X <- cbind(1, Z_prj)
     Dmat <- crossprod(X) + diag(1e-8, J + 1)
-    
+
     Amat <- cbind(
       c(0, rep(1, J)),
       rbind(0, diag(J))
     )
     bvec <- c(1, rep(0, J))
-    
+
     #Solve QP for one response column
     solve_qp_single <- function(y_target) {
       dvec <- crossprod(X, y_target)
@@ -187,7 +187,7 @@ get_refmodel.bscmfit <- function(object, ...) {
         quadprog::solve.QP(Dmat, dvec, Amat, bvec, meq = 1),
         error = function(e) NULL
       )
-      
+
       if (is.null(qp_result)) {
         alpha_proj <- mean(y_target)
         omega_proj <- rep(1 / J, J)
@@ -196,7 +196,7 @@ get_refmodel.bscmfit <- function(object, ...) {
         omega_proj <- pmax(qp_result$solution[-1], 0)
         omega_proj <- omega_proj / sum(omega_proj)
       }
-      
+
       list(
         alpha = alpha_proj,
         omega = omega_proj,
@@ -205,7 +205,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     }
     lapply(responses, \(y) solve_qp_single(data[[y]]))
   }
-  
+
   cvrefbuilder <- function(cvfit) {
     stop(
       "K-fold cross-validation is not supported for bscm models. ",
@@ -245,10 +245,10 @@ get_refmodel.bscmfit <- function(object, ...) {
 #'
 #' @param object A projection object or variable selection object returned by
 #'   [projpred::project()], [projpred::varsel()], or [projpred::cv_varsel()].
-#' @param newdata Optional new data used for predictions. The outcome, unit, 
-#'   and time variables should have should have names matching the original 
-#'   data. If `NULL` (the default), predictions are made for the pre-treatment 
-#'   period of the original data used to fit the model. 
+#' @param newdata Optional new data used for predictions. The outcome, unit,
+#'   and time variables should have should have names matching the original
+#'   data. If `NULL` (the default), predictions are made for the pre-treatment
+#'   period of the original data used to fit the model.
 #' @param ... Additional arguments passed to [projpred::proj_predict()].
 #' @return The output of [projpred::proj_predict()].
 #' @export
@@ -264,7 +264,7 @@ proj_predict_bscm <- function(object, newdata = NULL, ...) {
       proj_units = setup$proj_units
     )
   }
-  
+
   projpred::proj_predict(
     object = object,
     newdata = newdata,
@@ -275,12 +275,12 @@ proj_predict_bscm <- function(object, newdata = NULL, ...) {
 #' Convert long-format panel data to wide format for projpred
 #' @noRd
 as_proj_data <- function(
-    data,
-    unit,
-    time,
-    outcome,
-    units,
-    proj_units
+  data,
+  unit,
+  time,
+  outcome,
+  units,
+  proj_units
 ) {
   if (!unit %in% names(data)) {
     return(data)

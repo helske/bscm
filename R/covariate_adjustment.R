@@ -38,12 +38,12 @@ covariate_adjustment <- function(x, ...) {
 #' @rdname covariate_adjustment
 #' @export
 covariate_adjustment.bscmfit <- function(
-    x,
-    plot = TRUE,
-    probs = c(0.025, 0.975),
-    alpha = 0.5,
-    scales = "free_y",
-    ...
+  x,
+  plot = TRUE,
+  probs = c(0.025, 0.975),
+  alpha = 0.5,
+  scales = "free_y",
+  ...
 ) {
   stopifnot_(
     has_predictors(x),
@@ -73,19 +73,20 @@ covariate_adjustment.bscmfit <- function(
     "Argument {.arg alpha} must be a single {.cls numeric} value between 0
     and 1."
   )
-  
+
   probs <- sort(probs)
   X <- get_Xs(x)
   N <- get_N(x)
   time_var <- get_time(x)
   times <- get_times(x)
   predictors <- get_predictors(x)
-  
+
   adjustment <- Reduce(
     `+`,
     lapply(seq_len(N), \(i) covariate_adjustment_unit(x, i, X))
-  ) / N
-  
+  ) /
+    N
+
   d <- lapply(
     seq_along(predictors),
     \(k) {
@@ -99,10 +100,10 @@ covariate_adjustment.bscmfit <- function(
     }
   ) |>
     dplyr::bind_rows()
-  
+
   if (plot) {
     qs <- paste0("q", 100 * probs)
-    
+
     p <- d |>
       ggplot(aes(.data[[time_var]], mean)) +
       geom_ribbon(
@@ -116,7 +117,7 @@ covariate_adjustment.bscmfit <- function(
       facet_wrap(~variable, scales = scales, ...) +
       labs(x = time_var, y = "Covariate adjustment") +
       theme_bw()
-    
+
     print(p)
   }
   d
@@ -127,24 +128,24 @@ covariate_adjustment_unit <- function(x, unit, X) {
   J <- get_J(x)
   K <- length(get_predictors(x))
   predictors <- get_predictors(x)
-  
+
   pars <- paste0("omega[", seq_len(J), ",", unit, "]")
   omega <- posterior::rvar(
     as_draws(x, pars),
     with_chains = TRUE
   )
-  
+
   d_beta <- coef(x, type = "beta", summary = FALSE)$beta |>
     dplyr::mutate(
       parameter = sub("^beta_", "", .data$parameter)
     )
-  
+
   if (has_tv_coefs(x)) {
     d_gamma <- coef(x, type = "gamma", summary = FALSE)$gamma |>
       dplyr::mutate(
         parameter = sub("^gamma_", "", .data$parameter)
       )
-    
+
     d_beta <- d_beta |>
       dplyr::left_join(d_gamma, by = "parameter") |>
       dplyr::mutate(
@@ -155,18 +156,18 @@ covariate_adjustment_unit <- function(x, unit, X) {
       ) |>
       dplyr::select(-"gamma")
   }
-  
+
   X_y <- X$X_y[unit, , , drop = FALSE]
   dim(X_y) <- c(T_total, K)
-  
+
   adjustment <- lapply(
     seq_len(K),
     \(k) {
-      delta <- X_y[, k] - c(omega %*% X$X_z[, , k])
+      delta <- X_y[, k] - c(omega %*% X$X_z[,, k])
       b <- d_beta$beta[d_beta$parameter == predictors[k]]
       b * delta
     }
   )
-  
+
   do.call(cbind, adjustment)
 }

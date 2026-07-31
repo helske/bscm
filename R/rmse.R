@@ -5,9 +5,9 @@ rmse <- function(x, ...) {
 }
 #' Extract root mean squared errors of a Bayesian synthetic control model
 #'
-#' Returns posterior draws (or summaries) of root mean squared errors (RMSEs) 
+#' Returns posterior draws (or summaries) of root mean squared errors (RMSEs)
 #' for the pre-treatment and post-treatment periods.
-#' 
+#'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param average \[`logical(1)`]\cr If `TRUE`, returns the
 #' average RMSEs over treated units in case of multiple treated units.
@@ -99,11 +99,11 @@ rmse_ratio <- function(x, ...) {
 #' @examples
 #' rmse_ratio(fit_single_treated, probs = c(0.01, 0.5, 0.8))
 rmse_ratio.bscmfit <- function(
-    x,
-    average = FALSE,
-    summary = TRUE,
-    probs = c(0.025, 0.975),
-    ...
+  x,
+  average = FALSE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
 ) {
   test_summary(summary)
   probs <- sort_probs(probs)
@@ -114,20 +114,20 @@ rmse_ratio.bscmfit <- function(
     average = average,
     summary = FALSE
   )
-  
+
   d <- d |>
     dplyr::summarise(
       ratio = .data$rmse[.data[[treatment]] == 1] /
         .data$rmse[.data[[treatment]] == 0],
       .by = dplyr::any_of(unit)
     )
-  
+
   if (summary) {
     d <- d |>
       dplyr::mutate(summarise_with_probs(.data$ratio, probs)) |>
       dplyr::select(-"ratio", -"variable")
   }
-  
+
   if (get_N(x) == 1) {
     d <- d |> dplyr::select(-dplyr::any_of(unit))
   }

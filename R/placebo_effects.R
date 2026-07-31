@@ -4,10 +4,10 @@ placebo_effects <- function(x, ...) {
   UseMethod("placebo_effects", x)
 }
 #' Placebo effects of a Bayesian synthetic control model
-#' 
-#' Estimates in-space and in-time placebo effects based on the model definition 
+#'
+#' Estimates in-space and in-time placebo effects based on the model definition
 #' of previously estimated Bayesian synthetic control model.
-#' 
+#'
 #' @details
 #' For the in-space placebo (`type = "donor"`), original model is re-estimated
 #' using each donor as the treated unit in turn (omitting the original, true
@@ -21,7 +21,7 @@ placebo_effects <- function(x, ...) {
 #' true last pre-treatment time point. In all cases, the obtained treatment
 #' effects should fluctuate around zero for time points before the true
 #' treatment time, under the assumption of no anticipation effects.
-#' 
+#'
 #' In both cases, the output includes also the results of the input model.
 #'
 #' @export
@@ -31,19 +31,19 @@ placebo_effects <- function(x, ...) {
 #'   Either `"donor"` for in-space placebos, `"time"` for in-time placebos. See
 #'   details.
 #' @param L \[`integer(1)`]\cr If `type = "time`, minimum number of observations
-#'   to use for the in-time placebos, i.e. the number of pre-treatment time 
-#'   points for the first fit. For too small `L`, estimation can be unstable, 
+#'   to use for the in-time placebos, i.e. the number of pre-treatment time
+#'   points for the first fit. For too small `L`, estimation can be unstable,
 #'   so you should likely use at least `L = 10` or so.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries of the
 #'   treatment effects and RMSE estimates. Default is `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed on to [bscm()].
-#' @return A list with data frames `effect`, `rmse`, `rmse_ratio` and 
-#'   `diagnostics`, and a `metadata` list. The data frames contain posterior 
-#'   summaries for each run, identified by a `placebo` column. For 
-#'   `type = "donor"`, `placebo` is the treated unit name for the original fit 
-#'   and the donor name for each placebo run. For `type = "time"`, `placebo` 
-#'   is the assumed treatment start time for each run. The `metadata` list 
-#'   contains the placebo type, summary probabilities, model setup, and the 
+#' @return A list with data frames `effect`, `rmse`, `rmse_ratio` and
+#'   `diagnostics`, and a `metadata` list. The data frames contain posterior
+#'   summaries for each run, identified by a `placebo` column. For
+#'   `type = "donor"`, `placebo` is the treated unit name for the original fit
+#'   and the donor name for each placebo run. For `type = "time"`, `placebo`
+#'   is the assumed treatment start time for each run. The `metadata` list
+#'   contains the placebo type, summary probabilities, model setup, and the
 #'   placebo labels used. The result can be visualized with [plot_effects()].
 placebo_effects.bscmfit <- function(
   x,
