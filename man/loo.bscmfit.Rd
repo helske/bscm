@@ -27,7 +27,10 @@ Default is \code{0.7}.}
 \item{...}{Additional arguments to \code{\link[loo:loo]{loo::loo()}}.}
 }
 \value{
-An output from \code{\link[loo:loo]{loo::loo()}}.
+An output from \code{\link[loo:loo]{loo::loo()}}. When \code{reloo = TRUE}, this contains
+additional attribute \code{refits} which is a data frame with the
+indices of observations that were refitted when \code{reloo = TRUE}, together
+with their Pareto \code{k}, \code{n_eff}, and \code{r_eff} diagnostics before refitting.
 }
 \description{
 Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic

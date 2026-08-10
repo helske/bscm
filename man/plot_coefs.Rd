@@ -9,9 +9,9 @@ plot_coefs(x, ...)
 
 \method{plot_coefs}{bscmfit}(
   x,
-  type = c("fixed", "varying"),
+  type = "varying",
   probs = c(0.025, 0.975),
-  combine = FALSE,
+  combine = TRUE,
   alpha = 0.5,
   scales = "free_y",
   ...
@@ -31,7 +31,7 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 
 \item{combine}{[\code{logical(1)}]\cr If \code{TRUE} and \code{type = "varying"}, plot
 the total effect (beta + gamma) instead of gamma alone.
-Ignored when \code{type = "fixed"}. Default is \code{FALSE}.}
+Ignored when \code{type = "fixed"}. Default is \code{TRUE}.}
 
 \item{alpha}{[\code{numeric(1)}]\cr Opacity of the credible-interval ribbon
 (used only when \code{type = "varying"}). Default is \code{0.5}.}

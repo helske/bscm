@@ -13,7 +13,10 @@
 #' diagnostic that triggers an exact refit when `reloo = TRUE`.
 #' Default is `0.7`.
 #' @param ... Additional arguments to [loo::loo()].
-#' @return An output from [loo::loo()].
+#' @return An output from [loo::loo()]. When `reloo = TRUE`, this contains 
+#'  additional attribute `refits` which is a data frame with the 
+#'  indices of observations that were refitted when `reloo = TRUE`, together 
+#'  with their Pareto `k`, `n_eff`, and `r_eff` diagnostics before refitting. 
 #' @references
 #' Vehtari A, Gelman A, and Gabry J (2017).
 #' Practical Bayesian model evaluation using leave-one-out cross-validation and
@@ -36,35 +39,45 @@ loo.bscmfit <- function(
   cid <- rep(seq_len(nc), each = ndraws(x) / nc)
   r_eff_val <- if (r_eff) loo::relative_eff(exp(ll), chain_id = cid) else 1
   loo_out <- loo::loo(ll, r_eff = r_eff_val, ...)
-  if (!reloo) {
-    return(loo_out)
-  }
-  bad_k <- loo::pareto_k_ids(loo_out, threshold = k_threshold)
-  if (length(bad_k) == 0L) {
-    return(loo_out)
-  }
+  
   T_total <- get_T_total(x)
-  standata <- get_standata(x)
-  standata$sample_y_rep <- FALSE
-  ti <- matrix(
+  ti <- t(matrix(
     as.integer(
       unlist(
         strsplit(
-          gsub("[^0-9,]", "", colnames(ll)[bad_k]),
+          gsub("[^0-9,]", "", colnames(ll)),
           ",",
           fixed = TRUE
         )
       )
     ),
-    2,
-    length(bad_k)
+    nrow = 2
+  ))
+  treated <- get_treated(x)
+  times <- get_times(x)
+  diags <- data.frame(
+    unit = treated[ti[, 2]],
+    time = times[ti[, 1]],
+    pareto_k = loo_out$diagnostics$pareto_k,
+    n_eff = loo_out$diagnostics$n_eff,
+    r_eff = loo_out$diagnostics$r_eff
   )
+  names(diags)[1:2] <- c(get_unit(x), get_time(x))
+  attr(loo_out, "diagnostics") <- diags
+  bad_k <- loo::pareto_k_ids(loo_out, threshold = k_threshold)
+  if (length(bad_k) == 0L || !reloo) {
+    return(loo_out)
+  }
+  
+  standata <- get_standata(x)
+  standata$sample_y_rep <- FALSE
   missing_idx <- standata$missing_idx
   standata$n_missing <- standata$n_missing + 1L
+ 
   for (k in seq_along(bad_k)) {
     obs <- bad_k[k]
-    t <- ti[1, k]
-    i <- ti[2, k]
+    t <- ti[k, 1]
+    i <- ti[k, 2]
     standata$missing_idx <- rbind(
       missing_idx,
       c(unit = i, time = t)

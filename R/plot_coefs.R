@@ -11,7 +11,7 @@
 #'   time-varying coefficients.
 #' @param combine \[`logical(1)`]\cr If `TRUE` and `type = "varying"`, plot
 #'   the total effect (beta + gamma) instead of gamma alone.
-#'   Ignored when `type = "fixed"`. Default is `FALSE`.
+#'   Ignored when `type = "fixed"`. Default is `TRUE`.
 #' @param alpha \[`numeric(1)`]\cr Opacity of the credible-interval ribbon
 #'   (used only when `type = "varying"`). Default is `0.5`.
 #' @param scales \[`character(1)`]\cr Passed to [ggplot2::facet_wrap()]
@@ -31,9 +31,9 @@ plot_coefs <- function(x, ...) {
 #' plot_coefs(fit_single_treated)
 plot_coefs.bscmfit <- function(
   x,
-  type = c("fixed", "varying"),
+  type = "varying",
   probs = c(0.025, 0.975),
-  combine = FALSE,
+  combine = TRUE,
   alpha = 0.5,
   scales = "free_y",
   ...

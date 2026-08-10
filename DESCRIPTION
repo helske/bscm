@@ -1,6 +1,6 @@
 Package: bscm
 Title: Bayesian Synthetic Control Models
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     person("Jouni", "Helske", email = "jouni.helske@iki.fi", 
     role = c("aut", "cre"),

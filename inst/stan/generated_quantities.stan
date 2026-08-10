@@ -80,9 +80,9 @@ generated quantities {
     }
     for (i in 1 : N) {
       int Ti = T_pre[i];
+      real u = y_full[i, Ti] - y_mean[Ti, i];
       y_mean[2 : Ti, i] += rho[i]
                            * (y_full[i, 1 : (Ti - 1)] - y_mean[1 : (Ti - 1), i]);
-      real u = y_full[i, Ti] - y_mean[Ti, i];
       for (t in (Ti + 1) : T) {
         u *= rho[i];
         y_mean[t, i] += u;

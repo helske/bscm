@@ -6,16 +6,22 @@
 #' since treatment across all treated units.
 #'
 #' @param x \[`bscmfit`]\cr object.
+#' @param unit \[`character(1)`]\cr For models with
+#'   multiple treated units, the name of the treated unit to 
+#'   plot. If `NULL` (the default), all treated units are plotted sequentially.
 #' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of
 #' the posterior interval. Default is `c(0.025, 0.975)`.
 #' @param ... Ignored
 #' @aliases plot
-#' @return A `ggplot` object
+#' @return A `ggplot` object when a single unit is plotted. 
+#'   When multiple units are plotted with `unit = NULL`, the plots are drawn 
+#'   sequentially and the function returns `NULL` invisibly.
 #' @export
 #' @examples
 #' plot(fit_single_treated, probs = c(0.05, 0.95))
-plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
-  type <- yintercept <- ymin <- ymax <- NULL
+#' plot(fit_multiple_treated, unit = 2)
+plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
+  
   stopifnot_(
     checkmate::test_numeric(
       probs,
@@ -27,48 +33,89 @@ plot.bscmfit <- function(x, probs = c(0.025, 0.975), ...) {
     "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with 
     values between 0 and 1."
   )
-  if (get_N(x) > 1L) {
-    return(plot_effects(x, probs = probs))
-  }
-  outcome <- get_outcome(x)
-  treated <- get_treated(x)
-  time <- get_time(x)
-  unit <- get_unit(x)
+  outcome <- get_outcome(x) 
+  time <- get_time(x) 
+  unit_col <- get_unit(x) 
   treatment <- get_treatment(x)
-
-  d_effects <- treatment_effect(
-    x,
-    average = FALSE,
-    probs = probs,
-    for_plots = TRUE
-  )
-  d_synth <- synthetic_control(x, probs = probs, for_plots = TRUE)
-  d_effects$type <- "Treatment effect"
-  d_synth$type <- "Synthetic control"
+  treated <- get_treated(x)
+  if (!is.null(unit)) {
+    stopifnot_(
+      unit %in% treated,
+      "Argument {.arg unit} must be one of the treated units:
+      {.val {treated}}."
+    )
+  }
+  d_plot <- dplyr::bind_rows(
+    "Treatment effect" = treatment_effect(
+      x, average = FALSE, probs = probs, for_plots = TRUE
+    ),
+    "Synthetic control" = synthetic_control(
+      x, probs = probs, for_plots = TRUE
+    ),
+    .id = "type"
+  ) 
+  if (is.null(d_plot[[unit_col]])) {
+    d_plot[[unit_col]] <- unit
+  }
   lookup <- stats::setNames(
-    c(unit, time, treatment, outcome, paste0("q", 100 * probs)),
+    c(unit_col, time, treatment, outcome, paste0("q", 100 * probs)),
     c("unit", "time", "treatment", "mean", "ymin", "ymax")
   )
-  d_plot <- dplyr::bind_rows(d_effects, d_synth) |>
+  d_plot <- d_plot |> 
     dplyr::rename(dplyr::any_of(lookup))
   dy <- x$data |>
-    dplyr::filter(.data[[unit]] %in% .env$treated) |>
-    dplyr::select(dplyr::all_of(c(unit, time, treatment, outcome))) |>
+    dplyr::select(dplyr::all_of(c(unit_col, time, treatment, outcome))) |>
     dplyr::rename(dplyr::any_of(lookup)) |>
     dplyr::mutate(type = "Synthetic control", treatment = factor(treatment))
+  
+  
+  start_t <- stats::setNames(get_times(x)[get_T_pre(x) + 1], treated)
+  N <- get_N(x)
+  if (N == 1L) unit <- treated[1]
+  if (!is.null(unit)) {
+    return(plot_bscm_unit(d_plot, dy, unit, start_t[unit]))
+  } else {
+    for (u in treated) { 
+      print(plot_bscm_unit(d_plot, dy, u, start_t[u])) 
+    } 
+    return(invisible(NULL)) 
+  }
+}
 
-  d_plot |>
+#' Plot BSCM estimates for one treated unit
+#' @noRd 
+plot_bscm_unit <- function(d, dy, id, start_t) { 
+  type <- yintercept <- ymin <- ymax <- NULL 
+  dt <- data.frame(
+    yintercept = 0,
+    xintercept = start_t,
+    type = "Treatment effect")
+  
+  d |> 
+    dplyr::filter(unit == id) |> 
     ggplot(aes(time, mean)) +
+    geom_hline(
+      data = dt, aes(yintercept = yintercept),
+      linetype = "dashed", colour = "grey70"
+    ) +
+    geom_vline(
+      data = dt, aes(xintercept = xintercept),
+      linetype = "dashed", colour = "grey70"
+    ) +
     geom_ribbon(
       aes(ymin = ymin, ymax = ymax, fill = type),
       alpha = 0.5
     ) +
+    geom_point(
+      data = dy |> 
+        dplyr::filter(unit == id), 
+      colour = "grey30"
+    ) +
     geom_line(aes(colour = type)) +
-    geom_point(data = dy, aes(shape = treatment), colour = "grey30") +
-    labs(x = time, y = NULL) +
+    labs(x = time, y = NULL, subtitle = id) +
     scale_colour_manual(values = c("#DDAA33", "#0C7BDC")) +
     scale_fill_manual(values = c("#EECC66", "#77AADD")) +
-    guides(fill = "none", colour = "none", shape = "none") +
+    guides(fill = "none", colour = "none") +
     facet_grid(rows = vars(type), scales = "free_y") +
     theme_bw()
 }

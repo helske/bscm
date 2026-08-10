@@ -5,10 +5,14 @@
 \alias{plot}
 \title{Visualize BSCM estimates}
 \usage{
-\method{plot}{bscmfit}(x, probs = c(0.025, 0.975), ...)
+\method{plot}{bscmfit}(x, unit = NULL, probs = c(0.025, 0.975), ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr object.}
+
+\item{unit}{[\code{character(1)}]\cr For models with
+multiple treated units, the name of the treated unit to
+plot. If \code{NULL} (the default), all treated units are plotted sequentially.}
 
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
 the posterior interval. Default is \code{c(0.025, 0.975)}.}
@@ -16,7 +20,9 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored}
 }
 \value{
-A \code{ggplot} object
+A \code{ggplot} object when a single unit is plotted.
+When multiple units are plotted with \code{unit = NULL}, the plots are drawn
+sequentially and the function returns \code{NULL} invisibly.
 }
 \description{
 A plot of the posterior mean and posterior interval of the treatment effect
@@ -26,4 +32,5 @@ since treatment across all treated units.
 }
 \examples{
 plot(fit_single_treated, probs = c(0.05, 0.95))
+plot(fit_multiple_treated, unit = 2)
 }
