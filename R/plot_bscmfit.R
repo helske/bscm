@@ -54,8 +54,10 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
     ),
     .id = "type"
   ) 
+  N <- get_N(x)
+  if (N == 1L) unit <- treated[1]
   if (is.null(d_plot[[unit_col]])) {
-    d_plot[[unit_col]] <- unit
+    d_plot[[unit_col]] <- treated[1]
   }
   lookup <- stats::setNames(
     c(unit_col, time, treatment, outcome, paste0("q", 100 * probs)),
@@ -68,10 +70,8 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
     dplyr::rename(dplyr::any_of(lookup)) |>
     dplyr::mutate(type = "Synthetic control", treatment = factor(treatment))
   
-  
   start_t <- stats::setNames(get_times(x)[get_T_pre(x) + 1], treated)
-  N <- get_N(x)
-  if (N == 1L) unit <- treated[1]
+ 
   if (!is.null(unit)) {
     return(plot_bscm_unit(d_plot, dy, unit, start_t[unit]))
   } else {
@@ -85,7 +85,7 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
 #' Plot BSCM estimates for one treated unit
 #' @noRd 
 plot_bscm_unit <- function(d, dy, id, start_t) { 
-  type <- yintercept <- ymin <- ymax <- NULL 
+  type <- time <- yintercept <- xintercept <- ymin <- ymax <- NULL
   dt <- data.frame(
     yintercept = 0,
     xintercept = start_t,
