@@ -13,10 +13,10 @@
 #' diagnostic that triggers an exact refit when `reloo = TRUE`.
 #' Default is `0.7`.
 #' @param ... Additional arguments to [loo::loo()].
-#' @return An output from [loo::loo()]. When `reloo = TRUE`, this contains 
-#'  additional attribute `refits` which is a data frame with the 
-#'  indices of observations that were refitted when `reloo = TRUE`, together 
-#'  with their Pareto `k`, `n_eff`, and `r_eff` diagnostics before refitting. 
+#' @return An output from [loo::loo()]. When `reloo = TRUE`, this contains
+#'  additional attribute `refits` which is a data frame with the
+#'  indices of observations that were refitted when `reloo = TRUE`, together
+#'  with their Pareto `k`, `n_eff`, and `r_eff` diagnostics before refitting.
 #' @references
 #' Vehtari A, Gelman A, and Gabry J (2017).
 #' Practical Bayesian model evaluation using leave-one-out cross-validation and
@@ -39,7 +39,7 @@ loo.bscmfit <- function(
   cid <- rep(seq_len(nc), each = ndraws(x) / nc)
   r_eff_val <- if (r_eff) loo::relative_eff(exp(ll), chain_id = cid) else 1
   loo_out <- loo::loo(ll, r_eff = r_eff_val, ...)
-  
+
   T_total <- get_T_total(x)
   ti <- t(matrix(
     as.integer(
@@ -68,12 +68,12 @@ loo.bscmfit <- function(
   if (length(bad_k) == 0L || !reloo) {
     return(loo_out)
   }
-  
+
   standata <- get_standata(x)
   standata$sample_y_rep <- FALSE
   missing_idx <- standata$missing_idx
   standata$n_missing <- standata$n_missing + 1L
- 
+
   for (k in seq_along(bad_k)) {
     obs <- bad_k[k]
     t <- ti[k, 1]
