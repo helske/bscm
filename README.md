@@ -2,11 +2,15 @@
 # bscm: Bayesian Synthetic Control Models
 
 <!-- badges: start -->
-[![Codecov test coverage](https://codecov.io/gh/helske/bscm/graph/badge.svg)](https://app.codecov.io/gh/helske/bscm)
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![R-CMD-check](https://github.com/helske/bscm/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/helske/bscm/actions/workflows/R-CMD-check.yaml)
+https://github.com/helske/bscm/
+[![Codecov test coverage](https://codecov.io/gh/helske/bscm/graph/badge.svg)](https://app.codecov.io/gh/helske/bscm)
+[![CRAN version](http://www.r-pkg.org/badges/version/bscm)](https://CRAN.R-project.org/package=bscm)
 <!-- badges: end -->
 
 R package for Bayesian Synthetic Control Models (Helske 2026, in-preparation). 
+
 Key features:
 * Time-varying covariates, optionally with time-varying coefficients as splines.
 * Multiple treated units, with or without staggered adoption.

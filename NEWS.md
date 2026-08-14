@@ -10,6 +10,7 @@
 * Output of `loo` with `reloo = TRUE` now contains an attribute `diagnostics` 
   with unit and time indices of observations with corresponding pareto-k 
   diagnostics.
+* Exported `get_treated` and `get_donors` method.
 
 # bscm 1.0.1
 

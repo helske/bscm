@@ -13,13 +13,11 @@
 #' the posterior interval. Default is `c(0.025, 0.975)`.
 #' @param ... Ignored
 #' @aliases plot
-#' @return A `ggplot` object when a single unit is plotted. 
-#'   When multiple units are plotted with `unit = NULL`, the plots are drawn 
-#'   sequentially and the function returns `NULL` invisibly.
+#' @return A `ggplot` object or a list of `ggplot` objects in case of multiple 
+#'   treated units when `unit` is `NULL`.
 #' @export
 #' @examples
 #' plot(fit_single_treated, probs = c(0.05, 0.95))
-#' plot(fit_multiple_treated, unit = 2)
 plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
   
   stopifnot_(
@@ -74,12 +72,13 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
  
   if (!is.null(unit)) {
     return(plot_bscm_unit(d_plot, dy, unit, start_t[unit]))
-  } else {
-    for (u in treated) { 
-      print(plot_bscm_unit(d_plot, dy, u, start_t[u])) 
-    } 
-    return(invisible(NULL)) 
   }
+  p <- lapply(
+    treated,
+    \(u) plot_bscm_unit(d_plot, dy, u, start_t[u])
+  )
+  names(p) <- treated
+  p
 }
 
 #' Plot BSCM estimates for one treated unit

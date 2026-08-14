@@ -5,7 +5,7 @@ test_that("plot.bscmfit returns a ggplot object", {
 
 test_that("plot.bscmfit returns averaged ggplot for N > 1", {
   p <- plot(fitN_int)
-  expect_s3_class(p, "ggplot")
+  expect_s3_class(p[["2"]], "ggplot")
 })
 
 test_that("plot.bscmfit works with custom probs", {

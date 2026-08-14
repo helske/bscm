@@ -1,7 +1,31 @@
+#' Get treated units from a BSCM fit
+#'
+#' Extracts the names of the treated units from a `bscmfit` object.
+#'
+#' @param x A `bscmfit` object.
+#' @return A character vector containing the treated unit identifiers.#'
+#' @export
+#' @examples
+#' get_treated(fit_single_treated)
+get_treated <- function(x) {
+  x$setup$treated
+}
+
+#' Get donor units from a BSCM fit
+#'
+#' Extracts the names of the donor units from a `bscmfit` object.
+#'
+#' @param x A `bscmfit` object.
+#' @return A character vector containing the donor unit identifiers.
+#' @examples
+#' get_donors(fit_single_treated)
+#' @export
+get_donors <- function(x) {
+  x$setup$donors
+}
+
 #' Internal getters
 #' @noRd
-get_treated <- \(x) x$setup$treated
-get_donors <- \(x) x$setup$donors
 get_treatment <- \(x) x$setup$treatment
 get_time <- \(x) x$setup$time
 get_unit <- \(x) x$setup$unit

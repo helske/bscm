@@ -20,9 +20,8 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored}
 }
 \value{
-A \code{ggplot} object when a single unit is plotted.
-When multiple units are plotted with \code{unit = NULL}, the plots are drawn
-sequentially and the function returns \code{NULL} invisibly.
+A \code{ggplot} object or a list of \code{ggplot} objects in case of multiple
+treated units when \code{unit} is \code{NULL}.
 }
 \description{
 A plot of the posterior mean and posterior interval of the treatment effect
@@ -32,5 +31,4 @@ since treatment across all treated units.
 }
 \examples{
 plot(fit_single_treated, probs = c(0.05, 0.95))
-plot(fit_multiple_treated, unit = 2)
 }
