@@ -81,7 +81,7 @@ loo_R2.bscmfit <- function(
       r2 <- 1 - ss_e_loo / ss_y
       r2[r2 < -1] <- -1
       r2[r2 > 1] <- 1
-      tibble(
+      dplyr::tibble(
         "{unit}" := id,
         R2 = posterior::draws_rvars(r2 = r2)$r2
       )
@@ -123,7 +123,7 @@ bayes_R2.bscmfit <- function(
     var_fit <- posterior::rvar_var(y_mean[seq_len(T_pre[treated[i]]), i])
     r2[[i]] <- var_fit / (var_fit + sigma[i]^2)
   }
-  d <- tibble(
+  d <- dplyr::tibble(
     "{unit}" := treated,
     R2 = do.call(c, r2)
   )

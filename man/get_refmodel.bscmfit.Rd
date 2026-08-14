@@ -24,7 +24,7 @@ package. This enables the usage of \code{\link[projpred:varsel]{projpred::varsel
 used by \code{projpred}.
 }
 \details{
-Projection are based on only on the pretreatment period.
+Projections are based on only on the pretreatment period.
 
 This function is experimental and currently only a single treated unit is
 supported.
@@ -40,14 +40,27 @@ fit <- bscm(
   data = single_treated, refresh = 0, chains = 2, cores = 2
 )
 refmodel <- get_refmodel(fit)
-vs <- projpred::varsel(refmodel)
+vs <- projpred::varsel(refmodel, nterms_max = 5)
 plot(vs, stats = c("elpd", "rmse"), alpha = 0.05)
-# predictions using the projection:
-predictions <- projpred::proj_predict(vs)
-# posterior mean of the predictions
-colMeans(predictions)
+
+# synthetic control using the projection:
+sc_projpred <- proj_predict_bscm(vs, newdata = single_treated)
+sc_full <- synthetic_control(fit)
+dplyr::bind_rows(
+  projected = sc_projpred,
+  full = sc_full,
+  .id = "type"
+) |>
+  ggplot2::ggplot(ggplot2::aes(time, mean)) +
+  ggplot2::geom_vline(xintercept = 0, linetype = "dashed") +
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = q2.5, ymax = q97.5, fill = type), alpha = 0.2
+  ) +
+  ggplot2::geom_line(ggplot2::aes(colour = type)) +
+  ggplot2::labs(x = "Time", y = "Synthetic control") +
+  ggplot2::theme_bw()
 }
 }
 \seealso{
-\code{\link[projpred:varsel]{projpred::varsel()}}, \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}
+\code{\link[=proj_predict_bscm]{proj_predict_bscm()}}, \code{\link[projpred:varsel]{projpred::varsel()}}, \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}
 }

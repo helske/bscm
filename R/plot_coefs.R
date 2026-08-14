@@ -7,8 +7,9 @@
 #'
 #' @param x \[`bscmfit`]\cr Output from [bscm()].
 #' @param type \[`character(1)`]\cr Type of coefficients to plot. Either
-#'   `"fixed"` for time-constant coefficients or `"varying"` (the default) for
-#'   time-varying coefficients.
+#'   `"fixed"` for time-constant coefficients or `"varying"` for
+#'   time-varying coefficients. Default is `"varying"` if the model contains
+#'   varying coefficients.
 #' @param combine \[`logical(1)`]\cr If `TRUE` and `type = "varying"`, plot
 #'   the total effect (beta + gamma) instead of gamma alone.
 #'   Ignored when `type = "fixed"`. Default is `TRUE`.
@@ -31,7 +32,7 @@ plot_coefs <- function(x, ...) {
 #' plot_coefs(fit_single_treated)
 plot_coefs.bscmfit <- function(
   x,
-  type = "varying",
+  type = NULL,
   probs = c(0.025, 0.975),
   combine = TRUE,
   alpha = 0.5,
@@ -42,11 +43,17 @@ plot_coefs.bscmfit <- function(
     has_predictors(x),
     "The model does not contain any predictors."
   )
-  type <- try_(match.arg(type, c("fixed", "varying")))
-  stopifnot_(
-    !inherits(type, "try-error"),
-    "Argument {.arg type} must be either {.val fixed} or {.val varying}."
-  )
+
+  if (is.null(type)) {
+    type <- if (has_tv_coefs(x)) "varying" else "fixed"
+  } else {
+    type <- try_(match.arg(type, c("fixed", "varying")))
+    stopifnot_(
+      !inherits(type, "try-error"),
+      "Argument {.arg type} must be either {.val fixed} or {.val varying}."
+    )
+  }
+
   stopifnot_(
     checkmate::test_numeric(
       probs,

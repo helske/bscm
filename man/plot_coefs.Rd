@@ -9,7 +9,7 @@ plot_coefs(x, ...)
 
 \method{plot_coefs}{bscmfit}(
   x,
-  type = "varying",
+  type = NULL,
   probs = c(0.025, 0.975),
   combine = TRUE,
   alpha = 0.5,
@@ -23,8 +23,9 @@ plot_coefs(x, ...)
 \item{...}{Ignored.}
 
 \item{type}{[\code{character(1)}]\cr Type of coefficients to plot. Either
-\code{"fixed"} for time-constant coefficients or \code{"varying"} (the default) for
-time-varying coefficients.}
+\code{"fixed"} for time-constant coefficients or \code{"varying"} for
+time-varying coefficients. Default is \code{"varying"} if the model contains
+varying coefficients.}
 
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
 the posterior interval. Default is \code{c(0.025, 0.975)}.}

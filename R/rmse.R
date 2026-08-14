@@ -68,7 +68,7 @@ rmse.bscmfit <- function(
       dplyr::select(-"rmse", -"variable")
   }
   if (N == 1) {
-    d <- d |> dplyr::select(-any_of(unit))
+    d <- d |> dplyr::select(-dplyr::any_of(unit))
   }
   d
 }

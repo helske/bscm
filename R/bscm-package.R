@@ -26,8 +26,6 @@
 #' @importFrom methods new
 #' @importFrom rlang := .data .env
 #' @importFrom posterior as_draws nchains ndraws
-#' @importFrom dplyr filter select mutate summarise bind_rows
-#' @importFrom dplyr any_of all_of tibble lst
 #' @import ggplot2
 #' @references
 #' Abadie A, Diamond A, and Hainmueller J (2010). Synthetic Control

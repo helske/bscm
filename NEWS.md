@@ -10,7 +10,10 @@
 * Output of `loo` with `reloo = TRUE` now contains an attribute `diagnostics` 
   with unit and time indices of observations with corresponding pareto-k 
   diagnostics.
+* `proj_predict_bscm` has now arguments `summary` and `probs` for returning
+  posterior predictive summaries. 
 * Exported `get_treated` and `get_donors` method.
+* Minor improvements to documentation and examples.
 
 # bscm 1.0.1
 

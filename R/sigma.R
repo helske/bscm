@@ -20,7 +20,7 @@ sigma.bscmfit <- function(
   probs <- sort_probs(probs)
   treated <- get_treated(object)
   unit <- get_unit(object)
-  d <- tibble(
+  d <- dplyr::tibble(
     "{unit}" := treated,
     sigma = posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
   )

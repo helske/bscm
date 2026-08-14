@@ -58,11 +58,8 @@ all treated units is computed at each step.
 }
 \examples{
 \donttest{
-lfo_approx <- lfo(fit_single_treated, L = 10)
+lfo_approx <- lfo(fit_single_treated, L = 20)
 lfo_approx
-
-lfo_exact <- lfo(fit_single_treated, L = 10, exact = TRUE)
-lfo_exact
 }
 }
 \references{

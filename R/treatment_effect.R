@@ -16,7 +16,7 @@ effects_draws <- function(x) {
   event_times <- unlist(
     lapply(treated, \(i) seq_len(T_total) - T_pre[i] - 1L)
   )
-  tibble(
+  dplyr::tibble(
     "{unit}" := rep(treated, each = T_total),
     "{time}" := rep(times, times = N),
     time_since_treatment = event_times,

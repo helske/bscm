@@ -4,7 +4,13 @@
 \alias{proj_predict_bscm}
 \title{Predictions from a projected BSCM model}
 \usage{
-proj_predict_bscm(object, newdata = NULL, ...)
+proj_predict_bscm(
+  object,
+  newdata = NULL,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+)
 }
 \arguments{
 \item{object}{A projection object or variable selection object returned by
@@ -14,6 +20,12 @@ proj_predict_bscm(object, newdata = NULL, ...)
 and time variables should have should have names matching the original
 data. If \code{NULL} (the default), predictions are made for the pre-treatment
 period of the original data used to fit the model.}
+
+\item{summary}{Logical; if \code{TRUE} (the default), return posterior summaries
+instead of posterior draws.}
+
+\item{probs}{Numeric vector of probabilities used for the posterior
+intervals. Defaults to \code{c(0.025, 0.975)}.}
 
 \item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.}
 }

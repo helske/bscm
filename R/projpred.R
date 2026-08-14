@@ -9,7 +9,7 @@
 #'
 #' @details
 #'
-#' Projection are based on only on the pretreatment period.
+#' Projections are based on only on the pretreatment period.
 #'
 #' This function is experimental and currently only a single treated unit is
 #' supported.
@@ -29,14 +29,27 @@
 #'   data = single_treated, refresh = 0, chains = 2, cores = 2
 #' )
 #' refmodel <- get_refmodel(fit)
-#' vs <- projpred::varsel(refmodel)
+#' vs <- projpred::varsel(refmodel, nterms_max = 5)
 #' plot(vs, stats = c("elpd", "rmse"), alpha = 0.05)
-#' # predictions using the projection:
-#' predictions <- projpred::proj_predict(vs)
-#' # posterior mean of the predictions
-#' colMeans(predictions)
+#'
+#' # synthetic control using the projection:
+#' sc_projpred <- proj_predict_bscm(vs, newdata = single_treated)
+#' sc_full <- synthetic_control(fit)
+#' dplyr::bind_rows(
+#'   projected = sc_projpred,
+#'   full = sc_full,
+#'   .id = "type"
+#' ) |>
+#'   ggplot2::ggplot(ggplot2::aes(time, mean)) +
+#'   ggplot2::geom_vline(xintercept = 0, linetype = "dashed") +
+#'   ggplot2::geom_ribbon(
+#'     ggplot2::aes(ymin = q2.5, ymax = q97.5, fill = type), alpha = 0.2
+#'   ) +
+#'   ggplot2::geom_line(ggplot2::aes(colour = type)) +
+#'   ggplot2::labs(x = "Time", y = "Synthetic control") +
+#'   ggplot2::theme_bw()
 #' }
-#' @seealso[projpred::varsel()], [projpred::cv_varsel()]
+#' @seealso [proj_predict_bscm()], [projpred::varsel()], [projpred::cv_varsel()]
 #' @aliases get_refmodel
 #' @export
 #' @export get_refmodel
@@ -220,6 +233,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     time = time,
     outcome = outcome,
     units = units,
+    times = utils::head(get_times(object), T_pre),
     proj_units = proj_units
   )
   projpred::init_refmodel(
@@ -249,12 +263,26 @@ get_refmodel.bscmfit <- function(object, ...) {
 #'   and time variables should have should have names matching the original
 #'   data. If `NULL` (the default), predictions are made for the pre-treatment
 #'   period of the original data used to fit the model.
+#' @param summary Logical; if `TRUE` (the default), return posterior summaries
+#'   instead of posterior draws.
+#' @param probs Numeric vector of probabilities used for the posterior
+#'   intervals. Defaults to `c(0.025, 0.975)`.
 #' @param ... Additional arguments passed to [projpred::proj_predict()].
 #' @return The output of [projpred::proj_predict()].
 #' @export
-proj_predict_bscm <- function(object, newdata = NULL, ...) {
+proj_predict_bscm <- function(
+  object,
+  newdata = NULL,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+) {
+  probs <- sort_probs(probs)
+  test_summary(summary)
+  setup <- object$refmodel$fit$proj
+
   if (!is.null(newdata)) {
-    setup <- object$refmodel$fit$proj
+    times <- unique(newdata[[setup$time]])
     newdata <- as_proj_data(
       newdata,
       unit = setup$unit,
@@ -263,13 +291,30 @@ proj_predict_bscm <- function(object, newdata = NULL, ...) {
       units = setup$units,
       proj_units = setup$proj_units
     )
+  } else {
+    times <- setup$times
   }
 
-  projpred::proj_predict(
+  y_rep <- projpred::proj_predict(
     object = object,
     newdata = newdata,
     ...
   )
+  dimnames(y_rep) <- list(
+    iterations = NULL,
+    parameters = sprintf("y_rep[%d,1]", seq_len(ncol(y_rep)))
+  )
+  if (summary) {
+    y_rep <- dplyr::tibble(
+      "{setup$time}" := times,
+      y_rep = c(posterior::as_draws_rvars(y_rep)$y_rep)
+    ) |>
+      dplyr::mutate(
+        summarise_with_probs(.data$y_rep, probs)
+      ) |>
+      dplyr::select(-"y_rep", -"variable")
+  }
+  y_rep
 }
 
 #' Convert long-format panel data to wide format for projpred

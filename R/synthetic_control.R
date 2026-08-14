@@ -45,7 +45,7 @@ synthetic_control.bscmfit <- function(
     lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
   )
   y_rep <- posterior_predict(x)
-  d <- tibble(
+  d <- dplyr::tibble(
     "{unit}" := rep(treated, each = T_total),
     "{time}" := rep(times, times = N),
     "{treatment}" := treatments,

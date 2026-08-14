@@ -38,7 +38,7 @@ fitted.bscmfit <- function(
   treatments <- unlist(
     lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
   )
-  d <- tibble(
+  d <- dplyr::tibble(
     "{unit}" := rep(treated, each = T_total),
     "{time}" := rep(times, times = N),
     "{treatment}" := treatments,
