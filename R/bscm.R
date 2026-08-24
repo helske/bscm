@@ -87,12 +87,13 @@
 #'   other methods that rely on posterior predictions to fail, so you rarely
 #'   want to set this to `FALSE`.
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
-#'   adjust the sampling options, for example `iter` and `chains`. Note that
+#'   adjust the sampling options, for example `iter` and `chains`.  Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
-#'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many other
+#'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many 
 #'   control arguments for Stan can be passed using a named list `control`,
 #'   such as `control = list(adapt_delta = 0.95)` which corresponds to the
-#'   default `adapt_delta` value of `bscm` (while `rstan` default is `0.8`).
+#'   default `adapt_delta` value of `bscm` when model contains time-varying 
+#'   coefficients (otherwise the default is `0.8` as in `rstan`).
 #' @return An object of class `bscmfit`.
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
@@ -138,6 +139,7 @@ bscm <- function(
   has_x <- length(predictors) > 0
   has_w <- length(parsed_formula$w_terms) > 0
   spline_df <- parsed_formula$spline_df
+  knot_spacing <- parsed_formula$knot_spacing
   spline_type <- parsed_formula$spline_type
   noncentered_xi <- parsed_formula$noncentered_xi
   stopifnot_(
@@ -269,13 +271,14 @@ bscm <- function(
     gamma_names,
     tv_idx,
     spline_df,
+    knot_spacing,
     spline_type,
     noncentered_xi,
     prior_only
   )
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
-  if (is.null(stan_args$control$adapt_delta)) {
+  if (is.null(stan_args$control$adapt_delta) && has_w) {
     stan_args$control$adapt_delta <- 0.95
   }
   if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
@@ -291,7 +294,7 @@ bscm <- function(
       if (!has_w) c("gamma", "kappa"),
       if (error != "ar1") "rho"
     )
-    exclude_extras <- c("eta", "omega_", "a", "xi")
+    exclude_extras <- c("eta", "a", "xi")
     if (is.null(stan_args$pars)) {
       stan_args$pars <- c(exclude_pars, exclude_extras)
     } else {
@@ -308,6 +311,7 @@ bscm <- function(
       T_total,
       T_pre,
       spline_df,
+      knot_spacing,
       spline_type,
       noncentered_xi
     )
@@ -326,7 +330,6 @@ bscm <- function(
     spline_def,
     prior_only
   )
-
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
@@ -334,7 +337,6 @@ bscm <- function(
       simplify = FALSE
     )
   }
-
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions

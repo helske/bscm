@@ -10,6 +10,7 @@ plot_weights(x, ...)
 
 \method{plot_weights}{bscmfit}(
   x,
+  unit = NULL,
   point_estimate = "median",
   order = NULL,
   coverage = c(0.5, 0.95),

@@ -267,7 +267,8 @@ get_refmodel.bscmfit <- function(object, ...) {
 #'   instead of posterior draws.
 #' @param probs Numeric vector of probabilities used for the posterior
 #'   intervals. Defaults to `c(0.025, 0.975)`.
-#' @param ... Additional arguments passed to [projpred::proj_predict()].
+#' @param ... Additional arguments passed to [projpred::proj_predict()]. Note 
+#' that `as_draws_matrix = TRUE` is always used.
 #' @return The output of [projpred::proj_predict()].
 #' @export
 proj_predict_bscm <- function(
@@ -298,11 +299,8 @@ proj_predict_bscm <- function(
   y_rep <- projpred::proj_predict(
     object = object,
     newdata = newdata,
+    as_draws_matrix = TRUE,
     ...
-  )
-  dimnames(y_rep) <- list(
-    iterations = NULL,
-    parameters = sprintf("y_rep[%d,1]", seq_len(ncol(y_rep)))
   )
   if (summary) {
     y_rep <- dplyr::tibble(

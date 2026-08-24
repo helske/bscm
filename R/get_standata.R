@@ -51,6 +51,7 @@ get_standata.bscmfit <- function(x, ...) {
       x$setup$T_total,
       x$setup$T_pre,
       x$setup$spline_df,
+      x$setup$knot_spacing,
       x$setup$spline_type,
       x$setup$noncentered_xi
     )

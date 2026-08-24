@@ -1,4 +1,6 @@
 functions {
+  
+  
   /*
   * Constrain sum-to-zero vector
   *
@@ -23,7 +25,19 @@ functions {
     }
     return z;
   }
+  // current rstan also does not have ILR transformation for simplex
+  // Based on Sean Pinkney's post on Stan discourse
+  // https://discourse.mc-stan.org/t/log-simplex-constraints/39782/18
+  vector inv_ilr_simplex_constrain_lp(vector y) {
+    int N = rows(y) + 1;
+    vector[N] z = zero_sum_constrain(y);
+    real r = log_sum_exp(z);
+    target += 0.5 * log(N) + sum(z) - N * r;
+    vector[N] x = exp(z - r);
+    return x;
+  }
 }
+
 data {
   int<lower=0, upper=1> use_alpha;
   int<lower=0, upper=1> use_beta;
@@ -121,8 +135,7 @@ transformed data {
 parameters {
   //not supported on the current CRAN versions (as in April 2026)
   //array[N] sum_to_zero_vector[J] eta;
-  array[N * dirichlet_omega] simplex[J] omega_; // omega ~ dirichlet
-  array[N * !dirichlet_omega] vector[J - 1] eta; // omega ~ logistic normal
+  array[N] vector[J - 1] eta; // omega ~ dirichlet or logistic normal
   vector<lower=0>[N] sigma; // SD of the error term
   vector[use_alpha ? N : 0] a; // working intercept
   vector[use_beta ? K : 0] beta; // regression coefficients
@@ -135,7 +148,7 @@ transformed parameters {
   matrix[J, N] omega;
   if (dirichlet_omega) {
     for (i in 1 : N) {
-      omega[ : , i] = omega_[i];
+      omega[ : , i] = inv_ilr_simplex_constrain_lp(eta[i]);
     }
   } else {
     for (i in 1 : N) {
@@ -162,7 +175,7 @@ model {
   // prior for omega
   if (dirichlet_omega) {
     for (i in 1 : N) {
-      omega_[i] ~ dirichlet(pr_omega[ : , i]);
+      omega[ : , i] ~ dirichlet(pr_omega[ : , i]);
     }
   } else {
     for (i in 1 : N) {

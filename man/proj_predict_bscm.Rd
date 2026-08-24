@@ -27,7 +27,8 @@ instead of posterior draws.}
 \item{probs}{Numeric vector of probabilities used for the posterior
 intervals. Defaults to \code{c(0.025, 0.975)}.}
 
-\item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.}
+\item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}. Note
+that \code{as_draws_matrix = TRUE} is always used.}
 }
 \value{
 The output of \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.

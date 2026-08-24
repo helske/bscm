@@ -4,17 +4,20 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, df = 10, type = "rw1", noncentered = TRUE)
+tv(tv_formula, df = 10, knot_spacing = NULL, type = "rw2", noncentered = TRUE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
 defining the the time-varying part of the BSCM formula.}
 
 \item{df}{[\code{integer(1)}]\cr Integer defining the number of spline basis
-functions. Default is \code{df = 10}.}
+functions in the pre-treatment period
+(maximum in case of staggered adoptation). Default is \code{df = 10}, which is
+completely arbitrary. Must be larger than 4.}
 
-\item{type}{[\code{character(1)}]\cr Prior type for spline coeffients. Either
-\code{"rw1"} or \code{"rw2"} for first and second order random walks.}
+\item{type}{[\code{character(1)}]\cr Prior type for spline coefficients. Either
+\code{"rw1"} or \code{"rw2"} for first and second order random walks.
+Default is "rw2".}
 
 \item{noncentered}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the spline
 coefficients are sampled using a non-centered parameterization.
@@ -22,6 +25,10 @@ If \code{FALSE}, a centered parameterization is used.
 Depending on the case, one of these might lead to more efficient and
 numerically stable sampling, so if you encounter divergences,
 try changing this.}
+
+\item{knot_spacing.}{[\code{numeric(1)}]\cr Optional argument to specify the
+equidistant spacing of knots for the spline basis. If \code{NULL} (the default),
+knots, spacing is defined by \code{df} argument.}
 }
 \value{
 Object of class \code{tv_term} (a \code{list}).

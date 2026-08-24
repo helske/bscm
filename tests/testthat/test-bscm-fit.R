@@ -33,6 +33,7 @@ test_that("bscmfit$setup has correct structure", {
     "gamma_names",
     "tv_idx",
     "spline_df",
+    "knot_spacing",
     "prior_only",
     "excluded_pars"
   )

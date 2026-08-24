@@ -69,12 +69,13 @@ other methods that rely on posterior predictions to fail, so you rarely
 want to set this to \code{FALSE}.}
 
 \item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
-adjust the sampling options, for example \code{iter} and \code{chains}. Note that
+adjust the sampling options, for example \code{iter} and \code{chains}.  Note that
 defaults \code{iter = 5000} and \code{warmup = 2500} differ from the defaults of
-\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many other
+\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many
 control arguments for Stan can be passed using a named list \code{control},
 such as \code{control = list(adapt_delta = 0.95)} which corresponds to the
-default \code{adapt_delta} value of \code{bscm} (while \code{rstan} default is \code{0.8}).}
+default \code{adapt_delta} value of \code{bscm} when model contains time-varying
+coefficients (otherwise the default is \code{0.8} as in \code{rstan}).}
 }
 \value{
 An object of class \code{bscmfit}.

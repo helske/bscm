@@ -41,6 +41,7 @@ plot_weights <- function(x, ...) {
 #' plot_weights(fit_single_treated)
 plot_weights.bscmfit <- function(
   x,
+  unit = NULL,
   point_estimate = "median",
   order = NULL,
   coverage = c(0.5, 0.95),
@@ -78,6 +79,15 @@ plot_weights.bscmfit <- function(
   }
   treated <- get_treated(x)
   N <- get_N(x)
+  if (!is.null(unit)) {
+    stopifnot_(
+      unit %in% treated,
+      "Argument {.arg unit} must be one of the treated units:
+      {.val {treated}}."
+    )
+    treated <- unit
+    N <- 1L
+  }
   plots <- stats::setNames(vector("list", N), treated)
   unit <- get_unit(x)
   weights <- donor_weights(x, probs = probs)

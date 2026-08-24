@@ -1,35 +1,3 @@
-build_spline <- function(
-  T_total,
-  T_pre,
-  spline_df,
-  type,
-  noncentered,
-  scale = "gm"
-) {
-  B <- splines::bs(seq_len(T_total), df = spline_df, intercept = TRUE)
-  d <- diag(spline_df)
-  L <- lower.tri(d, diag = TRUE)
-  M <- B %*% L
-  if (type == "rw2") {
-    M <- M %*% L
-  }
-  a <- colSums(M)
-  Q <- qr.Q(qr(cbind(a, d)))[, -1]
-  A <- M %*% Q
-  if (scale == "gm") {
-    A <- A / sqrt(exp(mean(log(rowSums(A^2)))))
-  } else {
-    A <- A / sqrt(mean(rowSums(A^2)))
-  }
-  list(
-    A = A,
-    D = ncol(A),
-    noncentered_xi = noncentered,
-    type = type,
-    scale = scale
-  )
-}
-
 #' Compute descriptive statistics to be used with default priors
 #' @noRd
 compute_descriptives <- function(
@@ -245,13 +213,7 @@ create_standata <- function(
 }
 # x: standata, d: descriptives
 create_inits <- function(x, d, spline_def) {
-  if (x$pr_dist_omega == 7L) {
-    omega_ <- matrix(1 / x$J, x$N, x$J)
-    eta <- matrix(0, 0, x$J - 1)
-  } else {
-    omega_ <- matrix(1 / x$J, 0, x$J)
-    eta <- matrix(0, x$N, x$J - 1)
-  }
+  eta <- matrix(0, x$N, x$J - 1)
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
   a <- beta <- rho <- kappa <- array(0, 0)
   xi <- matrix(0, 0, 0)
@@ -269,5 +231,5 @@ create_inits <- function(x, d, spline_def) {
   if (x$use_ar1) {
     rho <- array(stats::runif(x$N, 0, 0.5))
   }
-  dplyr::lst(omega_, eta, sigma, a, beta, xi, kappa, rho)
+  dplyr::lst(eta, sigma, a, beta, xi, kappa, rho)
 }
