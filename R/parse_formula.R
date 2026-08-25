@@ -11,7 +11,7 @@
 #'   functions in the pre-treatment period 
 #'   (maximum in case of staggered adoptation). Default is `df = 10`, which is 
 #'   completely arbitrary. Must be larger than 4.
-#' @param knot_spacing. \[`numeric(1)`]\cr Optional argument to specify the 
+#' @param knot_spacing \[`numeric(1)`]\cr Optional argument to specify the 
 #'   equidistant spacing of knots for the spline basis. If `NULL` (the default), 
 #'   knots, spacing is defined by `df` argument.
 #' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline

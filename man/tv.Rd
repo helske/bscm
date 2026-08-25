@@ -15,6 +15,10 @@ functions in the pre-treatment period
 (maximum in case of staggered adoptation). Default is \code{df = 10}, which is
 completely arbitrary. Must be larger than 4.}
 
+\item{knot_spacing}{[\code{numeric(1)}]\cr Optional argument to specify the
+equidistant spacing of knots for the spline basis. If \code{NULL} (the default),
+knots, spacing is defined by \code{df} argument.}
+
 \item{type}{[\code{character(1)}]\cr Prior type for spline coefficients. Either
 \code{"rw1"} or \code{"rw2"} for first and second order random walks.
 Default is "rw2".}
@@ -25,10 +29,6 @@ If \code{FALSE}, a centered parameterization is used.
 Depending on the case, one of these might lead to more efficient and
 numerically stable sampling, so if you encounter divergences,
 try changing this.}
-
-\item{knot_spacing.}{[\code{numeric(1)}]\cr Optional argument to specify the
-equidistant spacing of knots for the spline basis. If \code{NULL} (the default),
-knots, spacing is defined by \code{df} argument.}
 }
 \value{
 Object of class \code{tv_term} (a \code{list}).

@@ -41,3 +41,6 @@ each treated unit in case of multiple treated units.
 covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))
 
 }
+\seealso{
+\code{\link[=covariate_adjustment]{covariate_adjustment()}}.
+}

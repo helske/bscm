@@ -27,6 +27,7 @@ covariate_imbalance <- function(x, ...) {
 #' distances.
 #' @rdname covariate_imbalance
 #' @aliases covariate_imbalance
+#' @seealso [covariate_adjustment()].
 #' @export
 #' @examples
 #' covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))
