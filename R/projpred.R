@@ -246,7 +246,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     proj_predfun = proj_predfun,
     extract_model_data = extract_model_data,
     cvrefbuilder = cvrefbuilder,
-    dis = c(as.matrix(object$stanfit, pars = "sigma")),
+    dis = c(rstan::as.matrix(object$stanfit, pars = "sigma")),
     ...
   )
 }

@@ -343,13 +343,13 @@ bscm <- function(
   gq <- rstan::gqs(
     stanmodels$generated_quantities,
     data = stan_args$data,
-    draws = as.matrix(fit)
+    draws = rstan::as.matrix(fit)
   )
 
   out <- list(
     stanfit = fit,
-    y_mean = as.matrix(gq, "y_mean"),
-    y_rep = if (compute_predictions) as.matrix(gq, "y_rep") else "Not sampled",
+    y_mean = rstan::as.matrix(gq, "y_mean"),
+    y_rep = if (compute_predictions) rstan::as.matrix(gq, "y_rep") else "Not sampled",
     data = if (save_data) data else NULL,
     setup = setup,
     priors = priors
