@@ -3,8 +3,7 @@
 \name{average_treatment_effect}
 \alias{average_treatment_effect}
 \alias{average_treatment_effect.bscmfit}
-\title{Pre- and post-treatment average effects of a Bayesian synthetic control
-model}
+\title{Average treatment effects for pre- and post-treatment periods of a BSCM}
 \usage{
 average_treatment_effect(x, ...)
 
@@ -39,8 +38,7 @@ A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
-Pre- and post-treatment average effects of a Bayesian synthetic control
-model
+Average treatment effects for pre- and post-treatment periods of a BSCM
 }
 \examples{
 average_treatment_effect(fit_single_treated)

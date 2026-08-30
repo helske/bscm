@@ -14,7 +14,8 @@ proj_predict_bscm(
 }
 \arguments{
 \item{object}{A projection object or variable selection object returned by
-\code{\link[projpred:project]{projpred::project()}}, \code{\link[projpred:varsel]{projpred::varsel()}}, or \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}.}
+\code{\link[projpred:project]{projpred::project()}}, \code{\link[projpred:varsel]{projpred::varsel()}}, or \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}
+applied to \code{bscmfit} object.}
 
 \item{newdata}{Optional new data used for predictions. The outcome, unit,
 and time variables should have should have names matching the original
@@ -27,14 +28,18 @@ instead of posterior draws.}
 \item{probs}{Numeric vector of probabilities used for the posterior
 intervals. Defaults to \code{c(0.025, 0.975)}.}
 
-\item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}. Note
-that \code{as_draws_matrix = TRUE} is always used.}
+\item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.}
 }
 \value{
-The output of \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
+posterior draws (\code{summary = FALSE}) of predictions in long format.
 }
 \description{
 Convenience wrapper around \code{\link[projpred:pred-projection]{projpred::proj_predict()}} that accepts data in
 the original long format used by \code{\link[=bscm]{bscm()}}. If \code{newdata} is supplied in long
 format, it is converted internally to the wide format for \code{projpred}.
+}
+\seealso{
+\code{\link[=get_refmodel]{get_refmodel()}}, \code{\link[projpred:varsel]{projpred::varsel()}},
+\code{\link[projpred:cv_varsel]{projpred::cv_varsel()}}
 }

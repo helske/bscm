@@ -28,9 +28,12 @@ posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
 Returns posterior draws (or summaries) of the pre- and post-treatment
-trajectories of treated units, i.e. draws \code{y_rep}from the posterior
+trajectories of treated units, i.e. draws \code{y_rep} from the posterior
 predictive distribution of the model.
 }
 \examples{
 synthetic_control(fit_single_treated) |> tail()
+}
+\seealso{
+\code{\link[=posterior_predict.bscmfit]{posterior_predict.bscmfit()}} for the \code{y_rep} draws in matrix format.
 }

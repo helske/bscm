@@ -22,3 +22,9 @@ synthetic control. Note that this function does not simulate new
 realizations from this distribution, but rather returns the posterior draws
 computed during the model estimation.
 }
+\examples{
+posterior_predict(fit_single_treated) |> str()
+}
+\seealso{
+\code{\link[=synthetic_control]{synthetic_control()}}.
+}

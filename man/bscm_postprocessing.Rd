@@ -2,7 +2,7 @@
 % Please edit documentation in R/postprocess.R
 \name{bscm_postprocessing}
 \alias{bscm_postprocessing}
-\title{Common arguments and return value of the posterior summary methods}
+\title{Common arguments of the posterior summary methods}
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
@@ -22,12 +22,8 @@ units. If \code{FALSE} (the default), unit-specific values are returned.}
 
 \item{...}{Ignored.}
 }
-\value{
-A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-posterior draws (\code{summary = FALSE}) in long format.
-}
 \description{
-Documents the arguments and the return value shared by the methods which
+Documents the arguments shared by the methods which
 return posterior draws, or posterior summaries, of a quantity computed
 from a \code{bscmfit} object.
 }
