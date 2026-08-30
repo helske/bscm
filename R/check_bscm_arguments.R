@@ -85,25 +85,13 @@ check_bscm_arguments <- function(
     !is.null(data[[unit]]),
     "Can't find unit index variable {.var {unit}} in {.arg data}."
   )
-  stopifnot_(
-    checkmate::test_flag(mcmc_diagnostics),
-    "Argument {.arg mcmc_diagnostics} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    checkmate::test_flag(save_data),
-    "Argument {.arg save_data} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    checkmate::test_flag(compute_predictions),
-    "Argument {.arg compute_predictions} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    checkmate::test_flag(prior_only),
-    "Argument {.arg prior_only} must be a single {.cls logical} value."
-  )
+  check_flag(mcmc_diagnostics, "mcmc_diagnostics")
+  check_flag(save_data, "save_data")
+  check_flag(compute_predictions, "compute_predictions")
+  check_flag(prior_only, "prior_only")
 }
 
-sort_probs <- function(probs) {
+sort_probs <- function(probs, call = rlang::caller_env()) {
   stopifnot_(
     checkmate::test_numeric(
       probs,
@@ -113,17 +101,12 @@ sort_probs <- function(probs) {
       min.len = 0L
     ),
     "Argument {.arg probs} must be a {.cls numeric} vector with values between
-     0 and 1."
+     0 and 1.",
+    call = call
   )
   sort(probs)
 }
 
-test_summary <- function(summary) {
-  stopifnot_(
-    checkmate::test_flag(summary),
-    "Argument {.arg summary} must be a single {.cls logical} value."
-  )
-}
 
 check_real <- function(x, param) {
   stopifnot_(

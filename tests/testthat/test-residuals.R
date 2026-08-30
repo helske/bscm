@@ -1,7 +1,7 @@
 test_that("residuals returns data.frame with correct structure", {
   suppressWarnings(d <- residuals(fit1_noint))
   expect_s3_class(d, "tbl_df")
-  expect_identical(names(d)[1:4], c("time", "treatment", "mean", "sd"))
+  expect_identical(names(d)[1:4], c("id", "time", "treatment", "mean"))
   expect_equal(nrow(d), unname(get_T_pre(fit1_noint)[1]))
 
   suppressWarnings(d <- residuals(fitN_int))

@@ -36,10 +36,13 @@ order_donors <- function(x, order = NULL, weights = NULL) {
   # ranked ordering
   if (length(order) == 1L && order %in% c("ascending", "descending")) {
     if (is.null(weights)) {
-      weights <- donor_weights(x, probs = numeric(0))
+      weights <- weights_draws(x)
     }
     ranked <- weights |>
-      dplyr::summarise(mean = mean(mean), .by = "donor") |>
+      dplyr::summarise(
+        mean = mean(mean(.data$weight)),
+        .by = "donor"
+      ) |>
       dplyr::arrange(if (order == "descending") dplyr::desc(mean) else mean)
     return(ranked$donor)
   }

@@ -7,6 +7,8 @@
 #'
 #' @param x \[`bscmfit` or `bscm_ldo`]\cr Output from [bscm()] or
 #'   [leave_donor_out()].
+#' @param unit \[`character()`]\cr Treated units to plot. If `NULL` (the
+#'   default), all treated units are plotted.
 #' @param point_estimate \[´character(1)`] Should the point estimate in weight
 #'   plot correspond to posterior `"median"` (the default), or `"mean"`?
 #' @param order \[`character()` or `NULL`]\cr Order of donors in y-axis. Either
@@ -77,21 +79,12 @@ plot_weights.bscmfit <- function(
   if (point_estimate == "median") {
     probs <- c(0.5, probs)
   }
-  treated <- get_treated(x)
-  N <- get_N(x)
-  if (!is.null(unit)) {
-    stopifnot_(
-      unit %in% treated,
-      "Argument {.arg unit} must be one of the treated units:
-      {.val {treated}}."
-    )
-    treated <- unit
-    N <- 1L
-  }
-  plots <- stats::setNames(vector("list", N), treated)
+  treated <- check_units(x, unit)
+  plots <- stats::setNames(vector("list", length(treated)), treated)
   unit <- get_unit(x)
-  weights <- donor_weights(x, probs = probs)
-  donors <- order_donors(x, order, weights)
+  w <- weights_draws(x)
+  donors <- order_donors(x, order, w)
+  weights <- summarise_column(w, "weight", probs, for_plots = TRUE)
   if (is.null(reverse)) {
     reverse <- ifelse(isTRUE(order == "ascending"), FALSE, TRUE)
   }

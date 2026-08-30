@@ -15,7 +15,6 @@ print.bscmfit <- function(x, ...) {
   } else {
     ""
   }
-
   cat("Call:\n")
   print(x$call)
   cat("\n")
@@ -70,6 +69,12 @@ print.bscmfit <- function(x, ...) {
 #' @export
 print.summary_bscmfit <- function(x, ...) {
   cat("\n")
-  cat(format(x, n = nrow(x))[-c(1, 3)], sep = "\n") # remove extra lines
+  d <- x
+  if (attr(x, "N") == 1L) {
+    unit <- attr(x, "unit")
+    d <- d |>
+      dplyr::select(-dplyr::any_of(unit))
+  }
+  cat(format(d, n = nrow(d))[-c(1, 3)], sep = "\n") # remove extra lines
   invisible(x)
 }

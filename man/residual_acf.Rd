@@ -2,26 +2,41 @@
 % Please edit documentation in R/plot_residuals.R
 \name{residual_acf}
 \alias{residual_acf}
+\alias{residual_acf.bscmfit}
 \title{Autocorrelation function for residuals of BSCM}
 \usage{
-residual_acf(x, max_lag = 5L, probs = c(0.025, 0.975))
+residual_acf(x, ...)
+
+\method{residual_acf}{bscmfit}(x, max_lag = 5L, summary = TRUE, probs = c(0.025, 0.975), ...)
 }
 \arguments{
-\item{x}{Posterior draws from \code{\link[=residuals.bscmfit]{residuals.bscmfit()}} with \code{summary = FALSE},
-or \code{bscmfit} object.}
+\item{x}{[\code{bscmfit}]\cr The model fit object.}
+
+\item{...}{Ignored.}
 
 \item{max_lag}{[\code{integer(1)}]\cr Positive integer defining the maximum lag
 at which to compute the autocorrelations. The default is \code{5L}.}
 
-\item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
-the posterior interval. Default is \code{c(0.025, 0.975)}.}
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior draws instead.}
+
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
+Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A data frame.
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
+posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
-Autocorrelation function for residuals of BSCM
+Returns posterior draws (or summaries) of the autocorrelations of the
+pre-treatment residuals up to lag \code{max_lag}, computed separately for each
+treated unit.
 }
 \examples{
 residual_acf(fit_single_treated, max_lag = 10)
+}
+\seealso{
+\code{\link[=plot_residuals]{plot_residuals()}} for visualizing the autocorrelations.
 }

@@ -70,11 +70,7 @@ placebo_effects.bscmfit <- function(
     "Argument {.arg L} must be a single integer between 2 and {T_pre - 1}, 
     defining the number of time points used for the first fit."
   )
-  stopifnot_(
-    !is.null(x$data),
-    "The model fit {.arg x} does not contain the original data. You probably 
-    used {.fun bscm} with {.arg save_data = FALSE}?"
-  )
+  check_has_data(x, "x")
   treatment <- get_treatment(x)
   donors <- get_donors(x)
   time <- get_time(x)

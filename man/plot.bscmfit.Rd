@@ -10,9 +10,8 @@
 \arguments{
 \item{x}{[\code{bscmfit}]\cr object.}
 
-\item{unit}{[\code{character(1)}]\cr For models with
-multiple treated units, the name of the treated unit to
-plot. If \code{NULL} (the default), all treated units are plotted sequentially.}
+\item{unit}{[\code{character()}]\cr Treated units to plot. If \code{NULL} (the
+default), all treated units are plotted.}
 
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
 the posterior interval. Default is \code{c(0.025, 0.975)}.}
@@ -20,8 +19,8 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored}
 }
 \value{
-A \code{ggplot} object or a list of \code{ggplot} objects in case of multiple
-treated units when \code{unit} is \code{NULL}.
+A \code{ggplot} object when a single treated unit is plotted, and a
+named list of \code{ggplot} objects otherwise.
 }
 \description{
 A plot of the posterior mean and posterior interval of the treatment effect

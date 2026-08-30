@@ -1,30 +1,3 @@
-#' @noRd
-effects_draws <- function(x) {
-  time <- get_time(x)
-  times <- get_times(x)
-  T_pre <- get_T_pre(x)
-  T_total <- get_T_total(x)
-  N <- get_N(x)
-  unit <- get_unit(x)
-  treated <- get_treated(x)
-  treatment <- get_treatment(x)
-  y_rep <- posterior_predict(x)
-  effect <- get_stan_y(x) - posterior::as_draws_rvars(y_rep)$y_rep
-  treatments <- unlist(
-    lapply(treated, \(i) rep(0:1, times = c(T_pre[i], T_total - T_pre[i])))
-  )
-  event_times <- unlist(
-    lapply(treated, \(i) seq_len(T_total) - T_pre[i] - 1L)
-  )
-  dplyr::tibble(
-    "{unit}" := rep(treated, each = T_total),
-    "{time}" := rep(times, times = N),
-    time_since_treatment = event_times,
-    "{treatment}" := treatments,
-    effect = c(effect)
-  )
-}
-
 #' @export
 #' @rdname treatment_effect
 treatment_effect <- function(x, ...) {
@@ -32,12 +5,11 @@ treatment_effect <- function(x, ...) {
 }
 #' Treatment effect estimates of a Bayesian synthetic control model
 #'
-#' @inheritParams rmse.bscmfit
-#' @param average \[`logical(1)`]\cr If `TRUE` (the default), returns the
-#'   average treatment effect over treated units at each time since treatment
-#'   (event time). If `FALSE`, unit-specific effects at each calendar time
-#'   point are returned.
-#' @param ... Ignored.
+#' @inheritParams bscm_postprocessing
+#' @param average \[`logical(1)`]\cr If `TRUE`, returns the average treatment
+#'   effect over treated units at each time since treatment (event time). If
+#'   `FALSE` (the default), unit-specific effects at each calendar time point
+#'   are returned.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname treatment_effect
@@ -47,57 +19,27 @@ treatment_effect <- function(x, ...) {
 #' treatment_effect(fit_single_treated) |> tail()
 treatment_effect.bscmfit <- function(
   x,
-  average = TRUE,
+  average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
 ) {
+  check_flag(average, "average")
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  test_summary(summary)
-  stopifnot_(
-    checkmate::test_flag(average),
-    "Argument {.arg average} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    !is.null(x$data),
-    "The model fit {.arg x} does not contain the original data. You probably
-    used {.fun bscm} with {.arg save_data = FALSE}?"
-  )
-  for_plots <- list(...)$for_plots %||% FALSE
-  N <- get_N(x)
-  unit <- get_unit(x)
-  treatment <- get_treatment(x)
-  average <- average && N > 1
-  d <- effects_draws(x)
-  if (average) {
-    d <- d |>
-      dplyr::summarise(
-        effect = posterior::rvar_mean(.data$effect),
-        .by = "time_since_treatment"
-      ) |>
-      dplyr::arrange(.data$time_since_treatment) |>
-      dplyr::rename("{get_time(x)}" := "time_since_treatment")
-  } else {
-    d <- dplyr::select(d, -"time_since_treatment")
-  }
+  check_has_data(x, "x")
+  d <- effects_draws(x, average = average && get_N(x) > 1L)
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$effect, probs, for_plots)) |>
-      dplyr::select(-"effect", -"variable")
-  }
-  if (N == 1) {
-    d <- d |> dplyr::select(-dplyr::any_of(unit))
+    d <- summarise_column(d, "effect", probs)
   }
   d
 }
-
 #' @export
 #' @rdname average_treatment_effect
 average_treatment_effect <- function(x, ...) {
   UseMethod("average_treatment_effect", x)
 }
-#' Pre- and post-treatment average effects of a Bayesian synthetic control
-#' model
+#' Average treatment effects for pre- and post-treatment periods of a BSCM
 #'
 #' @inheritParams treatment_effect.bscmfit
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
@@ -109,22 +51,15 @@ average_treatment_effect <- function(x, ...) {
 #' average_treatment_effect(fit_single_treated)
 average_treatment_effect.bscmfit <- function(
   x,
-  average = TRUE,
+  average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
 ) {
+  check_flag(average, "average")
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  test_summary(summary)
-  stopifnot_(
-    checkmate::test_flag(average),
-    "Argument {.arg average} must be a single {.cls logical} value."
-  )
-  stopifnot_(
-    !is.null(x$data),
-    "The model fit {.arg x} does not contain the original data. You probably
-    used {.fun bscm} with {.arg save_data = FALSE}?"
-  )
+  check_has_data(x, "x")
   N <- get_N(x)
   unit <- get_unit(x)
   treatment <- get_treatment(x)
@@ -136,12 +71,32 @@ average_treatment_effect.bscmfit <- function(
       .by = dplyr::all_of(cols)
     )
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$effect, probs)) |>
-      dplyr::select(-"effect", -"variable")
+    d <- summarise_column(d, "effect", probs)
   }
-  if (N == 1) {
-    d <- d |> dplyr::select(-dplyr::any_of(unit))
+  d
+}
+#' Posterior draws of the treatment effects of a BSCM
+#'
+#' @param x \[`bscmfit`]\cr The model fit object.
+#' @param average \[`logical(1)`]\cr If `TRUE`, the effects are averaged over
+#'   the treated units within each posterior draw at each time point since
+#'   treatment.
+#' @noRd
+effects_draws <- function(x, average = FALSE) {
+  y_rep <- gq_to_rvar(x, posterior_predict(x))
+  effect <- get_stan_y(x) - y_rep
+  d <- treated_grid(x, event_time = TRUE) |>
+    dplyr::mutate(effect = c(.env$effect))
+  if (average) {
+    d <- d |>
+      dplyr::summarise(
+        effect = posterior::rvar_mean(.data$effect),
+        .by = "time_since_treatment"
+      ) |>
+      dplyr::arrange(.data$time_since_treatment) |>
+      dplyr::rename("{get_time(x)}" := "time_since_treatment")
+  } else {
+    d <- dplyr::select(d, -"time_since_treatment")
   }
   d
 }

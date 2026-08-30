@@ -9,10 +9,9 @@ covariate_adjustment(x, ...)
 
 \method{covariate_adjustment}{bscmfit}(
   x,
-  plot = TRUE,
+  average = FALSE,
+  summary = TRUE,
   probs = c(0.025, 0.975),
-  alpha = 0.5,
-  scales = "free_y",
   ...
 )
 }
@@ -21,22 +20,22 @@ covariate_adjustment(x, ...)
 
 \item{...}{Ignored.}
 
-\item{plot}{[\code{logical(1)}]\cr If \code{TRUE} (the default), plot the posterior
-covariate adjustments.}
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE}, the quantity is averaged over
+the treated units within each posterior draw in case of multiple treated
+units. If \code{FALSE} (the default), unit-specific values are returned.}
 
-\item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
-the posterior interval. Default is \code{c(0.025, 0.975)}.}
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior draws instead.}
 
-\item{alpha}{[\code{numeric(1)}]\cr Opacity of the credible-interval ribbon
-(used only when \code{type = "varying"}). Default is \code{0.5}.}
-
-\item{scales}{[\code{character(1)}]\cr Passed to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}
-(used only when \code{type = "varying"}). Default is \code{"free_y"}.}
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
+Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A data frame containing the posterior mean and requested posterior
-quantiles of the covariate adjustment for each predictor and time point.
-If \code{plot = TRUE}, the corresponding plot is printed as a side effect.
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
+posterior draws (\code{summary = FALSE}) of the covariate adjustment for each
+predictor and time point.
 }
 \description{
 Computes the posterior distribution of the covariate adjustment to the
@@ -58,7 +57,14 @@ where \eqn{b_{tk} = \beta_k} for predictors with a fixed coefficient and
 \eqn{b_{tk} = \beta_k + \gamma_{tk}} for predictors with a time-varying
 coefficient.
 
-If there are multiple treated units, the covariate adjustments are averaged
-over treated units within each posterior draw before computing posterior
-summaries.
+If there are multiple treated units, the covariate adjustments are
+returned separately for each treated unit, unless \code{average = TRUE}.
+}
+\examples{
+covariate_adjustment(fit_single_treated) |> head()
+
+}
+\seealso{
+\code{\link[=covariate_imbalance]{covariate_imbalance()}} for the covariate imbalances, and
+\code{\link[=plot_covariate_adjustment]{plot_covariate_adjustment()}} for visualizing the adjustments.
 }

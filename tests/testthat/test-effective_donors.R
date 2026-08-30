@@ -4,6 +4,7 @@ test_that("effective_donors returns data.frame", {
   expect_named(
     d,
     c(
+      "id",
       "mean",
       "sd",
       "q30",
@@ -47,6 +48,7 @@ test_that("effective_donors respects custom probs", {
   expect_named(
     d,
     c(
+      "id",
       "mean",
       "sd",
       "rhat",

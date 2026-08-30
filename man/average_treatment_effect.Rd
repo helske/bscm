@@ -10,7 +10,7 @@ average_treatment_effect(x, ...)
 
 \method{average_treatment_effect}{bscmfit}(
   x,
-  average = TRUE,
+  average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
   ...
@@ -21,10 +21,10 @@ average_treatment_effect(x, ...)
 
 \item{...}{Ignored.}
 
-\item{average}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns the
-average treatment effect over treated units at each time since treatment
-(event time). If \code{FALSE}, unit-specific effects at each calendar time
-point are returned.}
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE}, returns the average treatment
+effect over treated units at each time since treatment (event time). If
+\code{FALSE} (the default), unit-specific effects at each calendar time point
+are returned.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the

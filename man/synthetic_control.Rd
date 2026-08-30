@@ -23,7 +23,7 @@ If \code{FALSE}, returns the posterior draws instead.}
 Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{

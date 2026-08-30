@@ -9,7 +9,7 @@
 \usage{
 plot_effects(x, ...)
 
-\method{plot_effects}{bscmfit}(x, probs = c(0.025, 0.975), unit = NULL, ...)
+\method{plot_effects}{bscmfit}(x, probs = c(0.025, 0.975), unit = NULL, average = FALSE, ...)
 
 \method{plot_effects}{bscm_ldo}(x, probs = NULL, ...)
 
@@ -26,13 +26,16 @@ the posterior interval. Default is \code{c(0.025, 0.975)}. For \code{bscm_ldo} a
 \code{bscm_placebo_effects} objects, defaults to the outermost probabilities
 used in \code{\link[=leave_donor_out]{leave_donor_out()}} or \code{\link[=placebo_effects]{placebo_effects()}}.}
 
-\item{unit}{[\code{character(1)} or \code{numeric(1)} or \code{NULL}]\cr For models with
-multiple treated units, the identifier of the specific treated unit to
-plot. If \code{NULL} (the default), the average treatment effect across all
-treated units is plotted.}
+\item{unit}{[\code{character()}]\cr Treated units to plot. If \code{NULL} (the
+default), all treated units are plotted.}
+
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE}, plots the average treatment
+effect over treated units at each time since treatment, instead of
+unit-specific effects. The default is \code{FALSE}.}
 }
 \value{
-A \code{ggplot} object.
+A \code{ggplot} object when a single treated unit is plotted, and a
+named list of \code{ggplot} objects otherwise.
 }
 \description{
 \code{plot_effects()} plots the posterior mean and posterior interval of the
@@ -41,9 +44,10 @@ treatment effect over time. For the output of
 posterior mean of the treatment effect from each leave-out or placebo fit.
 }
 \details{
-For models with multiple treated units, \code{plot_effects.bscmfit()} defaults
-to plotting the average treatment effect over time since treatment. Supply a
-\code{unit} identifier to plot the effect for a specific treated unit instead.
+For models with multiple treated units, \code{plot_effects.bscmfit()} returns one
+plot per treated unit. Supply a \code{unit} identifier to plot a single unit, or
+\code{average = TRUE} to plot the average treatment effect over time since
+treatment instead.
 }
 \examples{
 plot_effects(fit_single_treated)

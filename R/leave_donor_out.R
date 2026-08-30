@@ -54,11 +54,7 @@ leave_donor_out.bscmfit <- function(
     checkmate::test_flag(cumulative),
     "Argument {.arg cumulative} must be either TRUE or FALSE."
   )
-  stopifnot_(
-    !is.null(x$data),
-    "The model fit {.arg x} does not contain the original data. You probably
-    used {.fun bscm} with {.arg save_data = FALSE}?"
-  )
+  check_has_data(x, "x")
   stopifnot_(
     get_J(x) >= 2L,
     "Donor exclusion requires at least two donors in the donor pool."
@@ -79,7 +75,7 @@ leave_donor_out.bscmfit <- function(
       vector("list", length(removed_donors) + 1L),
       c("none", names(removed_donors))
     )
-  effects[[1]] <- treatment_effect(x, probs = probs)
+  effects[[1]] <- treatment_effect(x, average = TRUE, probs = probs)
   rmses[[1]] <- rmse(x, probs = probs)
   rmse_ratios[[1]] <- rmse_ratio(x, probs = probs)
   weights[[1]] <- donor_weights(x, probs = probs)
@@ -99,7 +95,7 @@ leave_donor_out.bscmfit <- function(
       priors = priors,
       ...
     )
-    effects[[i + 1]] <- treatment_effect(fit, probs = probs)
+    effects[[i + 1]] <- treatment_effect(fit, average = TRUE, probs = probs)
     rmses[[i + 1]] <- rmse(fit, probs = probs)
     rmse_ratios[[i + 1]] <- rmse_ratio(fit, probs = probs)
     weights[[i + 1]] <- donor_weights(fit, probs = probs)

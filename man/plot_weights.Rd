@@ -37,6 +37,9 @@ plot_weights(x, ...)
 
 \item{...}{Ignored.}
 
+\item{unit}{[\code{character()}]\cr Treated units to plot. If \code{NULL} (the
+default), all treated units are plotted.}
+
 \item{point_estimate}{[´character(1)\verb{] Should the point estimate in weight plot correspond to posterior }"median"\verb{(the default), or}"mean"`?}
 
 \item{order}{[\code{character()} or \code{NULL}]\cr Order of donors in y-axis. Either

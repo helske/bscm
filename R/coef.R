@@ -1,14 +1,12 @@
 #' Extract regression coefficients of a Bayesian synthetic control model
 #'
-#' @inheritParams rmse.bscmfit
-#' @param object \[`bscmfit`]\cr The model fit object.
+#' @inheritParams bscm_postprocessing
 #' @param type \[`character()`]\cr Type of coefficients to return. Should be
 #'   one or more of `"alpha"` (intercepts), `"beta"` (regression coefficients),
 #'   `"gamma"` (time-varying regression coefficients), `"kappa"`
 #'   (SDs of time-varying coefficients), and
 #'   `"rho"` (autoregressive coefficients of the residuals). The default `NULL`
 #'   corresponds to all terms above contained in the model.
-#' @param ... Ignored.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   list of `tibbles` of posterior draws (`summary = FALSE`).
 #' @aliases coef
@@ -23,30 +21,26 @@ coef.bscmfit <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
+  N <- get_N(object)
+  available <- c(
+    alpha = has_intercept(object),
+    beta = has_predictors(object),
+    gamma = has_tv_coefs(object),
+    kappa = has_tv_coefs(object),
+    rho = has_ar1_error(object)
+  )
+  available_types <- names(available)[available]
   stopifnot_(
-    has_intercept(object) || has_predictors(object) || has_ar1_error(object),
+    length(available_types) > 0L,
     "The model does not contain {cli::qty(N)} {?an intercept/intercepts}, any 
     predictors, nor autoregressive coefficients."
   )
-  test_summary(summary)
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  pars <- c(
-    has_intercept(object),
-    has_predictors(object),
-    rep(has_tv_coefs(object), 2),
-    has_ar1_error(object)
-  )
-  available_types <- c("alpha", "beta", "gamma", "kappa", "rho")[pars]
   if (is.null(type)) {
     type <- available_types
   } else {
-    type <- try_(
-      match.arg(
-        type,
-        c("alpha", "beta", "gamma", "kappa", "rho"),
-        several.ok = TRUE
-      )
-    )
+    type <- try_(match.arg(type, names(available), several.ok = TRUE))
     stopifnot_(
       !inherits(type, "try-error"),
       'Argument {.arg type} must be a subset of
@@ -59,100 +53,70 @@ coef.bscmfit <- function(
       "The model does not contain the following parameter type{?s}: {unavailable}."
     )
   }
-  N <- get_N(object)
-  unit <- get_unit(object)
-  time <- get_time(object)
-
-  d_alpha <- d_beta <- d_gamma <- d_kappa <- d_rho <- NULL
-  if ("alpha" %in% type) {
-    treated <- get_treated(object)
-    d_alpha <- dplyr::tibble(
-      parameter = "Intercept",
-      "{unit}" := treated,
-      alpha = posterior::as_draws_rvars(as_draws(object, "alpha"))$alpha
-    )
-    if (summary) {
-      d_alpha <- d_alpha |>
-        dplyr::mutate(summarise_with_probs(.data$alpha, probs)) |>
-        dplyr::select(-"alpha", -"variable")
-    }
-    if (N == 1) d_alpha <- d_alpha |> dplyr::select(-dplyr::all_of(unit))
-  }
-  if ("beta" %in% type) {
-    d_beta <- dplyr::tibble(
-      parameter = paste0("beta_", object$setup$beta_names),
-      beta = posterior::as_draws_rvars(as_draws(object, "beta"))$beta
-    )
-    if (summary) {
-      d_beta <- d_beta |>
-        dplyr::mutate(summarise_with_probs(.data$beta, probs)) |>
-        dplyr::select(-"beta", -"variable")
-    }
-  }
-  if ("gamma" %in% type) {
-    times <- get_times(object)
-    gammas <- object$setup$gamma_names
-    L <- length(gammas)
-    T_total <- get_T_total(object)
-    d_gamma <- dplyr::tibble(
-      parameter = paste0("gamma_", rep(gammas, each = T_total)),
-      "{time}" := rep(times, times = L),
-      gamma = c(posterior::as_draws_rvars(as_draws(object, "gamma"))$gamma)
-    )
-    if (summary) {
-      d_gamma <- d_gamma |>
-        dplyr::mutate(summarise_with_probs(.data$gamma, probs)) |>
-        dplyr::select(-"gamma", -"variable")
-    }
-  }
-  if ("kappa" %in% type) {
-    d_kappa <- dplyr::tibble(
-      parameter = paste0("kappa_", object$setup$gamma_names),
-      kappa = posterior::as_draws_rvars(
-        as_draws(object, "kappa")
-      )$kappa
-    )
-    if (summary) {
-      d_kappa <- d_kappa |>
-        dplyr::mutate(summarise_with_probs(.data$kappa, probs)) |>
-        dplyr::select(-"kappa", -"variable")
-    }
-  }
-  if ("rho" %in% type) {
-    treated <- get_treated(object)
-    d_rho <- dplyr::tibble(
-      parameter = "rho",
-      "{unit}" := treated,
-      rho = posterior::as_draws_rvars(as_draws(object, "rho"))$rho
-    )
-    if (summary) {
-      d_rho <- d_rho |>
-        dplyr::mutate(summarise_with_probs(.data$rho, probs)) |>
-        dplyr::select(-"rho", -"variable")
-    }
-    if (N == 1) d_rho <- d_rho |> dplyr::select(-dplyr::all_of(unit))
-  }
+  d <- stats::setNames(
+    lapply(type, \(par) coef_draws(object, par)),
+    type
+  )
   if (summary) {
-    out <- dplyr::bind_rows(
-      d_alpha,
-      d_beta,
-      d_rho,
-      d_kappa,
-      d_gamma
-    ) |>
+    d <- stats::setNames(
+      lapply(type, \(par) summarise_column(d[[par]], par, probs)),
+      type
+    )
+    # intercepts and fixed effects first, then the time-varying components
+    out <- d[intersect(c("alpha", "beta", "rho", "kappa", "gamma"), type)] |>
+      dplyr::bind_rows() |>
       dplyr::relocate(
-        dplyr::any_of(c("parameter", unit, time)),
+        dplyr::any_of(c("parameter", get_unit(object), get_time(object))),
         .before = 1L
       ) |>
       dplyr::rename(variable = "parameter")
   } else {
-    out <- list(
-      alpha = d_alpha,
-      beta = d_beta,
-      gamma = d_gamma,
-      kappa = d_kappa
-    )
-    out <- out[lengths(out) > 0]
+    out <- d[intersect(names(available), type)]
   }
   out
+}
+
+#' Posterior draws of the regression coefficients of a BSCM
+#'
+#' Returns the posterior draws of one parameter type as a tibble with a
+#' `parameter` column and an rvar column named after the parameter type.
+#'
+#' @param x \[`bscmfit`]\cr The model fit object.
+#' @param type \[`character(1)`]\cr One of `"alpha"`, `"beta"`, `"gamma"`,
+#'   `"kappa"`, and `"rho"`.
+#' @noRd
+coef_draws <- function(x, type) {
+  unit <- get_unit(x)
+  switch(
+    type,
+    alpha = dplyr::tibble(
+      parameter = "Intercept",
+      "{unit}" := get_treated(x),
+      alpha = rvars_of(x, "alpha")
+    ),
+    beta = dplyr::tibble(
+      parameter = paste0("beta_", x$setup$beta_names),
+      beta = rvars_of(x, "beta")
+    ),
+    gamma = dplyr::tibble(
+      parameter = paste0(
+        "gamma_",
+        rep(x$setup$gamma_names, each = get_T_total(x))
+      ),
+      "{get_time(x)}" := rep(
+        get_times(x),
+        times = length(x$setup$gamma_names)
+      ),
+      gamma = c(rvars_of(x, "gamma"))
+    ),
+    kappa = dplyr::tibble(
+      parameter = paste0("kappa_", x$setup$gamma_names),
+      kappa = rvars_of(x, "kappa")
+    ),
+    rho = dplyr::tibble(
+      parameter = "rho",
+      "{unit}" := get_treated(x),
+      rho = rvars_of(x, "rho")
+    )
+  )
 }

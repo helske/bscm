@@ -1,10 +1,8 @@
 #' Extract residual standard deviations of a Bayesian synthetic control
 #' model
 #'
-#' @inheritParams rmse.bscmfit
-#' @param object \[`bscmfit`]\cr The model fit object.
-#' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
+#' @inheritParams bscm_postprocessing
+#' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior draws (`summary = FALSE`) in long format.
 #' @aliases sigma
 #' @export
@@ -16,21 +14,15 @@ sigma.bscmfit <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
-  test_summary(summary)
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  treated <- get_treated(object)
   unit <- get_unit(object)
   d <- dplyr::tibble(
-    "{unit}" := treated,
-    sigma = posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
+    "{unit}" := get_treated(object),
+    sigma = rvars_of(object, "sigma")
   )
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$sigma, probs)) |>
-      dplyr::select(-"sigma", -"variable")
-  }
-  if (length(treated) == 1) {
-    d <- d |> dplyr::select(-dplyr::all_of(unit))
+    d <- summarise_column(d, "sigma", probs)
   }
   d
 }

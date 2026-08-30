@@ -5,9 +5,10 @@
 #' [leave_donor_out()] or [placebo_effects()], it additionally overlays the
 #' posterior mean of the treatment effect from each leave-out or placebo fit.
 #'
-#' For models with multiple treated units, `plot_effects.bscmfit()` defaults
-#' to plotting the average treatment effect over time since treatment. Supply a
-#' `unit` identifier to plot the effect for a specific treated unit instead.
+#' For models with multiple treated units, `plot_effects.bscmfit()` returns one
+#' plot per treated unit. Supply a `unit` identifier to plot a single unit, or
+#' `average = TRUE` to plot the average treatment effect over time since
+#' treatment instead.
 #'
 #' @param x \[`bscmfit`, `bscm_ldo`, or `bscm_placebo_effects`]\cr Object from
 #'   [bscm()], [leave_donor_out()], or [placebo_effects()].
@@ -15,12 +16,14 @@
 #'   the posterior interval. Default is `c(0.025, 0.975)`. For `bscm_ldo` and
 #'   `bscm_placebo_effects` objects, defaults to the outermost probabilities
 #'   used in [leave_donor_out()] or [placebo_effects()].
-#' @param unit \[`character(1)` or `numeric(1)` or `NULL`]\cr For models with
-#'   multiple treated units, the identifier of the specific treated unit to
-#'   plot. If `NULL` (the default), the average treatment effect across all
-#'   treated units is plotted.
+#' @param unit \[`character()`]\cr Treated units to plot. If `NULL` (the
+#'   default), all treated units are plotted.
+#' @param average \[`logical(1)`]\cr If `TRUE`, plots the average treatment
+#'   effect over treated units at each time since treatment, instead of
+#'   unit-specific effects. The default is `FALSE`.
 #' @param ... Ignored.
-#' @return A `ggplot` object.
+#' @return A `ggplot` object when a single treated unit is plotted, and a
+#'   named list of `ggplot` objects otherwise.
 #' @export
 plot_effects <- function(x, ...) {
   UseMethod("plot_effects", x)
@@ -29,82 +32,83 @@ plot_effects <- function(x, ...) {
 #' @export
 #' @examples
 #' plot_effects(fit_single_treated)
-plot_effects.bscmfit <- function(x, probs = c(0.025, 0.975), unit = NULL, ...) {
-  ymin <- ymax <- NULL
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      len = 2L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with
-    values between 0 and 1."
-  )
-  treated <- get_treated(x)
+plot_effects.bscmfit <- function(
+  x,
+  probs = c(0.025, 0.975),
+  unit = NULL,
+  average = FALSE,
+  ...
+) {
+  probs <- interval_probs(probs)
+  check_flag(average, "average")
+  units <- check_units(x, unit)
   time <- get_time(x)
   unit_col <- get_unit(x)
-  N <- get_N(x)
-  qcols <- paste0("q", 100 * sort(probs))
-
-  if (!is.null(unit)) {
-    stopifnot_(
-      unit %in% treated,
-      "Argument {.arg unit} must be one of the treated units:
-      {.val {treated}}."
-    )
+  qs <- paste0("q", 100 * probs)
+  if (average && get_N(x) > 1L) {
+    d <- effects_draws(x, average = TRUE) |>
+      summarise_column("effect", probs, for_plots = TRUE)
+    return(average_effect_plot(d, time, qs))
   }
-
-  if (is.null(unit) && N > 1L) {
-    d <- treatment_effect(x, average = TRUE, probs = probs, for_plots = TRUE)
-    d |>
-      dplyr::rename(
-        ymin = dplyr::all_of(qcols[[1L]]),
-        ymax = dplyr::all_of(qcols[[2L]])
-      ) |>
-      ggplot(aes(.data[[time]], mean)) +
-      geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_vline(xintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_ribbon(
-        aes(ymin = ymin, ymax = ymax),
-        fill = "#EECC66",
-        alpha = 0.25
-      ) +
-      geom_line(colour = "#DDAA33") +
-      labs(x = "Time since treatment", y = "Average treatment effect") +
-      theme_bw()
-  } else {
-    d <- treatment_effect(x, average = FALSE, probs = probs, for_plots = TRUE)
-    if (N > 1L) {
-      d <- d |>
-        dplyr::filter(.data[[unit_col]] == .env$unit) |>
+  d <- effects_draws(x) |>
+    summarise_column("effect", probs, for_plots = TRUE)
+  plots <- lapply(
+    units,
+    \(i) {
+      d_i <- d |>
+        dplyr::filter(.data[[unit_col]] == .env$i) |>
         dplyr::select(-dplyr::all_of(unit_col))
-    } else {
-      unit <- treated[1]
+      unit_effect_plot(
+        d_i,
+        time,
+        qs,
+        start_t = d_i[[time]][get_T_pre(x)[i] + 1],
+        id = if (get_N(x) > 1L) i
+      )
     }
-    start_t <- d[[time]][get_T_pre(x)[unit] + 1]
-    d |>
-      dplyr::rename(
-        ymin = dplyr::all_of(qcols[[1L]]),
-        ymax = dplyr::all_of(qcols[[2L]])
-      ) |>
-      ggplot(aes(.data[[time]], mean)) +
-      geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
-      geom_vline(xintercept = start_t, linetype = "dashed", colour = "grey70") +
-      geom_ribbon(
-        aes(ymin = ymin, ymax = ymax),
-        fill = "#EECC66",
-        alpha = 0.25
-      ) +
-      geom_line(colour = "#DDAA33") +
-      labs(
-        x = time,
-        y = paste0("Treatment effect", if (N > 1L) paste0(" for ", unit))
-      ) +
-      theme_bw()
+  )
+  if (length(plots) == 1L) {
+    plots[[1L]]
+  } else {
+    stats::setNames(plots, units)
   }
 }
+
+#' Plot the average treatment effect over time since treatment
+#' @noRd
+average_effect_plot <- function(d, time, qs) {
+  ggplot(d, aes(.data[[time]], .data$mean)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+    geom_vline(xintercept = 0, linetype = "dashed", colour = "grey70") +
+    geom_ribbon(
+      aes(ymin = .data[[qs[1]]], ymax = .data[[qs[2]]]),
+      fill = "#EECC66",
+      alpha = 0.25
+    ) +
+    geom_line(colour = "#DDAA33") +
+    labs(x = "Time since treatment", y = "Average treatment effect") +
+    theme_bw()
+}
+
+#' Plot the treatment effect of one treated unit over time
+#' @noRd
+unit_effect_plot <- function(d, time, qs, start_t, id) {
+  ggplot(d, aes(.data[[time]], .data$mean)) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+    geom_vline(xintercept = start_t, linetype = "dashed", colour = "grey70") +
+    geom_ribbon(
+      aes(ymin = .data[[qs[1]]], ymax = .data[[qs[2]]]),
+      fill = "#EECC66",
+      alpha = 0.25
+    ) +
+    geom_line(colour = "#DDAA33") +
+    labs(
+      x = time,
+      y = paste0("Treatment effect", if (!is.null(id)) paste0(" for ", id))
+    ) +
+    theme_bw()
+}
+
 #' @rdname plot_effects
 #' @export
 plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
@@ -112,17 +116,7 @@ plot_effects.bscm_ldo <- function(x, probs = NULL, ...) {
   if (is.null(probs)) {
     probs <- range(x$metadata$probs)
   }
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      len = 2L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with 
-      values between 0 and 1."
-  )
+  probs <- interval_probs(probs)
   ymin_col <- paste0("q", 100 * min(probs))
   ymax_col <- paste0("q", 100 * max(probs))
   stopifnot_(
@@ -182,17 +176,7 @@ plot_effects.bscm_placebo_effects <- function(x, probs = NULL, ...) {
   if (is.null(probs)) {
     probs <- range(x$metadata$probs)
   }
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      len = 2L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with
-      values between 0 and 1."
-  )
+  probs <- interval_probs(probs)
   ymin_col <- paste0("q", 100 * min(probs))
   ymax_col <- paste0("q", 100 * max(probs))
   stopifnot_(

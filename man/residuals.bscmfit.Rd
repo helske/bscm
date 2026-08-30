@@ -31,7 +31,7 @@ points.}
 \item{...}{Ignored.}
 }
 \value{
-A \code{data.frame} of posterior summaries (\code{summary = TRUE}) or
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{

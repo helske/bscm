@@ -8,12 +8,11 @@ effective_donors <- function(x, ...) {
 #' Effective donors is defined as \eqn{1 / \sum_{j=1}^J \omega_j^2},
 #' where \eqn{\omega_j} is the donor weight of control unit \eqn{j}.
 #'
-#' @inheritParams rmse.bscmfit
+#' @inheritParams bscm_postprocessing
 #' @param average \[`logical(1)`]\cr If `TRUE`, returns the
 #' average effective donors over treated units in case of
 #' multiple treated units. The default is `FALSE`.
-#' @param ... Ignored.
-#' @return A `data.frame` of posterior summaries (`summary = TRUE`) or
+#' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior draws (`summary = FALSE`) in long format.
 #' @rdname effective_donors
 #' @aliases effective_donors
@@ -27,32 +26,22 @@ effective_donors.bscmfit <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
-  test_summary(summary)
+  check_flag(average, "average")
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  stopifnot_(
-    checkmate::test_flag(average),
-    "Argument {.arg average} must be a single {.cls logical} value."
-  )
 
-  treated <- get_treated(x)
   unit <- get_unit(x)
-  N <- get_N(x)
-  omega <- posterior::as_draws_rvars(as_draws(x, "omega"))$omega
+  omega <- rvars_of(x, "omega")
   d <- dplyr::tibble(
-    "{unit}" := treated,
+    "{unit}" := get_treated(x),
     ess = posterior::rvar_apply(omega, 2, \(x) 1 / posterior::rvar_sum(x^2))
   )
-  if (average && N > 1) {
+  if (average && get_N(x) > 1L) {
     d <- d |>
       dplyr::summarise(ess = posterior::rvar_mean(.data$ess))
   }
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$ess, probs)) |>
-      dplyr::select(-"ess", -"variable")
-  }
-  if (N == 1) {
-    d <- d |> dplyr::select(-dplyr::all_of(unit))
+    d <- summarise_column(d, "ess", probs)
   }
   d
 }

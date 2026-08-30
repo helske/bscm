@@ -30,7 +30,7 @@ object. On exit, the state of the RNG is restored to the original state.}
 \item{...}{Ignored.}
 }
 \value{
-\code{data.frame} of posterior summary of (LOO-adjusted) R-squared values.
+A \code{tibble} of posterior summary of (LOO-adjusted) R-squared values.
 }
 \description{
 \code{bayes_R2} computes the Bayesian \eqn{R^2} measure of model fit for a

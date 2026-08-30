@@ -11,6 +11,9 @@
 #' where rows correspond to posterior draws and columns to time periods.
 #' @aliases posterior_predict
 #' @export posterior_predict
+#' @seealso [bscm::synthetic_control()].
+#' @examples
+#' posterior_predict(fit_single_treated) |> str()
 #' @export
 posterior_predict.bscmfit <- function(object, ...) {
   stopifnot_(

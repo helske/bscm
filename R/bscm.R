@@ -89,10 +89,10 @@
 #' @param ... Additional parameters passed on to [rstan::sampling()] to
 #'   adjust the sampling options, for example `iter` and `chains`.  Note that
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
-#'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many 
+#'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many
 #'   control arguments for Stan can be passed using a named list `control`,
 #'   such as `control = list(adapt_delta = 0.95)` which corresponds to the
-#'   default `adapt_delta` value of `bscm` when model contains time-varying 
+#'   default `adapt_delta` value of `bscm` when model contains time-varying
 #'   coefficients (otherwise the default is `0.8` as in `rstan`).
 #' @return An object of class `bscmfit`.
 #' @export
@@ -343,13 +343,13 @@ bscm <- function(
   gq <- rstan::gqs(
     stanmodels$generated_quantities,
     data = stan_args$data,
-    draws = rstan::as.matrix(fit)
+    draws = as.matrix(fit)
   )
 
   out <- list(
     stanfit = fit,
-    y_mean = rstan::as.matrix(gq, "y_mean"),
-    y_rep = if (compute_predictions) rstan::as.matrix(gq, "y_rep") else "Not sampled",
+    y_mean = as.matrix(gq, "y_mean"),
+    y_rep = if (compute_predictions) as.matrix(gq, "y_rep") else "Not sampled",
     data = if (save_data) data else NULL,
     setup = setup,
     priors = priors

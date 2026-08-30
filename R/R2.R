@@ -4,14 +4,12 @@
 #' Bayesian synthetic control model, while `loo_R2` computes a leave-one-out
 #' adjusted version of the same quantity.
 #'
-#' @inheritParams rmse.bscmfit
-#' @param object \[`bscmfit`]\cr The model fit object.
+#' @inheritParams bscm_postprocessing
 #' @param fixed_seed \[logical(1)]\cr If `TRUE` (the default), fixes the seed
 #'   of random number generator (RNG) so that `loo_R2`, which uses Bayesian
 #'   bootstrap, returns identical results in repeated calls for the same model
 #'   object. On exit, the state of the RNG is restored to the original state.
-#' @param ... Ignored.
-#' @return `data.frame` of posterior summary of (LOO-adjusted) R-squared values.
+#' @return A `tibble` of posterior summary of (LOO-adjusted) R-squared values.
 #' @references
 #' Gelman A, Goodrich B, Gabry J, and Vehtari A (2019). R-squared for
 #' Bayesian regression models. *The American Statistician*. 73(3), 307--309,
@@ -29,17 +27,10 @@ loo_R2.bscmfit <- function(
   fixed_seed = TRUE,
   ...
 ) {
-  stopifnot_(
-    !is.null(object$data),
-    "LOO R2 requires the original data. Refit the model with
-    {.code save_data = TRUE}."
-  )
-  test_summary(summary)
+  check_flag(summary, "summary")
+  check_flag(fixed_seed, "fixed_seed")
   probs <- sort_probs(probs)
-  stopifnot_(
-    checkmate::test_flag(fixed_seed),
-    "Argument {.arg fixed_seed} should be a single logical value."
-  )
+  check_has_data(object, "object")
   if (fixed_seed) {
     old_seed <- .Random.seed
     on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv))
@@ -89,12 +80,7 @@ loo_R2.bscmfit <- function(
   ) |>
     dplyr::bind_rows()
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$R2, probs)) |>
-      dplyr::select(-"R2", -"variable")
-  }
-  if (length(treated) == 1) {
-    d <- d |> dplyr::select(-dplyr::all_of(unit))
+    d <- summarise_column(d, "R2", probs)
   }
   d
 }
@@ -108,15 +94,15 @@ bayes_R2.bscmfit <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
-  test_summary(summary)
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
   N <- get_N(object)
   treated <- get_treated(object)
   unit <- get_unit(object)
   T_pre <- get_T_pre(object)
 
-  y_mean <- posterior::as_draws_rvars(object$y_mean)$y_mean
-  sigma <- posterior::as_draws_rvars(as_draws(object, "sigma"))$sigma
+  y_mean <- gq_to_rvar(object, object$y_mean)
+  sigma <- rvars_of(object, "sigma")
 
   r2 <- vector("list", N)
   for (i in seq_len(N)) {
@@ -128,12 +114,7 @@ bayes_R2.bscmfit <- function(
     R2 = do.call(c, r2)
   )
   if (summary) {
-    d <- d |>
-      dplyr::mutate(summarise_with_probs(.data$R2, probs)) |>
-      dplyr::select(-"R2", -"variable")
-  }
-  if (N == 1) {
-    d <- d |> dplyr::select(-dplyr::all_of(unit))
+    d <- summarise_column(d, "R2", probs)
   }
   d
 }

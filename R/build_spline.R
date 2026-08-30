@@ -1,15 +1,15 @@
 #' Build the spline matrix for Stan
-#' 
+#'
 #' combines the spline basis the difference matrix and sum-to-zero constraint
 #' @noRd
 build_spline <- function(
-    T_total,
-    T_pre,
-    spline_df = NULL,
-    knot_spacing = NULL,
-    type = "rw2",
-    noncentered = TRUE,
-    scale = "gm"
+  T_total,
+  T_pre,
+  spline_df = NULL,
+  knot_spacing = NULL,
+  type = "rw2",
+  noncentered = TRUE,
+  scale = "gm"
 ) {
   T_pre <- max(T_pre)
   if (!is.null(knot_spacing)) {
@@ -17,12 +17,14 @@ build_spline <- function(
   } else {
     h <- (T_pre - 1) / (spline_df - 3)
   }
-  lb  <- 1 - 5 * h
+  lb <- 1 - 5 * h
   rb <- 1 + (ceiling((T_total - 1) / h) + 5) * h
   knots <- seq(lb + h, rb - h, by = h)
-  
+
   B <- splines::bs(
-    seq_len(T_total), knots = knots, intercept = TRUE, 
+    seq_len(T_total),
+    knots = knots,
+    intercept = TRUE,
     Boundary.knots = c(lb, rb)
   )
   B <- B[, 5:(ncol(B) - 4), drop = FALSE]

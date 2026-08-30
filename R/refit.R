@@ -25,12 +25,12 @@ refit_bscm <- function(x, standata) {
   gq <- rstan::gqs(
     stanmodels$generated_quantities,
     data = standata,
-    draws = rstan::as.matrix(fit)
+    draws = as.matrix(fit)
   )
 
   out <- list(
     stanfit = fit,
-    y_mean = rstan::as.matrix(gq, "y_mean"),
+    y_mean = as.matrix(gq, "y_mean"),
     y_rep = "Not sampled",
     data = NULL,
     setup = x$setup,

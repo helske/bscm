@@ -54,21 +54,8 @@ plot_coefs.bscmfit <- function(
     )
   }
 
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      len = 2L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with
-    values between 0 and 1."
-  )
-  stopifnot_(
-    checkmate::test_flag(combine),
-    "Argument {.arg combine} must be a single {.cls logical} value."
-  )
+  probs <- interval_probs(probs)
+  check_flag(combine, "combine")
   if (type == "fixed") {
     plot_coefs_fixed(x, probs = probs)
   } else {
@@ -89,7 +76,9 @@ plot_coefs.bscmfit <- function(
 #' Plot Time-constant Coefficients of a \pkg{bscm} Model
 #' @noRd
 plot_coefs_fixed <- function(x, probs) {
-  d <- coef(x, type = "beta", summary = TRUE, probs = probs)
+  d <- coef_draws(x, "beta") |>
+    summarise_column("beta", probs, for_plots = TRUE) |>
+    dplyr::rename(variable = "parameter")
   qs <- paste0("q", 100 * probs)
   d$variable <- factor(d$variable, levels = d$variable)
   ggplot(d, aes(.data$mean, .data$variable)) +
@@ -110,12 +99,14 @@ plot_coefs_varying <- function(x, probs, combine, alpha, scales) {
   qs <- paste0("q", 100 * probs)
 
   if (!combine) {
-    d <- coef(x, type = "gamma", summary = TRUE, probs = probs)
+    d <- coef_draws(x, "gamma") |>
+      summarise_column("gamma", probs, for_plots = TRUE) |>
+      dplyr::rename(variable = "parameter")
   } else {
-    d_beta <- coef(x, type = "beta", summary = FALSE)$beta |>
+    d_beta <- coef_draws(x, "beta") |>
       dplyr::mutate(parameter = sub("^beta_", "", .data$parameter)) |>
       dplyr::filter(.data$parameter %in% x$setup$gamma_names)
-    d_gamma <- coef(x, type = "gamma", summary = FALSE)$gamma |>
+    d_gamma <- coef_draws(x, "gamma") |>
       dplyr::mutate(parameter = sub("^gamma_", "", .data$parameter))
     d <- d_gamma |>
       dplyr::left_join(d_beta, by = "parameter") |>

@@ -8,11 +8,11 @@
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
 #' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
-#'   functions in the pre-treatment period 
-#'   (maximum in case of staggered adoptation). Default is `df = 10`, which is 
+#'   functions in the pre-treatment period
+#'   (maximum in case of staggered adoptation). Default is `df = 10`, which is
 #'   completely arbitrary. Must be larger than 4.
-#' @param knot_spacing \[`numeric(1)`]\cr Optional argument to specify the 
-#'   equidistant spacing of knots for the spline basis. If `NULL` (the default), 
+#' @param knot_spacing \[`numeric(1)`]\cr Optional argument to specify the
+#'   equidistant spacing of knots for the spline basis. If `NULL` (the default),
 #'   knots, spacing is defined by `df` argument.
 #' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline
 #'   coefficients are sampled using a non-centered parameterization.
@@ -21,12 +21,17 @@
 #'   numerically stable sampling, so if you encounter divergences,
 #'   try changing this.
 #' @param type \[`character(1)`]\cr Prior type for spline coefficients. Either
-#'   `"rw1"` or `"rw2"` for first and second order random walks. 
+#'   `"rw1"` or `"rw2"` for first and second order random walks.
 #'   Default is "rw2".
 #' @return Object of class `tv_term` (a `list`).
 #' @export
 tv <- function(
-    tv_formula, df = 10, knot_spacing = NULL, type = "rw2", noncentered = TRUE) {
+  tv_formula,
+  df = 10,
+  knot_spacing = NULL,
+  type = "rw2",
+  noncentered = TRUE
+) {
   stopifnot_(
     inherits(tv_formula, "formula") && length(tv_formula) == 2L,
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."
@@ -36,7 +41,12 @@ tv <- function(
     "Argument {.arg df} of {.code tv()} must be an integer larger than 4."
   )
   stopifnot_(
-      checkmate::test_number(knot_spacing, lower = 0, finite = TRUE, null.ok = TRUE),
+    checkmate::test_number(
+      knot_spacing,
+      lower = 0,
+      finite = TRUE,
+      null.ok = TRUE
+    ),
     "Argument {.arg knot_spacing} of {.code tv()} must be NULL or a 
     positive finite number."
   )

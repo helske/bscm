@@ -25,7 +25,7 @@
 #' @importFrom RcppParallel RcppParallelLibs
 #' @importFrom methods new
 #' @importFrom rlang := .data .env
-#' @importFrom posterior as_draws nchains ndraws
+#' @importFrom posterior as_draws as_draws_rvars nchains ndraws
 #' @import ggplot2
 #' @references
 #' Abadie A, Diamond A, and Hainmueller J (2010). Synthetic Control

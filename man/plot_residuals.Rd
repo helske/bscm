@@ -7,7 +7,14 @@
 \usage{
 plot_residuals(x, ...)
 
-\method{plot_residuals}{bscmfit}(x, type = "time", probs = c(0.025, 0.975), max_lag = 5L, ...)
+\method{plot_residuals}{bscmfit}(
+  x,
+  type = "time",
+  unit = NULL,
+  probs = c(0.025, 0.975),
+  max_lag = 5L,
+  ...
+)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr Object from \code{\link[=bscm]{bscm()}}.}
@@ -18,6 +25,9 @@ plot_residuals(x, ...)
 a ribbon plot of residuals over time, or \code{"autocorrelation"} for posterior
 distributions of residual autocorrelations at each lag.}
 
+\item{unit}{[\code{character()}]\cr Treated units to plot. If \code{NULL} (the
+default), all treated units are plotted.}
+
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
 the posterior interval. Default is \code{c(0.025, 0.975)}.}
 
@@ -25,8 +35,8 @@ the posterior interval. Default is \code{c(0.025, 0.975)}.}
 \code{type = "autocorrelation"}. Default is \code{5L}.}
 }
 \value{
-A \code{ggplot} object, or a named list of \code{ggplot} objects when \code{x} is
-a \code{bscmfit} with multiple treated units.
+A \code{ggplot} object when a single treated unit is plotted, and a
+named list of \code{ggplot} objects otherwise.
 }
 \description{
 \code{plot_residuals()} plots the posterior mean and posterior interval of the
@@ -34,11 +44,11 @@ pre-treatment residuals over time (\code{type = "time"}), or the posterior
 distribution of the residual autocorrelations up to a given number of lags
 (\code{type = "autocorrelation"}), again only for pre-treatment time points.
 }
-\details{
-For models with multiple treated units, returns a named list of per-unit
-plots.
-}
 \examples{
 plot_residuals(fit_single_treated)
 plot_residuals(fit_single_treated, type = "autocorrelation", max_lag = 10L)
+}
+\seealso{
+\code{\link[=residual_acf]{residual_acf()}} for the autocorrelations themselves, and
+\code{\link[=residuals.bscmfit]{residuals.bscmfit()}} for the residuals.
 }

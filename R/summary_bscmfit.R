@@ -56,7 +56,10 @@ summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
         "Post-treatment RMSE"
       )
     )
-  sumr <- dplyr::bind_rows(cf, s, r2, eff, att, rmses)
+  sumr <- dplyr::bind_rows(cf, s, r2, eff, att, rmses) |>
+    dplyr::relocate("variable", .before = 1L)
   class(sumr) <- c("summary_bscmfit", class(sumr))
-  sumr |> dplyr::relocate("variable", .before = 1L)
+  attr(sumr, "N") <- get_N(object)
+  attr(sumr, "unit") <- get_unit(object)
+  sumr
 }

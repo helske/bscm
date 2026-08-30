@@ -7,28 +7,37 @@
 \usage{
 covariate_imbalance(x, ...)
 
-\method{covariate_imbalance}{bscmfit}(x, plot = TRUE, probs = c(0.025, 0.975), ...)
+\method{covariate_imbalance}{bscmfit}(
+  x,
+  average = FALSE,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  ...
+)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
-\item{...}{Optional arguments passed to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}}.}
+\item{...}{Ignored.}
 
-\item{plot}{[\code{logical(1)}]\cr If \code{TRUE} (the default), plots the posterior
-mean and interval of the synthetic covariate distances over time.}
+\item{average}{[\code{logical(1)}]\cr If \code{TRUE}, the quantity is averaged over
+the treated units within each posterior draw in case of multiple treated
+units. If \code{FALSE} (the default), unit-specific values are returned.}
+
+\item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
+mean, standard deviation, posterior quantiles (as defined by the
+\code{probs} argument), and MCMC convergence measures.
+If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
-Default is \code{c(0.025, 0.975)}. If length of \code{probs} less than 2, no posterior
-intervals are drawn, and if length of \code{probs} is larger than two, the most
-extreme values are used for the posterior intervals.}
+Default is \code{c(0.025, 0.975)}.}
 }
 \value{
-A \code{data.frame} of posterior summaries of synthetic covariate
-distances.
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
+posterior draws (\code{summary = FALSE}) in long format.
 }
 \description{
-For models with covariates, returns and optionally visualizes the
-covariate imbalances
+For models with covariates, returns the covariate imbalances
 \deqn{\delta_{t} =
 \sqrt{\frac{1}{K}\sum_{k=1}^K(x_{k,0,t} - \bar x_{k,0,t})^2},}
 \eqn{t=1,\ldots,T}, where
@@ -38,9 +47,10 @@ similarly for donors \eqn{j=1,\ldots,J}. This is computed separately for
 each treated unit in case of multiple treated units.
 }
 \examples{
-covariate_imbalance(fit_single_treated, plot = TRUE, probs = c(0.05, 0.95))
+covariate_imbalance(fit_single_treated, probs = c(0.05, 0.95))
 
 }
 \seealso{
-\code{\link[=covariate_adjustment]{covariate_adjustment()}}.
+\code{\link[=covariate_adjustment]{covariate_adjustment()}} for the covariate adjustments, and
+\code{\link[=plot_covariate_imbalance]{plot_covariate_imbalance()}} for visualizing the imbalances.
 }

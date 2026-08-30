@@ -42,3 +42,19 @@ test_that("coef() respects custom probs", {
   expect_true("q10" %in% names(d))
   expect_true("q90" %in% names(d))
 })
+
+test_that("coef() returns rho draws when summary = FALSE", {
+  d <- coef(fit1_noint, type = "rho", summary = FALSE)
+  expect_named(d, "rho")
+  expect_named(d$rho, c("parameter", "id", "rho"))
+  expect_equal(d$rho$parameter, "rho")
+  expect_true(posterior::is_rvar(d$rho$rho))
+  expect_named(coef(fit1_noint, summary = FALSE), "rho")
+})
+
+test_that("coef() returns draws of all available types in canonical order", {
+  suppressWarnings(d <- coef(fitN_xz, summary = FALSE))
+  expect_named(d, c("alpha", "beta"))
+  expect_named(d$beta, c("parameter", "beta"))
+  expect_equal(d$beta$parameter, c("beta_x", "beta_z"))
+})

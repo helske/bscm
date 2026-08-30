@@ -85,7 +85,7 @@ loo.bscmfit <- function(
     refit <- refit_bscm(x, standata)
     mu_offset <- (i - 1L) * T_total
     mu_draws <- posterior_epred(refit)
-    sigma_draws <- rstan::as.matrix(get_stanfit(refit), pars = "sigma")
+    sigma_draws <- as.matrix(get_stanfit(refit), pars = "sigma")
     ll_exact <- stats::dnorm(
       standata$y[i, t],
       mu_draws[, mu_offset + t],

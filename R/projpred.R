@@ -54,11 +54,7 @@
 #' @export
 #' @export get_refmodel
 get_refmodel.bscmfit <- function(object, ...) {
-  stopifnot_(
-    !is.null(object$data),
-    "The model fit {.arg object} does not contain the original data. Refit the 
-    model with {.arg save_data = FALSE}."
-  )
+  check_has_data(object, "object")
 
   stopifnot_(
     length(get_predictors(object)) == 0L,
@@ -246,7 +242,7 @@ get_refmodel.bscmfit <- function(object, ...) {
     proj_predfun = proj_predfun,
     extract_model_data = extract_model_data,
     cvrefbuilder = cvrefbuilder,
-    dis = c(rstan::as.matrix(object$stanfit, pars = "sigma")),
+    dis = c(as.matrix(object$stanfit, pars = "sigma")),
     ...
   )
 }
@@ -258,7 +254,8 @@ get_refmodel.bscmfit <- function(object, ...) {
 #' format, it is converted internally to the wide format for `projpred`.
 #'
 #' @param object A projection object or variable selection object returned by
-#'   [projpred::project()], [projpred::varsel()], or [projpred::cv_varsel()].
+#'   [projpred::project()], [projpred::varsel()], or [projpred::cv_varsel()]
+#'   applied to `bscmfit` object.
 #' @param newdata Optional new data used for predictions. The outcome, unit,
 #'   and time variables should have should have names matching the original
 #'   data. If `NULL` (the default), predictions are made for the pre-treatment
@@ -267,9 +264,11 @@ get_refmodel.bscmfit <- function(object, ...) {
 #'   instead of posterior draws.
 #' @param probs Numeric vector of probabilities used for the posterior
 #'   intervals. Defaults to `c(0.025, 0.975)`.
-#' @param ... Additional arguments passed to [projpred::proj_predict()]. Note 
-#' that `as_draws_matrix = TRUE` is always used.
-#' @return The output of [projpred::proj_predict()].
+#' @param ... Additional arguments passed to [projpred::proj_predict()].
+#' @return A `tibble` of posterior summaries (`summary = TRUE`) or
+#'   posterior draws (`summary = FALSE`) of predictions in long format.
+#' @seealso [bscm::get_refmodel()], [projpred::varsel()],
+#'   [projpred::cv_varsel()]
 #' @export
 proj_predict_bscm <- function(
   object,
@@ -278,8 +277,13 @@ proj_predict_bscm <- function(
   probs = c(0.025, 0.975),
   ...
 ) {
+  check_flag(summary, "summary")
   probs <- sort_probs(probs)
-  test_summary(summary)
+  stopifnot_(
+    inherits(object$refmodel$fit, "bscmfit"),
+    "{.arg object} must be a projection of a {.cls bscmfit} object from
+    {.fn bscm}."
+  )
   setup <- object$refmodel$fit$proj
 
   if (!is.null(newdata)) {
@@ -295,24 +299,19 @@ proj_predict_bscm <- function(
   } else {
     times <- setup$times
   }
-
   y_rep <- projpred::proj_predict(
     object = object,
     newdata = newdata,
-    as_draws_matrix = TRUE,
     ...
   )
+  d <- dplyr::tibble(
+    "{setup$time}" := times,
+    y_rep = posterior::rvar(y_rep)
+  )
   if (summary) {
-    y_rep <- dplyr::tibble(
-      "{setup$time}" := times,
-      y_rep = c(posterior::as_draws_rvars(y_rep)$y_rep)
-    ) |>
-      dplyr::mutate(
-        summarise_with_probs(.data$y_rep, probs)
-      ) |>
-      dplyr::select(-"y_rep", -"variable")
+    d <- summarise_column(d, "y_rep", probs)
   }
-  y_rep
+  d
 }
 
 #' Convert long-format panel data to wide format for projpred

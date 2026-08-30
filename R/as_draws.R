@@ -1,4 +1,4 @@
-#' Return posterior draws from BSCM fit as a draws object
+#' Return posterior draws from BSCM fit as a draws_array object
 #'
 #' @inheritParams as.data.frame.bscmfit
 #' @param inc_warmup \[`logical(1)`]\cr Whether to include warmup draws.
@@ -46,6 +46,36 @@ as_draws.bscmfit <- function(
       get_stanfit(x),
       pars = parameters,
       permuted = FALSE,
+      inc_warmup = inc_warmup,
+      include = include
+    )
+  )
+}
+
+#' Return posterior draws from BSCM fit as a draws_rvars object
+#'
+#' @inheritParams as_draws.bscmfit
+#' @return An object of class `draws_rvars` containing the posterior draws of
+#' the specified parameters.
+#' @seealso [as_draws.bscmfit()] for the `draws_array` representation, and
+#' [posterior::summarise_draws()] for computing posterior summaries of the
+#' draws.
+#' @aliases as_draws_rvars
+#' @export as_draws_rvars
+#' @export
+#' @examples
+#' as_draws_rvars(fit_single_treated, parameters = c("alpha", "sigma"))
+as_draws_rvars.bscmfit <- function(
+  x,
+  parameters = NULL,
+  inc_warmup = FALSE,
+  include = TRUE,
+  ...
+) {
+  posterior::as_draws_rvars(
+    as_draws(
+      x,
+      parameters = parameters,
       inc_warmup = inc_warmup,
       include = include
     )

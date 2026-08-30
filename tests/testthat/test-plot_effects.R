@@ -3,8 +3,15 @@ test_that("plot_effects.bscmfit returns a ggplot for single treated unit", {
   expect_s3_class(p, "ggplot")
 })
 
-test_that("plot_effects.bscmfit returns averaged ggplot for N > 1", {
+test_that("plot_effects.bscmfit returns one plot per unit for N > 1", {
   p <- plot_effects(fitN_int)
+  expect_type(p, "list")
+  expect_named(p, get_treated(fitN_int))
+  expect_true(all(vapply(p, inherits, logical(1L), "ggplot")))
+})
+
+test_that("plot_effects.bscmfit returns averaged ggplot when average = TRUE", {
+  p <- plot_effects(fitN_int, average = TRUE)
   expect_s3_class(p, "ggplot")
 })
 

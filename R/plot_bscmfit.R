@@ -6,63 +6,32 @@
 #' since treatment across all treated units.
 #'
 #' @param x \[`bscmfit`]\cr object.
-#' @param unit \[`character(1)`]\cr For models with
-#'   multiple treated units, the name of the treated unit to
-#'   plot. If `NULL` (the default), all treated units are plotted sequentially.
+#' @param unit \[`character()`]\cr Treated units to plot. If `NULL` (the
+#'   default), all treated units are plotted.
 #' @param probs \[`numeric(2)`]\cr Vector of length two defining the limits of
 #' the posterior interval. Default is `c(0.025, 0.975)`.
 #' @param ... Ignored
 #' @aliases plot
-#' @return A `ggplot` object or a list of `ggplot` objects in case of multiple
-#'   treated units when `unit` is `NULL`.
+#' @return A `ggplot` object when a single treated unit is plotted, and a
+#'   named list of `ggplot` objects otherwise.
 #' @export
 #' @examples
 #' plot(fit_single_treated, probs = c(0.05, 0.95))
 plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
-  stopifnot_(
-    checkmate::test_numeric(
-      probs,
-      lower = 0.0,
-      upper = 1.0,
-      any.missing = FALSE,
-      len = 2L
-    ),
-    "Argument {.arg probs} must be a {.cls numeric} vector of length 2 with 
-    values between 0 and 1."
-  )
+  probs <- interval_probs(probs)
   outcome <- get_outcome(x)
   time <- get_time(x)
   unit_col <- get_unit(x)
   treatment <- get_treatment(x)
   treated <- get_treated(x)
-  if (!is.null(unit)) {
-    stopifnot_(
-      unit %in% treated,
-      "Argument {.arg unit} must be one of the treated units:
-      {.val {treated}}."
-    )
-  }
+  units <- check_units(x, unit)
   d_plot <- dplyr::bind_rows(
-    "Treatment effect" = treatment_effect(
-      x,
-      average = FALSE,
-      probs = probs,
-      for_plots = TRUE
-    ),
-    "Synthetic control" = synthetic_control(
-      x,
-      probs = probs,
-      for_plots = TRUE
-    ),
+    "Treatment effect" = effects_draws(x) |>
+      summarise_column("effect", probs, for_plots = TRUE),
+    "Synthetic control" = sc_draws(x) |>
+      summarise_column("y_rep", probs, for_plots = TRUE),
     .id = "type"
   )
-  N <- get_N(x)
-  if (N == 1L) {
-    unit <- treated[1]
-  }
-  if (is.null(d_plot[[unit_col]])) {
-    d_plot[[unit_col]] <- treated[1]
-  }
   lookup <- stats::setNames(
     c(unit_col, time, treatment, outcome, paste0("q", 100 * probs)),
     c("unit", "time", "treatment", "mean", "ymin", "ymax")
@@ -76,15 +45,15 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
 
   start_t <- stats::setNames(get_times(x)[get_T_pre(x) + 1], treated)
 
-  if (!is.null(unit)) {
-    return(plot_bscm_unit(d_plot, dy, unit, start_t[unit]))
-  }
-  p <- lapply(
-    treated,
+  plots <- lapply(
+    units,
     \(u) plot_bscm_unit(d_plot, dy, u, start_t[u])
   )
-  names(p) <- treated
-  p
+  if (length(plots) == 1L) {
+    plots[[1L]]
+  } else {
+    stats::setNames(plots, units)
+  }
 }
 
 #' Plot BSCM estimates for one treated unit
