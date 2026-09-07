@@ -14,12 +14,10 @@ refit_bscm <- function(x, standata) {
     algorithm = stan_args$algorithm,
     control = stan_args$control,
     refresh = 0L,
-    init = init
+    init = init,
+    include = FALSE,
+    excluded_pars = x$setup$excluded_pars
   )
-  if (!is.null(x$setup$excluded_pars)) {
-    stan_args$pars <- x$setup$excluded_pars
-    stan_args$include <- FALSE
-  }
   fit <- do.call(rstan::sampling, stan_args)
 
   gq <- rstan::gqs(
