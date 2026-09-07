@@ -12,13 +12,8 @@
 #' spline is modelled separately, so that `gamma_t = nu * t_c + (A xi)_t`,
 #' where `t_c` is the time index centered at the pre-treatment period, `nu`
 #' the slope, `A` the constrained spline basis, and `xi` the spline
-#' coefficients with standard deviation `kappa`.
-#'
-#' Note that `gamma_t` is the complete time-varying coefficient, i.e. it
-#' already contains the `nu` term. The total effect is therefore
-#' `beta + gamma_t`, and adding `nu` to it would count the linear trend twice.
-#' See [coef.bscmfit()] for the total effect, and [as_draws.bscmfit()] for the
-#' individual components `beta`, `nu`, `gamma`, `kappa`, and `xi`.
+#' coefficients with standard deviation `kappa`, with separate priors for `beta`, 
+#' `nu`, and `kappa`.
 #'
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
