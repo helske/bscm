@@ -55,7 +55,7 @@ specify prior distributions for parameters of the Bayesian synthetic
 control model estimated by \code{\link[=bscm]{bscm()}}.
 }
 \details{
-For parameters that can take any real value (\code{alpha}, \code{beta}),
+For parameters that can take any real value (\code{alpha}, \code{beta}, \code{nu}),
 currently supported prior distributions are \code{normal_pr(location, scale)} and
 \code{student_pr(df, location, scale)}. Note however that for the intercept the
 prior corresponds to a value of the intercept when donors and predictors

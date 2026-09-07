@@ -1,25 +1,63 @@
-test_that("coef() returns data.frame for intercept-only model", {
+test_that("coef() returns the intercept for an intercept-only model", {
   d <- coef(fit1_int)
   expect_s3_class(d, "tbl_df")
   expect_equal(d$variable, "Intercept")
 })
 
-test_that("coef() returns both intercept and beta for model with covariates", {
-  suppressWarnings(d <- coef(fitN_xz, type = "beta"))
-  expect_s3_class(d, "tbl_df")
-  expect_equal(d$variable, c("beta_x", "beta_z"))
+test_that("coef() returns the constant coefficients by default", {
   suppressWarnings(d <- coef(fitN_xz))
   expect_s3_class(d, "tbl_df")
+  expect_equal(d$variable, c("coef_x", "coef_z"))
+})
+
+test_that("coef() returns the intercepts of every treated unit", {
+  suppressWarnings(d <- coef(fitN_xz, type = "intercept"))
+  expect_equal(d$variable, rep("Intercept", get_N(fitN_xz)))
+  expect_equal(d[[get_unit(fitN_xz)]], get_treated(fitN_xz))
+})
+
+test_that("coef() defaults to the fixed coefficients", {
+  suppressWarnings(d <- coef(fitN_tv))
+  expect_equal(d$variable, "coef_z")
+})
+
+test_that("coef() returns the total effect of a time-varying predictor", {
+  suppressWarnings(d <- coef(fitN_tv, type = "varying"))
+  expect_equal(unique(d$variable), "coef_x")
+  expect_equal(nrow(d), get_T_total(fitN_tv))
+  expect_true(get_time(fitN_tv) %in% names(d))
+})
+
+test_that("coef(type = 'varying') equals beta + gamma", {
+  d <- coef(fitN_tv, type = "varying", summary = FALSE)
+  beta <- as_draws_rvars(fitN_tv, "beta")$beta[fitN_tv$setup$tv_idx]
+  gamma <- as_draws_rvars(fitN_tv, "gamma")$gamma
+  total <- c(gamma) + rep(beta, each = get_T_total(fitN_tv))
   expect_equal(
-    d$variable,
-    c("Intercept", "Intercept", "Intercept", "beta_x", "beta_z")
+    as.vector(posterior::draws_of(d$coef)),
+    as.vector(posterior::draws_of(total))
   )
 })
 
-test_that("coef() returns rho for AR(1) no-intercept model", {
-  d <- coef(fit1_noint)
-  expect_s3_class(d, "tbl_df")
-  expect_equal(d$variable, "rho")
+test_that("coef() errors for a model without an intercept and predictors", {
+  expect_error(
+    coef(fit1_noint),
+    "The model does not contain an intercept nor any predictors"
+  )
+})
+
+test_that("coef() errors for time-varying coefficients of a model with none", {
+  expect_error(
+    coef(fit1_x, type = "varying"),
+    "The model does not contain any time-varying predictors"
+  )
+})
+
+test_that("coef() validates type argument", {
+  expect_error(
+    coef(fit1_int, type = "beta"),
+    'Argument `type` must be one of "intercept", "fixed", or "varying"'
+  )
 })
 
 test_that("coef() validates probs argument", {
@@ -43,18 +81,12 @@ test_that("coef() respects custom probs", {
   expect_true("q90" %in% names(d))
 })
 
-test_that("coef() returns rho draws when summary = FALSE", {
-  d <- coef(fit1_noint, type = "rho", summary = FALSE)
-  expect_named(d, "rho")
-  expect_named(d$rho, c("parameter", "id", "rho"))
-  expect_equal(d$rho$parameter, "rho")
-  expect_true(posterior::is_rvar(d$rho$rho))
-  expect_named(coef(fit1_noint, summary = FALSE), "rho")
-})
-
-test_that("coef() returns draws of all available types in canonical order", {
-  suppressWarnings(d <- coef(fitN_xz, summary = FALSE))
-  expect_named(d, c("alpha", "beta"))
-  expect_named(d$beta, c("parameter", "beta"))
-  expect_equal(d$beta$parameter, c("beta_x", "beta_z"))
+test_that("coef() returns the draws as a single tibble", {
+  d <- coef(fit1_x, summary = FALSE)
+  expect_s3_class(d, "tbl_df")
+  expect_named(d, c("parameter", "coef"))
+  expect_equal(d$parameter, "coef_x")
+  expect_true(posterior::is_rvar(d$coef))
+  d <- coef(fit1_x, type = "intercept", summary = FALSE)
+  expect_named(d, c("parameter", "id", "coef"))
 })

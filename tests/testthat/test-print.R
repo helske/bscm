@@ -34,13 +34,47 @@ test_that("print.bscmfit does not show AR(1) for IID model", {
   expect_false(any(grepl("AR(1) residuals", out, fixed = TRUE)))
 })
 
-test_that("print.summary_bscmfit returns x invisibly", {
-  suppressWarnings(s <- summary(fit1_int))
-  out <- capture.output(result <- print(s))
-  expect_identical(result, s)
+test_that("print.bscmfit shows the summaries of the model parameters", {
+  out <- capture.output(print(fit1_x))
+  expect_true(
+    any(grepl("Summary statistics of the model parameters", out, fixed = TRUE))
+  )
+  expect_true(any(grepl("Intercept", out, fixed = TRUE)))
+  expect_true(any(grepl("coef_x", out, fixed = TRUE)))
+  expect_true(any(grepl("Residual SD", out, fixed = TRUE)))
 })
 
-test_that("print.summary_bscmfit produces output without error", {
-  suppressWarnings(s <- summary(fit1_int))
-  expect_output(print(s))
+test_that("print.bscmfit shows the treatment effects and the model fit", {
+  out <- capture.output(print(fit1_x))
+  expect_true(
+    any(grepl("Average post-treatment effect", out, fixed = TRUE))
+  )
+  expect_true(any(grepl("Bayesian R2", out, fixed = TRUE)))
+  expect_true(any(grepl("Post-treatment RMSE", out, fixed = TRUE)))
+})
+
+test_that("print.bscmfit omits the unit-specific statistics for N > 1", {
+  suppressWarnings(out <- capture.output(print(fitN_xz)))
+  expect_true(
+    any(
+      grepl("time- and unit-invariant parameters", out, fixed = TRUE)
+    )
+  )
+  expect_true(
+    any(grepl("available via `summary()`", out, fixed = TRUE))
+  )
+  expect_true(
+    any(grepl("Average post-treatment effect", out, fixed = TRUE))
+  )
+  expect_false(any(grepl("Bayesian R2", out, fixed = TRUE)))
+})
+
+test_that("print.bscmfit omits the treatment effects without the data", {
+  x <- fit1_x
+  x$data <- NULL
+  out <- capture.output(print(x))
+  expect_true(any(grepl("Residual SD", out, fixed = TRUE)))
+  expect_false(
+    any(grepl("Average post-treatment effect", out, fixed = TRUE))
+  )
 })

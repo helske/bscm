@@ -11,7 +11,7 @@
 #'   `c("alpha", "beta", "sigma", "kappa", "nu", "rho")`. Other possible
 #'   choices are `"gamma"` (time-varying part of the regression coefficients), `"xi"`
 #'   (spline coefficients), `"lp__"` (log-posterior values without
-#'   constants), `"a"` (working intercepts corresponding to centered donors and covariates), and 
+#'   constants), `"a"` (working intercepts corresponding to centered donors and covariates), and
 #'  `"eta"` (parameters used to construct weights using ILR or softmax transformation).
 #' @param include \[`logical(1)`]\cr If `TRUE` (the default), output includes
 #'   only the variables defined by the argument `parameters`. If `FALSE`, these

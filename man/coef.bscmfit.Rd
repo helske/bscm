@@ -10,12 +10,10 @@
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
 
-\item{type}{[\code{character()}]\cr Type of coefficients to return. Should be
-one or more of \code{"alpha"} (intercepts), \code{"beta"} (regression coefficients),
-\code{"gamma"} (time-varying regression coefficients), \code{"kappa"}
-(SDs of time-varying coefficients), and
-\code{"rho"} (autoregressive coefficients of the residuals). The default \code{NULL}
-corresponds to all terms above contained in the model.}
+\item{type}{[\code{character(1)}]\cr Type of coefficients to return, either
+\code{"intercept"}, \code{"fixed"}, or \code{"varying"}. The default is \code{"fixed"}, or,
+for a model without predictors with a time-constant coefficient, the
+first of \code{"varying"} and \code{"intercept"} which the model contains.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
@@ -28,13 +26,26 @@ Default is \code{c(0.025, 0.975)}.}
 \item{...}{Ignored.}
 }
 \value{
-A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-list of \code{tibbles} of posterior draws (\code{summary = FALSE}).
+A \code{tibble} of posterior summaries (\code{summary = TRUE}) or posterior
+draws (\code{summary = FALSE}).
 }
 \description{
-Extract regression coefficients of a Bayesian synthetic control model
+Returns one type of coefficients of the model: the intercepts
+(\code{type = "intercept"}), the coefficients of the predictors whose effect is
+constant in time (\code{type = "fixed"}), or the total effect of each
+time-varying predictor at each time point (\code{type = "varying"}). For a
+time-varying predictor, the total effect is \code{beta + gamma_t}, where \code{beta}
+is the average level of the effect in the pre-treatment period and
+\code{gamma_t} the deviation from it. Every predictor appears in exactly one of
+the types \code{"fixed"} and \code{"varying"}.
+}
+\details{
+The individual components \code{beta}, \code{nu}, \code{gamma}, \code{kappa} and \code{rho} are not
+returned here; use \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} to extract them.
 }
 \examples{
 coef(fit_single_treated)
-coef(fit_single_treated, type = "beta")
+}
+\seealso{
+\code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} for the individual model parameters.
 }

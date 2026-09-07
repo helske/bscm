@@ -99,11 +99,11 @@ To specify predictors with time-varying coefficients in \code{formula}, wrap the
 in \code{tv()}, e.g., \code{outcome ~ x + tv(~ z, df = 10, type = "rw1")} defines a
 model where \code{x} has a time-constant coefficient and \code{z} has a time-varying
 coefficient following penalized cubic spline with \code{10} spline basis
-functions and random walk prior on the spline coefficients.
-Terms inside \code{tv()} are automatically also included in the
+functions and first or second order random walk prior on the spline
+coefficients. Terms inside \code{tv()} are automatically also included in the
 time-constant part of the model, since the time-varying coefficients
 are defined to have zero mean in the pre-treatment period (in case of
-multiple treated units, minimum period). Note that a common time-varying
+multiple treated units, maximum period). Note that a common time-varying
 intercept is omitted as it would cancel out in the linear predictor.
 
 Both the time-constant and time-varying regression part is assumed to apply

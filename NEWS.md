@@ -1,5 +1,21 @@
 # bscm 1.0.2
 
+* `coef` now returns the total effect of each predictor instead of the
+  individual model parameters, one type at a time: the intercepts with
+  `type = "intercept"`, the coefficients of the predictors whose effect is
+  constant with `type = "fixed"` (the default), and the total effect
+  `beta + gamma_t` of each time-varying predictor at each time point with
+  `type = "varying"`.
+* `plot_coefs` no longer has an argument `combine`, and always shows the total effect `beta + gamma_t` of the time-varying predictors. 
+* `summary` now returns posterior summaries of the model parameters, named as
+  in the posterior draws, and no longer has a class and a print method of its
+  own. It gained an argument `parameters` for selecting the parameters to
+  summarise.
+* `print` now shows the posterior summaries of the model parameters and the
+  average pre- and post-treatment effects. With a single treated unit, the
+  Bayesian R2 and the pre- and post-treatment RMSEs are shown as well, and
+  with several treated units, only the parameters which are invariant over
+  both time and unit.
 * The simplex weight vector with Dirichlet prior is now based on the 
   isometric log-ratio transformation instead of stick-breaking transformation. 
   This leads considerably better behaving sampler with small concentration 

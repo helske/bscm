@@ -8,7 +8,7 @@ variance_components <- function(x, ...) {
 #' Decomposes the posterior predictive variance of the outcome into
 #' uncertainty in the expected outcome and observation noise, separately
 #' for each treated unit and time point.
-#' 
+#'
 #' @inheritParams as.data.frame.bscmfit
 #' @return A `tibble` with the unit, time, and treatment indicators, and
 #'   \describe{

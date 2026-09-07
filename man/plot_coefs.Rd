@@ -11,7 +11,6 @@ plot_coefs(x, ...)
   x,
   type = NULL,
   probs = c(0.025, 0.975),
-  combine = TRUE,
   alpha = 0.5,
   scales = "free_y",
   ...
@@ -30,10 +29,6 @@ varying coefficients.}
 \item{probs}{[\code{numeric(2)}]\cr Vector of length two defining the limits of
 the posterior interval. Default is \code{c(0.025, 0.975)}.}
 
-\item{combine}{[\code{logical(1)}]\cr If \code{TRUE} and \code{type = "varying"}, plot
-the total effect (beta + gamma) instead of gamma alone.
-Ignored when \code{type = "fixed"}. Default is \code{TRUE}.}
-
 \item{alpha}{[\code{numeric(1)}]\cr Opacity of the credible-interval ribbon
 (used only when \code{type = "varying"}). Default is \code{0.5}.}
 
@@ -44,10 +39,11 @@ Ignored when \code{type = "fixed"}. Default is \code{TRUE}.}
 A \code{ggplot} object.
 }
 \description{
-Plots posterior means and posterior intervals for the model coefficients.
-For time-constant coefficients (\code{type = "fixed"}), a horizontal point-range
-plot is produced. For time-varying coefficients (\code{type = "varying"}), a
-ribbon-and-line plot over time is produced, faceted by parameter.
+Plots posterior means and posterior intervals for the coefficients of the
+predictors. For time-constant coefficients (\code{type = "fixed"}), a horizontal
+point-range plot is produced. For time-varying coefficients
+(\code{type = "varying"}), a ribbon-and-line plot of the total effect
+\code{beta + gamma_t} over time is produced, faceted by parameter.
 }
 \examples{
 plot_coefs(fit_single_treated)

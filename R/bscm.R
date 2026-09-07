@@ -354,7 +354,7 @@ bscm <- function(
     total = proc.time() - start_time,
     sampling = rstan::get_elapsed_time(fit)
   )
-  out$formula <- formula
   out$call <- match.call()
+  out$formula <- out$call$formula
   out
 }

@@ -5,21 +5,48 @@
 \alias{summary}
 \title{Summarise posterior draws of an estimated Bayesian synthetic control model}
 \usage{
-\method{summary}{bscmfit}(object, probs = c(0.025, 0.975), ...)
+\method{summary}{bscmfit}(
+  object,
+  parameters = NULL,
+  probs = c(0.025, 0.975),
+  diagnostics = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
 
+\item{parameters}{[\code{character()}]\cr Vector of parameter names. When
+\code{NULL} (the default), corresponds to a relevant subset of the model
+parameters, as in \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.}
+
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
 
-\item{...}{Ignored.}
+\item{diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the output
+also contains the MCMC convergence measures and the Monte Carlo standard
+error of the mean.}
+
+\item{...}{Additional arguments passed to \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.}
 }
 \value{
-A data frame with various posterior summaries of the model.
+A \code{tibble} with posterior summaries of the model parameters.
 }
 \description{
-Generates posterior summary statistics for a Bayesian synthetic control
-model estimated with \code{\link[=bscm]{bscm()}}. Note that many (more) summaries are available
-via separate methods, e.g., \code{\link[=donor_weights]{donor_weights()}}.
+Returns posterior summaries of the model parameters, i.e. the posterior
+mean, standard deviation, quantiles as defined by the \code{probs} argument, and
+the MCMC convergence measures. The parameters are named as in the posterior
+draws, see \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.
+}
+\details{
+Note that many (more) summaries are available via separate methods, e.g.,
+\code{\link[=donor_weights]{donor_weights()}}, \code{\link[=bayes_R2]{bayes_R2()}}, \code{\link[=rmse]{rmse()}}, and
+\code{\link[=average_treatment_effect]{average_treatment_effect()}}, and that printing the model fit shows the key
+quantities of the model, see \code{\link[=print.bscmfit]{print.bscmfit()}}.
+}
+\examples{
+summary(fit_single_treated)
+}
+\seealso{
+\code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} for the posterior draws themselves.
 }

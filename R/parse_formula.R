@@ -12,7 +12,7 @@
 #' spline is modelled separately, so that `gamma_t = nu * t_c + (A xi)_t`,
 #' where `t_c` is the time index centered at the pre-treatment period, `nu`
 #' the slope, `A` the constrained spline basis, and `xi` the spline
-#' coefficients with standard deviation `kappa`, with separate priors for `beta`, 
+#' coefficients with standard deviation `kappa`, with separate priors for `beta`,
 #' `nu`, and `kappa`.
 #'
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`

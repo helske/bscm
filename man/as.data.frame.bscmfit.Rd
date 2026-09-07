@@ -23,9 +23,11 @@
 
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
-\code{c("alpha", "beta", "sigma", "kappa", "rho")}. Other possible
-choices are \code{"gamma"} (time-varying regression coefficients) and \verb{"lp__}
-(log-posterior values without constants).}
+\code{c("alpha", "beta", "sigma", "kappa", "nu", "rho")}. Other possible
+choices are \code{"gamma"} (time-varying part of the regression coefficients), \code{"xi"}
+(spline coefficients), \code{"lp__"} (log-posterior values without
+constants), \code{"a"} (working intercepts corresponding to centered donors and covariates), and
+\code{"eta"} (parameters used to construct weights using ILR or softmax transformation).}
 
 \item{include}{[\code{logical(1)}]\cr If \code{TRUE} (the default), output includes
 only the variables defined by the argument \code{parameters}. If \code{FALSE}, these

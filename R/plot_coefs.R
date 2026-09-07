@@ -100,7 +100,7 @@ plot_coefs_varying <- function(x, probs, alpha, scales) {
   time_var <- get_time(x)
   qs <- paste0("q", 100 * probs)
   d <- coef_draws(x, "varying") |>
-    summarise_column("coef", probs, diagnostics = FALSE) |> 
+    summarise_column("coef", probs, diagnostics = FALSE) |>
     dplyr::mutate(
       parameter = factor(.data$parameter, levels = unique(.data$parameter))
     )
@@ -112,7 +112,7 @@ plot_coefs_varying <- function(x, probs, alpha, scales) {
     ) +
     geom_line(colour = "#0C7BDC") +
     scale_x_continuous(limits = range(d[[time_var]])) +
-    facet_wrap(~ parameter, scales = scales) +
+    facet_wrap(~parameter, scales = scales) +
     labs(x = time_var, y = "Value") +
     theme_bw()
 }

@@ -27,3 +27,30 @@ test_that("plot.bscmfit validates probs argument", {
     "Argument `probs` must be a <numeric> vector of length 2"
   )
 })
+
+test_that("plot_coefs returns a ggplot for both coefficient types", {
+  expect_s3_class(plot_coefs(fit1_x), "ggplot")
+  suppressWarnings(expect_s3_class(plot_coefs(fitN_tv), "ggplot"))
+  suppressWarnings(
+    expect_s3_class(plot_coefs(fitN_tv, type = "fixed"), "ggplot")
+  )
+})
+
+test_that("plot_coefs errors for a model without predictors", {
+  expect_error(
+    plot_coefs(fit1_int),
+    "The model does not contain any predictors"
+  )
+})
+
+test_that("plot_coefs does not show the intercepts", {
+  d <- ggplot2::ggplot_build(plot_coefs(fit1_x))$plot$data
+  expect_false("Intercept" %in% as.character(d$parameter))
+})
+
+test_that("plot_coefs errors for time-varying coefficients of a model with none", {
+  expect_error(
+    plot_coefs(fit1_x, type = "varying"),
+    "The model does not contain any time-varying predictors"
+  )
+})

@@ -100,7 +100,8 @@ print_estimates <- function(x, probs = c(0.025, 0.975), diagnostics = FALSE) {
       dplyr::rename(variable = "parameter")
     cat(
       "\nSummary statistics of the time-",
-      if (!single) " and unit-" else "invariant parameters",
+      if (!single) " and unit-",
+      "invariant parameters",
       ":\n",
       sep = ""
     )

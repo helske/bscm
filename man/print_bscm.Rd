@@ -2,23 +2,15 @@
 % Please edit documentation in R/print_bscmfit.R
 \name{print.bscmfit}
 \alias{print.bscmfit}
-\alias{print.summary_bscmfit}
 \title{Print method for bscmfit objects}
 \usage{
-\method{print}{bscmfit}(x, ...)
-
-\method{print}{summary_bscmfit}(x, ...)
+\method{print}{bscmfit}(x, diagnostics = FALSE, ...)
 }
 \arguments{
-\item{x}{[\code{bscmfit} or \code{summary_bscmfit}]\cr Output from \code{\link[=bscm]{bscm()}} or
-\code{\link[=summary.bscmfit]{summary.bscmfit()}}.}
-
-\item{...}{Ignored.}
-}
-\value{
-Returns \code{x} (invisibly).
-
-Returns \code{x} (invisibly).
+\item{diagnostics}{[\code{logical(1)}]\cr If \code{TRUE}, the printed posterior
+summaries also contain the MCMC convergence measures and the Monte Carlo
+standard error of the mean. Default is \code{FALSE}, as the convergence of the
+sampling is summarised separately, see \code{\link[=check_mcmc_diagnostics]{check_mcmc_diagnostics()}}.}
 }
 \description{
 Print method for bscmfit objects
