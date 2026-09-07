@@ -42,6 +42,7 @@ data {
   int<lower=0, upper=1> use_alpha;
   int<lower=0, upper=1> use_beta;
   int<lower=0, upper=1> use_gamma;
+  int<lower=0, upper=1> use_nu;
   int<lower=0, upper=1> use_ar1;
   int<lower=2> J; // number of donor series
   int<lower=1> N; // number of treated series
@@ -62,12 +63,14 @@ data {
   int<lower=0, upper=8> pr_dist_intercept;
   int<lower=0, upper=8> pr_dist_beta;
   int<lower=0, upper=8> pr_dist_kappa;
+  int<lower=0, upper=8> pr_dist_nu;
   int<lower=0, upper=8> pr_dist_rho;
   matrix[N, 2] pr_pars_sigma;
   vector[N] pr_pars_omega;
   matrix[use_alpha ? N : 0, 3] pr_pars_intercept;
   matrix[K, 3] pr_pars_beta;
   matrix[L, 2] pr_pars_kappa;
+  matrix[use_nu ? L : 0, 3] pr_pars_nu;
   matrix[use_ar1 ? N : 0, 2] pr_pars_rho;
   int<lower=0, upper=1> noncentered_xi;
   int<lower=0> n_missing; // number of missing treated observations
@@ -131,6 +134,7 @@ transformed data {
       }
     }
   }
+  vector[T] trend = linspaced_vector(T, 1, T) - 0.5 * (max(T_pre) + 1);
 }
 parameters {
   //not supported on the current CRAN versions (as in April 2026)
@@ -140,9 +144,10 @@ parameters {
   vector[use_alpha ? N : 0] a; // working intercept
   vector[use_beta ? K : 0] beta; // regression coefficients
   matrix[D, use_gamma ? L : 0] xi; // spline coefficients
-  vector<lower=0>[use_gamma ? L : 0] kappa; // SD of RW1 prior xi
+  vector<lower=0>[use_gamma ? L : 0] kappa; // SD of RW1/RW2 prior xi
+  vector[use_nu ? L : 0] nu; // slope of gamma in case of RW2 prior
   vector<lower=-1, upper=1>[use_ar1 ? N : 0] rho; // autoregressive parameters
-  vector[n_missing] y_imp; // imputed values for missing treated observations
+  vector[n_missing] y_imputed; // imputed values for missing treated observations
 }
 transformed parameters {
   matrix[J, N] omega;
@@ -161,6 +166,9 @@ transformed parameters {
     gamma = A * diag_post_multiply(xi, kappa);
   } else {
     gamma = A * xi;
+  }
+  if (use_nu) {
+    gamma += trend * nu';
   }
 }
 model {
@@ -204,6 +212,13 @@ model {
   } else if (pr_dist_kappa == 6) {
     kappa ~ normal(0, pr_pars_kappa[ : , 1]);
   }
+  // prior for nu
+  if (pr_dist_nu == 1) {
+    nu ~ normal(pr_pars_nu[ : , 1], pr_pars_nu[ : , 2]);
+  } else if (pr_dist_nu == 2) {
+    nu ~ student_t(pr_pars_nu[ : , 1], pr_pars_nu[ : , 2],
+    pr_pars_nu[ : , 3]);
+  }
   if (noncentered_xi) {
     to_vector(xi) ~ std_normal();
   } else {
@@ -218,7 +233,7 @@ model {
   if (likelihood) {
     array[N] vector[T] y_full = y;
     for (m in 1 : n_missing) {
-      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imp[m];
+      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imputed[m];
     }
     matrix[T, N] Z_term = cZ * omega;
     if (use_beta) {

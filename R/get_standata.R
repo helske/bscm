@@ -48,23 +48,22 @@ get_standata.bscmfit <- function(x, ...) {
 
   spline_def <- if (x$setup$has_w) {
     build_spline(
-      x$setup$T_total,
-      x$setup$T_pre,
-      x$setup$spline_df,
-      x$setup$knot_spacing,
-      x$setup$spline_type,
-      x$setup$noncentered_xi
+      T_total = x$setup$T_total,
+      T_pre = x$setup$T_pre,
+      spline_df = x$setup$spline_df,
+      knot_spacing = x$setup$knot_spacing,
+      type = x$setup$spline_type,
+      noncentered = x$setup$noncentered_xi
     )
   }
   standata <- create_standata(
-    x$setup,
-    x$priors,
-    Y,
-    Z,
-    X_y,
-    X_z,
-    spline_def,
-    x$setup$prior_only
+    setup = x$setup,
+    priors = x$priors,
+    Y = Y,
+    Z = Z,
+    X_y = X_y,
+    X_z = X_z,
+    spline_def = spline_def
   )
   standata$missing_idx <- missing_idx
   standata$n_missing <- nrow(missing_idx)

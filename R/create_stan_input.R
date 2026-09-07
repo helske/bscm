@@ -84,6 +84,8 @@ compute_descriptives <- function(
       pooled_within_sd,
       n = T_pre
     )
+    max_T_pre <- max(T_pre)
+    out$sd_t <- sqrt(max_T_pre * (max_T_pre + 1) / 12)
   }
   out
 }
@@ -96,6 +98,7 @@ prior_to_stan <- function(x, type) {
     intercept = 3L,
     beta = 3L,
     kappa = 2L,
+    nu = 3L,
     rho = 2L
   )
   if (type == "omega") {
@@ -162,8 +165,7 @@ create_standata <- function(
   Z,
   X_y = NULL,
   X_z = NULL,
-  spline_def = NULL,
-  prior_only = FALSE
+  spline_def = NULL
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -176,13 +178,14 @@ create_standata <- function(
   }
   D <- spline_def$D %||% 0
   A <- spline_def$A %||% matrix(0, 0, 0)
-  noncentered_xi <- as.integer(spline_def$noncentered %||% 0)
+  noncentered_xi <- as.integer(spline_def$noncentered_xi %||% 0)
 
   c(
     list(
       use_alpha = as.integer(setup$has_icpt),
       use_beta = as.integer(setup$has_x),
       use_gamma = as.integer(setup$has_w),
+      use_nu = as.integer(setup$has_w && spline_def$type == "rw2"),
       use_ar1 = as.integer(setup$has_ar1),
       J = J,
       N = N,
@@ -197,14 +200,14 @@ create_standata <- function(
       X_z = X_z,
       tv_idx = array(setup$tv_idx),
       A = A,
-      likelihood = as.integer(!prior_only),
+      likelihood = as.integer(!setup$prior_only),
       noncentered_xi = noncentered_xi,
       missing_idx = setup$missing_idx,
       n_missing = nrow(setup$missing_idx)
     ),
     unlist(
       lapply(
-        c("sigma", "omega", "intercept", "beta", "kappa", "rho"),
+        c("sigma", "omega", "intercept", "beta", "kappa", "nu", "rho"),
         \(i) prior_to_stan(priors[[i]], i)
       ),
       recursive = FALSE
@@ -215,7 +218,7 @@ create_standata <- function(
 create_inits <- function(x, d, spline_def) {
   eta <- matrix(0, x$N, x$J - 1)
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
-  a <- beta <- rho <- kappa <- array(0, 0)
+  a <- beta <- rho <- kappa <- nu <- array(0, 0)
   xi <- matrix(0, 0, 0)
   if (x$use_alpha) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
@@ -226,10 +229,13 @@ create_inits <- function(x, d, spline_def) {
     if (x$use_gamma) {
       xi <- matrix(0, x$D, x$L)
       kappa <- array(stats::runif(x$L, 0.01, 0.05))
+      if (x$use_nu) {
+        nu <- array(stats::rnorm(x$L, 0, 0.05 * sd_yx / d$sd_t))
+      }
     }
   }
   if (x$use_ar1) {
     rho <- array(stats::runif(x$N, 0, 0.5))
   }
-  dplyr::lst(eta, sigma, a, beta, xi, kappa, rho)
+  dplyr::lst(eta, sigma, a, beta, xi, kappa, nu, rho)
 }

@@ -8,41 +8,38 @@ build_spline <- function(
   spline_df = NULL,
   knot_spacing = NULL,
   type = "rw2",
-  noncentered = TRUE,
-  scale = "gm"
+  noncentered = TRUE
 ) {
+  degree <- 3L
   T_pre <- max(T_pre)
   if (!is.null(knot_spacing)) {
     h <- knot_spacing
   } else {
-    h <- (T_pre - 1) / (spline_df - 3)
+    h <- (T_pre - 1L) / (spline_df - degree)
   }
-  lb <- 1 - 5 * h
-  rb <- 1 + (ceiling((T_total - 1) / h) + 5) * h
-  knots <- seq(lb + h, rb - h, by = h)
 
-  B <- splines::bs(
-    seq_len(T_total),
-    knots = knots,
-    intercept = TRUE,
-    Boundary.knots = c(lb, rb)
-  )
-  B <- B[, 5:(ncol(B) - 4), drop = FALSE]
-  D <- ncol(B)
-  d <- diag(D)
+  n <- ceiling((T_total - 1) / h)
+  knots <- 1 + h * seq.int(-degree, n + degree)
+  B <- splines::splineDesign(knots, seq_len(T_total), ord = degree + 1)
+
+  d <- diag(ncol(B))
   L <- lower.tri(d, diag = TRUE)
   M <- B %*% L
   if (type == "rw2") {
     M <- M %*% L
-  }
-  a <- colSums(M[seq_len(T_pre), , drop = FALSE])
-  Q <- qr.Q(qr(cbind(a, d)))[, -1]
-  A <- M %*% Q
-  if (scale == "gm") {
-    A <- A / sqrt(exp(mean(log(rowSums(A[seq_len(T_pre), , drop = FALSE]^2)))))
+    tc <- seq_len(T_total) - mean(seq_len(T_pre))
+    a <- colSums(M[seq_len(T_pre), , drop = FALSE])
+    b <- as.vector(tc[seq_len(T_pre)] %*% M[seq_len(T_pre), , drop = FALSE])
+    Q <- qr.Q(qr(cbind(a, b, d)))[, -(1:2)]
+    A <- M %*% Q
   } else {
-    A <- A / sqrt(mean(rowSums(A[seq_len(T_pre), , drop = FALSE]^2)))
+    a <- colSums(M[seq_len(T_pre), , drop = FALSE])
+    Q <- qr.Q(qr(cbind(a, d)))[, -1]
+    A <- M %*% Q
   }
+  scale <- sqrt(exp(mean(log(rowSums(A[seq_len(T_pre), , drop = FALSE]^2)))))
+  A <- A / scale
+
   list(
     A = A,
     D = ncol(A),

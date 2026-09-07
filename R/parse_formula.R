@@ -5,6 +5,21 @@
 #' [bscm()]. You should not call `tv()` separately, instead it should be part
 #' of a formula, e.g., `y ~ x + tv(~ z * w, df = 20)`.
 #'
+#' The total effect of a time-varying predictor is `beta + gamma_t`, where
+#' `beta` is the average level of the effect in the pre-treatment period and
+#' `gamma_t` the deviation from that level, constrained to be zero on average
+#' in the pre-treatment period. With `type = "rw2"`, the linear trend of the
+#' spline is modelled separately, so that `gamma_t = nu * t_c + (A xi)_t`,
+#' where `t_c` is the time index centered at the pre-treatment period, `nu`
+#' the slope, `A` the constrained spline basis, and `xi` the spline
+#' coefficients with standard deviation `kappa`.
+#'
+#' Note that `gamma_t` is the complete time-varying coefficient, i.e. it
+#' already contains the `nu` term. The total effect is therefore
+#' `beta + gamma_t`, and adding `nu` to it would count the linear trend twice.
+#' See [coef.bscmfit()] for the total effect, and [as_draws.bscmfit()] for the
+#' individual components `beta`, `nu`, `gamma`, `kappa`, and `xi`.
+#'
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
 #' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
@@ -113,7 +128,7 @@ parse_bscm_formula <- function(formula) {
         w_formula = NULL,
         w_terms = character(0),
         spline_df = 0,
-        spline_type = "ts",
+        spline_type = "none",
         noncentered_xi = TRUE
       )
     )

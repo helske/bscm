@@ -5,7 +5,7 @@
 #' specify prior distributions for parameters of the Bayesian synthetic
 #' control model estimated by [bscm()].
 #'
-#' For parameters that can take any real value (`alpha`, `beta`),
+#' For parameters that can take any real value (`alpha`, `beta`, `nu`),
 #' currently supported prior distributions are `normal_pr(location, scale)` and
 #' `student_pr(df, location, scale)`. Note however that for the intercept the
 #' prior corresponds to a value of the intercept when donors and predictors
@@ -340,6 +340,9 @@ default_priors <- function(d, setup, spline_def) {
     pr_beta <- normal_pr(0, signif(2 * sd_yx, 2))
     if (setup$has_w) {
       pr_kappa <- half_normal_pr(signif(0.5 * sd_yx[setup$tv_idx], 2))
+      if (setup$spline_type == "rw2") {
+        pr_nu <- normal_pr(0, signif(2 * sd_yx[setup$tv_idx] / d$sd_t, 2))
+      }
     }
   }
   if (setup$has_ar1) {
@@ -351,6 +354,7 @@ default_priors <- function(d, setup, spline_def) {
     intercept = pr_alpha,
     beta = pr_beta,
     kappa = pr_kappa,
+    nu = pr_nu,
     rho = pr_rho
   )
   priors[lengths(priors) > 0]
@@ -367,6 +371,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     intercept = c("normal", "student_t"),
     beta = c("normal", "student_t"),
     kappa = c("exponential", "gamma", "half_normal"),
+    nu = c("normal", "student_t"),
     rho = "beta"
   )
   stopifnot_(
@@ -377,8 +382,9 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   stopifnot_(
     length(invalid_priors) == 0,
     c(
-      "Invalid parameter names in {.arg priors}.",
-      i = "Model parameter are {names(valid_priors)}."
+      "Invalid parameter {cli::qty(invalid_priors)}name{?s} in {.arg priors}:
+      {.val {invalid_priors}}.",
+      i = "Parameters of this model are {.val {names(defaults)}}."
     )
   )
   for (nm in names(priors)) {

@@ -47,7 +47,7 @@ parameters {
   vector[use_beta ? K : 0] beta; // regression coefficients
   matrix[use_gamma ? T : 0, L] gamma; // time-varying regression coefficients
   vector[use_ar1 ? N : 0] rho; // autoregressive parameters
-  vector[n_missing] y_imp; // imputed values for missing treated observations
+  vector[n_missing] y_imputed; // imputed values for missing treated observations
 }
 generated quantities {
   matrix[T, N] y_mean = Z * omega;
@@ -76,7 +76,7 @@ generated quantities {
   if (use_ar1) {
     array[N] vector[T] y_full = y;
     for (m in 1 : n_missing) {
-      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imp[m];
+      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imputed[m];
     }
     for (i in 1 : N) {
       int Ti = T_pre[i];
