@@ -19,11 +19,11 @@
 #' in `tv()`, e.g., `outcome ~ x + tv(~ z, df = 10, type = "rw1")` defines a
 #' model where `x` has a time-constant coefficient and `z` has a time-varying
 #' coefficient following penalized cubic spline with `10` spline basis
-#' functions and random walk prior on the spline coefficients.
-#' Terms inside `tv()` are automatically also included in the
+#' functions and first or second order random walk prior on the spline
+#' coefficients. Terms inside `tv()` are automatically also included in the
 #' time-constant part of the model, since the time-varying coefficients
 #' are defined to have zero mean in the pre-treatment period (in case of
-#' multiple treated units, minimum period). Note that a common time-varying
+#' multiple treated units, maximum period). Note that a common time-varying
 #' intercept is omitted as it would cancel out in the linear predictor.
 #'
 #' Both the time-constant and time-varying regression part is assumed to apply
@@ -286,34 +286,23 @@ bscm <- function(
     stan_args$warmup <- 2500L
   }
   stan_args$object <- stanmodels$bscm
-  if (is.null(stan_args$include)) {
-    stan_args$include <- FALSE
-    exclude_pars <- c(
-      if (!has_icpt) "alpha",
-      if (!has_x) "beta",
-      if (!has_w) c("gamma", "kappa"),
-      if (error != "ar1") "rho"
-    )
-    exclude_extras <- c("eta", "a", "xi")
-    if (is.null(stan_args$pars)) {
-      stan_args$pars <- c(exclude_pars, exclude_extras)
-    } else {
-      stan_args$pars <- union(stan_args$pars, exclude_extras)
-    }
-    setup$excluded_pars <- stan_args$pars
-  } else {
-    if (!stan_args$include) {
-      setup$excluded_pars <- stan_args$pars
-    }
-  }
+  stan_args$include <- FALSE
+  stan_args$pars <- setup$excluded_pars <- c(
+    if (!has_icpt) "alpha",
+    if (!has_x) "beta",
+    if (!has_w) c("gamma", "kappa"),
+    if (spline_type != "rw2") "nu",
+    if (error != "ar1") "rho"
+  )
+
   if (setup$has_w) {
     spline_def <- build_spline(
-      T_total,
-      T_pre,
-      spline_df,
-      knot_spacing,
-      spline_type,
-      noncentered_xi
+      T_total = T_total,
+      T_pre = T_pre,
+      spline_df = spline_df,
+      knot_spacing = knot_spacing,
+      type = spline_type,
+      noncentered = noncentered_xi
     )
   } else {
     spline_def <- NULL
@@ -321,14 +310,13 @@ bscm <- function(
   descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z, beta_names)
   priors <- define_priors(priors, descriptives, setup, spline_def)
   stan_args$data <- create_standata(
-    setup,
-    priors,
-    Y,
-    Z,
-    X_y,
-    X_z,
-    spline_def,
-    prior_only
+    setup = setup,
+    priors = priors,
+    Y = Y,
+    Z = Z,
+    X_y = X_y,
+    X_z = X_z,
+    spline_def = spline_def
   )
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
