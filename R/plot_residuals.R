@@ -50,11 +50,11 @@ plot_residuals.bscmfit <- function(
   qs <- paste0("q", 100 * probs)
   if (identical(type, "time")) {
     d <- residuals_draws(x) |>
-      summarise_column("residuals", probs, for_plots = TRUE)
+      summarise_column("residuals", probs, diagnostics = FALSE)
   } else {
     check_max_lag(max_lag)
     d <- residual_acf_draws(x, units, max_lag) |>
-      summarise_column("ac", probs, for_plots = TRUE)
+      summarise_column("ac", probs, diagnostics = FALSE)
   }
   plots <- lapply(
     units,

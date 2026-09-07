@@ -47,11 +47,11 @@ plot_effects.bscmfit <- function(
   qs <- paste0("q", 100 * probs)
   if (average && get_N(x) > 1L) {
     d <- effects_draws(x, average = TRUE) |>
-      summarise_column("effect", probs, for_plots = TRUE)
+      summarise_column("effect", probs, diagnostics = FALSE)
     return(average_effect_plot(d, time, qs))
   }
   d <- effects_draws(x) |>
-    summarise_column("effect", probs, for_plots = TRUE)
+    summarise_column("effect", probs, diagnostics = FALSE)
   plots <- lapply(
     units,
     \(i) {

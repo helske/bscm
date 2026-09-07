@@ -44,11 +44,11 @@ plot_covariate_imbalance.bscmfit <- function(
   qs <- paste0("q", 100 * probs)
   if (average && get_N(x) > 1L) {
     d <- covariate_imbalance_draws(x, average = TRUE) |>
-      summarise_column("imbalance", probs, for_plots = TRUE)
+      summarise_column("imbalance", probs, diagnostics = FALSE)
     return(imbalance_plot(d, time, qs, alpha, id = NULL))
   }
   d <- covariate_imbalance_draws(x) |>
-    summarise_column("imbalance", probs, for_plots = TRUE)
+    summarise_column("imbalance", probs, diagnostics = FALSE)
   unit_col <- get_unit(x)
   plots <- lapply(
     units,
@@ -126,11 +126,11 @@ plot_covariate_adjustment.bscmfit <- function(
   qs <- paste0("q", 100 * probs)
   if (average && get_N(x) > 1L) {
     d <- covariate_adjustment_draws(x, average = TRUE) |>
-      summarise_column("adjustment", probs, for_plots = TRUE)
+      summarise_column("adjustment", probs, diagnostics = FALSE)
     return(adjustment_plot(d, time, qs, alpha, scales, id = NULL, ...))
   }
   d <- covariate_adjustment_draws(x) |>
-    summarise_column("adjustment", probs, for_plots = TRUE)
+    summarise_column("adjustment", probs, diagnostics = FALSE)
   unit_col <- get_unit(x)
   plots <- lapply(
     units,

@@ -84,7 +84,7 @@ plot_weights.bscmfit <- function(
   unit <- get_unit(x)
   w <- weights_draws(x)
   donors <- order_donors(x, order, w)
-  weights <- summarise_column(w, "weight", probs, for_plots = TRUE)
+  weights <- summarise_column(w, "weight", probs, diagnostics = FALSE)
   if (is.null(reverse)) {
     reverse <- ifelse(isTRUE(order == "ascending"), FALSE, TRUE)
   }

@@ -33,24 +33,19 @@ try_ <- function(expr) {
 }
 #' custom summary function for posterior::summarise_draws()
 #' @param x draws object
+#' @param probs quantile probabilities
+#' @param diagnostics if `TRUE` (the default), the summaries also contain the
+#'   MCMC convergence measures and the Monte Carlo standard error of the mean
 #' @noRd
-summarise_with_probs <- function(x, probs, for_plots = FALSE) {
-  if (for_plots) {
-    posterior::summarise_draws(
-      x,
-      mean,
-      if (length(probs) > 1) ~ posterior::quantile2(.x, probs = probs)
-    )
-  } else {
-    posterior::summarise_draws(
-      x,
-      mean,
-      sd,
-      if (length(probs) > 0) ~ posterior::quantile2(.x, probs = probs),
-      posterior::default_convergence_measures(),
-      "mcse_mean"
-    )
-  }
+summarise_with_probs <- function(x, probs, diagnostics = TRUE) {
+  posterior::summarise_draws(
+    x,
+    mean,
+    sd,
+    if (length(probs) > 0) ~ posterior::quantile2(.x, probs = probs),
+    if (diagnostics) posterior::default_convergence_measures(),
+    if (diagnostics) "mcse_mean"
+  )
 }
 
 log_sum_exp <- function(x) {

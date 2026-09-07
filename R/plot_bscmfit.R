@@ -27,9 +27,9 @@ plot.bscmfit <- function(x, unit = NULL, probs = c(0.025, 0.975), ...) {
   units <- check_units(x, unit)
   d_plot <- dplyr::bind_rows(
     "Treatment effect" = effects_draws(x) |>
-      summarise_column("effect", probs, for_plots = TRUE),
+      summarise_column("effect", probs, diagnostics = FALSE),
     "Synthetic control" = sc_draws(x) |>
-      summarise_column("y_rep", probs, for_plots = TRUE),
+      summarise_column("y_rep", probs, diagnostics = FALSE),
     .id = "type"
   )
   lookup <- stats::setNames(

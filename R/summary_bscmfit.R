@@ -1,65 +1,41 @@
 #' Summarise posterior draws of an estimated Bayesian synthetic control model
 #'
-#' Generates posterior summary statistics for a Bayesian synthetic control
-#' model estimated with [bscm()]. Note that many (more) summaries are available
-#' via separate methods, e.g., [donor_weights()].
+#' Returns posterior summaries of the model parameters, i.e. the posterior
+#' mean, standard deviation, quantiles as defined by the `probs` argument, and
+#' the MCMC convergence measures. The parameters are named as in the posterior
+#' draws, see [as_draws.bscmfit()].
+#'
+#' Note that many (more) summaries are available via separate methods, e.g.,
+#' [donor_weights()], [bayes_R2()], [rmse()], and
+#' [average_treatment_effect()], and that printing the model fit shows the key
+#' quantities of the model, see [print.bscmfit()].
 #'
 #' @param object \[`bscmfit`]\cr The model fit object.
+#' @param parameters \[`character()`]\cr Vector of parameter names. When
+#'   `NULL` (the default), corresponds to a relevant subset of the model
+#'   parameters, as in [as_draws.bscmfit()].
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
-#' @param ... Ignored.
-#' @return A data frame with various posterior summaries of the model.
+#' @param diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the output
+#'   also contains the MCMC convergence measures and the Monte Carlo standard
+#'   error of the mean.
+#' @param ... Additional arguments passed to [as_draws.bscmfit()].
+#' @return A `tibble` with posterior summaries of the model parameters.
+#' @seealso [as_draws.bscmfit()] for the posterior draws themselves.
 #' @aliases summary
 #' @export
-summary.bscmfit <- function(object, probs = c(0.025, 0.975), ...) {
+#' @examples
+#' summary(fit_single_treated)
+summary.bscmfit <- function(
+  object,
+  parameters = NULL,
+  probs = c(0.025, 0.975),
+  diagnostics = TRUE,
+  ...
+) {
   probs <- sort_probs(probs)
-  cf <- rho <- NULL
-  coefs <- c(
-    if (has_intercept(object)) "alpha",
-    if (has_predictors(object)) "beta",
-    if (has_tv_coefs(object)) "kappa",
-    if (has_ar1_error(object)) "rho"
-  )
-  if (length(coefs) > 0) {
-    cf <- coef(
-      object,
-      probs = probs,
-      type = coefs
-    )
-  }
-  s <- sigma(object, probs = probs) |>
-    dplyr::mutate(variable = "Residual SD")
-  r2 <- bayes_R2(object, probs = probs) |>
-    dplyr::mutate(variable = "Bayesian R2")
-  eff <- effective_donors(object, probs = probs) |>
-    dplyr::mutate(variable = "Effective number of donors")
-  treatment <- get_treatment(object)
-  att <- average_treatment_effect(
-    object,
-    average = FALSE,
-    probs = probs
-  ) |>
-    dplyr::rename(variable = treatment) |>
-    dplyr::mutate(
-      variable = dplyr::if_else(
-        .data$variable == 0,
-        "Average pre-treatment effect",
-        "Average post-treatment effect"
-      )
-    )
-  rmses <- rmse(object, average = FALSE, probs = probs) |>
-    dplyr::rename(variable = treatment) |>
-    dplyr::mutate(
-      variable = dplyr::if_else(
-        .data$variable == 0,
-        "Pre-treatment RMSE",
-        "Post-treatment RMSE"
-      )
-    )
-  sumr <- dplyr::bind_rows(cf, s, r2, eff, att, rmses) |>
-    dplyr::relocate("variable", .before = 1L)
-  class(sumr) <- c("summary_bscmfit", class(sumr))
-  attr(sumr, "N") <- get_N(object)
-  attr(sumr, "unit") <- get_unit(object)
-  sumr
+  check_flag(diagnostics, "diagnostics")
+  object |>
+    as_draws(parameters = parameters, ...) |>
+    summarise_with_probs(probs, diagnostics)
 }

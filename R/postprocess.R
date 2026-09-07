@@ -29,12 +29,12 @@ NULL
 #' @param d A `tibble` with an `rvar` column named `column`.
 #' @param column \[`character(1)`]\cr Name of the `rvar` column.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
-#' @param for_plots \[`logical(1)`]\cr See `summarise_with_probs()`.
+#' @param diagnostics \[`logical(1)`]\cr See `summarise_with_probs()`.
 #' @noRd
-summarise_column <- function(d, column, probs, for_plots = FALSE) {
+summarise_column <- function(d, column, probs, diagnostics = TRUE) {
   # the summaries are bound rather than mutated in, so that a `variable`
   # column of `d` is not overwritten by the one `summarise_draws()` adds
-  summaries <- summarise_with_probs(d[[column]], probs, for_plots) |>
+  summaries <- summarise_with_probs(d[[column]], probs, diagnostics) |>
     dplyr::select(-"variable")
   d |>
     dplyr::select(-dplyr::all_of(column)) |>

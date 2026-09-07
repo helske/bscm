@@ -1,10 +1,10 @@
 #' Visualize regression coefficients of Bayesian synthetic control model
 #'
-#' Plots posterior means and posterior intervals for the model coefficients.
-#' For time-constant coefficients (`type = "fixed"`), a horizontal point-range
-#' plot is produced. For time-varying coefficients (`type = "varying"`), a
-#' ribbon-and-line plot of the total effect `beta + gamma_t` over time is
-#' produced, faceted by parameter.
+#' Plots posterior means and posterior intervals for the coefficients of the
+#' predictors. For time-constant coefficients (`type = "fixed"`), a horizontal
+#' point-range plot is produced. For time-varying coefficients
+#' (`type = "varying"`), a ribbon-and-line plot of the total effect
+#' `beta + gamma_t` over time is produced, faceted by parameter.
 #'
 #' @param x \[`bscmfit`]\cr Output from [bscm()].
 #' @param type \[`character(1)`]\cr Type of coefficients to plot. Either
@@ -53,6 +53,10 @@ plot_coefs.bscmfit <- function(
 
   probs <- interval_probs(probs)
   if (type == "fixed") {
+    stopifnot_(
+      length(fixed_idx(x)) > 0L,
+      "The model does not contain any time-constant coefficients."
+    )
     plot_coefs_fixed(x, probs = probs)
   } else {
     stopifnot_(
@@ -72,8 +76,10 @@ plot_coefs.bscmfit <- function(
 #' @noRd
 plot_coefs_fixed <- function(x, probs) {
   d <- coef_draws(x, "fixed") |>
-    summarise_column("coef", probs, for_plots = TRUE) |>
-    dplyr::mutate(parameter = factor(parameter, levels = d$parameter))
+    summarise_column("coef", probs, diagnostics = FALSE) |>
+    dplyr::mutate(
+      parameter = factor(.data$parameter, levels = unique(.data$parameter))
+    )
   qs <- paste0("q", 100 * probs)
   ggplot(d, aes(.data$mean, .data$parameter)) +
     geom_linerange(
@@ -94,8 +100,10 @@ plot_coefs_varying <- function(x, probs, alpha, scales) {
   time_var <- get_time(x)
   qs <- paste0("q", 100 * probs)
   d <- coef_draws(x, "varying") |>
-    summarise_column("coef", probs, for_plots = TRUE) |> 
-    dplyr::mutate(parameter = factor(parameter, levels = d$parameter))
+    summarise_column("coef", probs, diagnostics = FALSE) |> 
+    dplyr::mutate(
+      parameter = factor(.data$parameter, levels = unique(.data$parameter))
+    )
   ggplot(d, aes(.data[[time_var]], .data$mean)) +
     geom_ribbon(
       aes(ymin = .data[[qs[1]]], ymax = .data[[qs[2]]]),
