@@ -328,10 +328,16 @@ bscm <- function(
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions
-  gq <- rstan::gqs(
-    stanmodels$generated_quantities,
-    data = stan_args$data,
-    draws = as.matrix(fit)
+  # `rstan::gqs()` has no `refresh` argument, and since stan-dev/stan#3373 the
+  # standalone generated quantities always writes its elapsed time
+  # to the standard output
+  utils::capture.output(
+    gq <- rstan::gqs(
+      stanmodels$generated_quantities,
+      data = stan_args$data,
+      draws = as.matrix(fit)
+    ),
+    type = "output"
   )
 
   out <- list(

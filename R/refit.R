@@ -20,10 +20,13 @@ refit_bscm <- function(x, standata) {
   )
   fit <- do.call(rstan::sampling, stan_args)
 
-  gq <- rstan::gqs(
-    stanmodels$generated_quantities,
-    data = standata,
-    draws = as.matrix(fit)
+  utils::capture.output(
+    gq <- rstan::gqs(
+      stanmodels$generated_quantities,
+      data = standata,
+      draws = as.matrix(fit)
+    ),
+    type = "output"
   )
 
   out <- list(
