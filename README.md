@@ -39,36 +39,39 @@ library(bscm)
 set.seed(3546)
 fit <- bscm(
     y ~ x, data = single_treated, 
-    treatment = "treatment",  time = "time",  unit = "id"
+    treatment = "treatment",  time = "time",  unit = "id",
+    chains = 2, refresh = 0, 
+    priors = list(omega = dirichlet_pr(0.5), beta = normal_pr(0, 2))
 )
 ```
 Basic summary of the estimated model:
 ``` r
-fit
 Call:
 bscm(formula = y ~ x, data = single_treated, treatment = "treatment", 
-    time = "time", unit = "id")
+    time = "time", unit = "id", priors = list(omega = dirichlet_pr(0.5), 
+        beta = normal_pr(0, 2)), chains = 2, refresh = 0)
 
 Bayesian synthetic control model y ~ x  
 Treated unit: 1 
 Number of donors: 50 
 Number of time periods (pre + post): 40 + 10 
-MCMC sampling using 4 chains, each with 2500 + 2500 iterations took 6.82 seconds for the slowest chain
+MCMC sampling using 2 chains, each with 2500 + 2500 iterations took 5.77 seconds for the slowest chain
 
 MCMC diagnostics indicate no issues. 
-```
-``` r
-summary(fit)
-  variable                          mean      sd   q2.5  q97.5  rhat ess_bulk ess_tail mcse_mean
-1 Intercept                      0.506   0.370   -0.223  1.24   1.00   11183.    9289. 0.00350  
-2 beta_x                         1.01    0.0703   0.874  1.15   1.00   10267.    7509. 0.000695 
-3 Residual SD                    0.781   0.112    0.595  1.03   1.00    8848.    8223. 0.00120  
-4 Bayesian R2                    0.988   0.00352  0.979  0.993  1.00    8757.    8100. 0.0000384
-5 Effective number of donors    23.0     3.70    15.2   29.8    1.00    6816.    8774. 0.0448   
-6 Average pre-treatment effect  -0.00158 0.175   -0.352  0.339  1.00   10068.    8911. 0.00175  
-7 Average post-treatment effect  6.57    0.331    5.94   7.24   1.00   10120.    9078. 0.00329  
-8 Pre-treatment RMSE             1.08    0.152    0.821  1.41   1.00    8384.    8599. 0.00167  
-9 Post-treatment RMSE            7.61    0.332    6.99   8.29   1.00    9860.    9234. 0.00335  
+
+Summary statistics of the time-invariant parameters:
+  variable     mean     sd   q2.5 q97.5
+1 Intercept   0.455 0.395  -0.313 1.23 
+2 beta_x      1.01  0.0687  0.870 1.14 
+3 Residual SD 0.678 0.0977  0.515 0.900
+
+Average treatment effects and measures of model fit:
+  variable                            mean      sd   q2.5 q97.5
+1 Average pre-treatment effect  -0.0000702 0.156   -0.303 0.314
+2 Average post-treatment effect  6.33      0.331    5.69  6.99 
+3 Bayesian R2                    0.991     0.00271  0.984 0.995
+4 Pre-treatment RMSE             0.946     0.136    0.714 1.24 
+5 Post-treatment RMSE            7.29      0.340    6.64  7.99
 ```
 And default visualization:
 ``` r

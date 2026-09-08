@@ -37,43 +37,39 @@ loo_R2.bscmfit <- function(
     set.seed(get_stanfit(object)@stan_args[[1]]$seed)
   }
   T_pre <- get_T_pre(object)
+  T_total <- get_T_total(object)
   unit <- get_unit(object)
-  outcome <- get_outcome(object)
   treated <- get_treated(object)
   N <- get_N(object)
   mu_y <- posterior_epred(object)
   log_ratios <- -log_lik(object)
-  cs <- cumsum(T_pre)
-  idx1 <- stats::setNames(1L + c(0L, cs[-N]), treated)
-  idx2 <- stats::setNames(cs, treated)
+  y <- get_stan_y(object)
+  t_obs <- lapply(seq_len(N), \(i) which(!is.na(y[seq_len(T_pre[i]), i])))
+  offset <- c(0L, cumsum(lengths(t_obs)))
   d <- lapply(
-    treated,
-    \(id) {
-      y <- object$data |>
-        dplyr::filter(.data[[unit]] == .env$id) |>
-        dplyr::pull(.data[[outcome]])
-      y <- y[seq_len(T_pre[id])]
-      idx <- idx1[id]:idx2[id]
-      lr <- log_ratios[, idx, drop = FALSE]
+    seq_len(N),
+    \(i) {
+      y_i <- y[t_obs[[i]], i]
+      n_obs <- length(t_obs[[i]])
+      lr <- log_ratios[, offset[i] + seq_len(n_obs), drop = FALSE]
       psis_object <- loo::psis(lr)
       mu_y_loo <- loo::E_loo(
-        mu_y[, idx, drop = FALSE],
+        mu_y[, (i - 1L) * T_total + t_obs[[i]], drop = FALSE],
         psis_object,
         log_ratios = lr
       )$value
-      e_loo <- mu_y_loo - y
+      e_loo <- mu_y_loo - y_i
       # Dirichlet weights for Bayesian bootstrap
       S <- nrow(mu_y)
-      T_pre <- length(idx)
-      w <- matrix(stats::rexp(S * T_pre), nrow = S, ncol = T_pre)
+      w <- matrix(stats::rexp(S * n_obs), nrow = S, ncol = n_obs)
       w <- t(w / rowSums(w))
-      ss_y <- (colSums(w * y^2) - colSums(w * y)^2)
+      ss_y <- (colSums(w * y_i^2) - colSums(w * y_i)^2)
       ss_e_loo <- (colSums(w * e_loo^2) - colSums(w * e_loo)^2)
       r2 <- 1 - ss_e_loo / ss_y
       r2[r2 < -1] <- -1
       r2[r2 > 1] <- 1
       dplyr::tibble(
-        "{unit}" := id,
+        "{unit}" := treated[i],
         R2 = posterior::draws_rvars(r2 = r2)$r2
       )
     }

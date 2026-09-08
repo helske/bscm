@@ -1,12 +1,14 @@
 # bscm 1.0.2
 
+* Fixed `loo_R2` for multiple treated units.
 * `coef` now returns the total effect of each predictor instead of the
   individual model parameters, one type at a time: the intercepts with
   `type = "intercept"`, the coefficients of the predictors whose effect is
   constant with `type = "fixed"` (the default), and the total effect
   `beta + gamma_t` of each time-varying predictor at each time point with
   `type = "varying"`.
-* `plot_coefs` no longer has an argument `combine`, and always shows the total effect `beta + gamma_t` of the time-varying predictors. 
+* `plot_coefs` no longer has an argument `combine`, and always shows the total 
+  effect `beta + gamma_t` of the time-varying predictors. 
 * `summary` now returns posterior summaries of the model parameters, named as
   in the posterior draws, and no longer has a class and a print method of its
   own. It gained an argument `parameters` for selecting the parameters to
@@ -34,7 +36,8 @@
   the pre-treatment period.
 * Default `type` argument in `tv()` is now `rw2` matching the second difference 
   penalty of the spline coefficients (old default was `rw1` for first 
-  differences).
+  differences). Use of `rw2` adds another parameter `nu`, which is the slope 
+  of the linear trend in `gamma`.
 * Fixes and changes to `plot` methods: visualization is now separated from the 
   the summary methods, with argument `unit` specifying which units to plot.
 * Fixed the generation of posterior predictive means for the post-treatment 

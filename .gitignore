@@ -1,6 +1,7 @@
 air.toml
 .Rproj.user
 .Rhistory
+.bscm.Rproj
 *.o
 *.cc
 *.h
