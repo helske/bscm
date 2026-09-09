@@ -26,7 +26,7 @@ test_that("as_draws_rvars returns a draws_rvars", {
   expect_equal(nchains(d), 2L)
   d <- as_draws_rvars(fit1_int, "omega", include = FALSE)
   expect_equal(
-    posterior::variables(d), 
-    c("eta", "sigma",  "a", "alpha", "lp__")
+    posterior::variables(d),
+    c("eta", "sigma", "a", "alpha", "lp__")
   )
 })

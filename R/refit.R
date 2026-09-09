@@ -16,7 +16,7 @@ refit_bscm <- function(x, standata) {
     refresh = 0L,
     init = init,
     include = FALSE,
-    excluded_pars = x$setup$excluded_pars
+    pars = x$setup$excluded_pars
   )
   fit <- do.call(rstan::sampling, stan_args)
 

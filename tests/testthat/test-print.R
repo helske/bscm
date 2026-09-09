@@ -38,8 +38,11 @@ test_that("print.bscmfit shows the summaries of the model parameters", {
   suppressWarnings(out <- capture.output(print(fit1_x)))
   expect_true(
     any(
-      grepl("Summary statistics of the time-invariant parameters", 
-            out, fixed = TRUE)
+      grepl(
+        "Summary statistics of the time-invariant parameters",
+        out,
+        fixed = TRUE
+      )
     )
   )
   expect_true(any(grepl("Intercept", out, fixed = TRUE)))

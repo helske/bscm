@@ -1,9 +1,10 @@
 #' Print method for bscmfit objects
-#'
+#' @param x \[`bscmfit`]\cr The model fit object.
 #' @param diagnostics \[`logical(1)`]\cr If `TRUE`, the printed posterior
 #'   summaries also contain the MCMC convergence measures and the Monte Carlo
 #'   standard error of the mean. Default is `FALSE`, as the convergence of the
 #'   sampling is summarised separately, see [check_mcmc_diagnostics()].
+#' @param ... Ignored.
 #' @rdname print_bscm
 #' @export
 print.bscmfit <- function(x, diagnostics = FALSE, ...) {
