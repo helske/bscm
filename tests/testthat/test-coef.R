@@ -42,7 +42,7 @@ test_that("coef(type = 'varying') equals beta + gamma", {
 test_that("coef() errors for a model without an intercept and predictors", {
   expect_error(
     coef(fit1_noint),
-    "The model does not contain an intercept nor any predictors"
+    "The model contains neither an intercept nor any predictors"
   )
 })
 

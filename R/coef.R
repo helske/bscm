@@ -40,8 +40,11 @@ coef.bscmfit <- function(
   )
   stopifnot_(
     any(available),
-    "The model does not contain {cli::qty(N)} {?an intercept/intercepts} nor
-    any predictors."
+    c(
+      "The model contains neither {cli::qty(N)} {?an intercept/intercepts} nor
+      any predictors.",
+      i = "There are no coefficients to extract."
+    )
   )
   check_flag(summary, "summary")
   probs <- sort_probs(probs)
