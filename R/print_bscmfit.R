@@ -79,7 +79,8 @@ print_estimates <- function(x, probs = c(0.025, 0.975), diagnostics = FALSE) {
     if (has_predictors(x)) "beta",
     if (has_tv_coefs(x) && x$setup$spline_type == "rw2") "nu",
     if (has_tv_coefs(x)) "kappa",
-    if (single && has_ar1_error(x)) "rho"
+    if (single && has_ar1_error(x)) "rho",
+    if (single && has_zeta(x)) "zeta"
   )
   d <- lapply(
     pars,

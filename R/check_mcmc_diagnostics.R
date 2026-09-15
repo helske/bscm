@@ -116,7 +116,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
       n_draws,
       "iterations saturated the maximum tree depth of",
       max_td,
-      "This indicates inefficient sampling, but does not affect the validity",
+      ". This indicates inefficient sampling, but does not affect the validity",
       "of the results."
     )
   )[which(issues)]

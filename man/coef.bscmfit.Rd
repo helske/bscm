@@ -40,8 +40,8 @@ is the average level of the effect in the pre-treatment period and
 the types \code{"fixed"} and \code{"varying"}.
 }
 \details{
-The individual components \code{beta}, \code{nu}, \code{gamma}, \code{kappa} and \code{rho} are not
-returned here; use \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} to extract them.
+The individual components \code{beta}, \code{nu}, \code{gamma}, \code{kappa}, \code{rho} and
+\code{zeta} are not returned here; use \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} to extract them.
 }
 \examples{
 coef(fit_single_treated)

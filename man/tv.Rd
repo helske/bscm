@@ -47,6 +47,6 @@ in the pre-treatment period. With \code{type = "rw2"}, the linear trend of the
 spline is modelled separately, so that \verb{gamma_t = nu * t_c + (A xi)_t},
 where \code{t_c} is the time index centered at the pre-treatment period, \code{nu}
 the slope, \code{A} the constrained spline basis, and \code{xi} the spline
-coefficients with standard deviation \code{kappa}, with separate priors for \code{beta},
-\code{nu}, and \code{kappa}.
+coefficients with standard deviation \code{kappa}, with separate priors
+for \code{beta}, \code{nu}, and \code{kappa}.
 }

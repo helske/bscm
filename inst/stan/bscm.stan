@@ -1,6 +1,4 @@
 functions {
-  
-  
   /*
   * Constrain sum-to-zero vector
   *
@@ -13,15 +11,14 @@ functions {
   */
   vector zero_sum_constrain(vector y) {
     int N = num_elements(y);
-    vector[N + 1] z = zeros_vector(N + 1);
+    vector[N + 1] z = rep_vector(0, N + 1);
     real sum_w = 0;
     for (ii in 1 : N) {
       int i = N - ii + 1;
-      real n = i;
-      real w = y[i] * inv_sqrt(n * (n + 1));
+      real w = y[i] * inv_sqrt(i * (i + 1));
       sum_w += w;
       z[i] += sum_w;
-      z[i + 1] -= w * n;
+      z[i + 1] -= w * i;
     }
     return z;
   }
@@ -44,6 +41,7 @@ data {
   int<lower=0, upper=1> use_gamma;
   int<lower=0, upper=1> use_nu;
   int<lower=0, upper=1> use_ar1;
+  int<lower=0, upper=1> use_zeta;
   int<lower=2> J; // number of donor series
   int<lower=1> N; // number of treated series
   int<lower=2> T; // number of time points
@@ -60,14 +58,16 @@ data {
   int<lower=0, upper=1> likelihood; // if 0, sample from prior only
   int<lower=0, upper=8> pr_dist_sigma;
   int<lower=0, upper=8> pr_dist_omega;
-  int<lower=0, upper=8> pr_dist_intercept;
+  int<lower=0, upper=8> pr_dist_zeta;
+  int<lower=0, upper=8> pr_dist_alpha;
   int<lower=0, upper=8> pr_dist_beta;
   int<lower=0, upper=8> pr_dist_kappa;
   int<lower=0, upper=8> pr_dist_nu;
   int<lower=0, upper=8> pr_dist_rho;
   matrix[N, 2] pr_pars_sigma;
-  vector[N] pr_pars_omega;
-  matrix[use_alpha ? N : 0, 3] pr_pars_intercept;
+  vector[use_zeta ? 0 : N] pr_pars_omega;
+  matrix[use_zeta ? N : 0, 2] pr_pars_zeta;
+  matrix[use_alpha ? N : 0, 3] pr_pars_alpha;
   matrix[K, 3] pr_pars_beta;
   matrix[L, 2] pr_pars_kappa;
   matrix[use_nu ? L : 0, 3] pr_pars_nu;
@@ -79,19 +79,22 @@ data {
 transformed data {
   int T0 = min(T_pre);
   
+  // adjust the marginal standard deviation of elements of sum-to-zero eta
+  // eta ~ N(0, scale), sum(eta) = 0 => marginal SD(eta_i) = 1
+  real scaleJ = sqrt(J * inv(J - 1));
+  
   // vector of concentration parameters for Dirichlet prior of omega
   // or standard deviations for logistic normal
   int<lower=0, upper=1> dirichlet_omega = pr_dist_omega == 7;
   matrix[(J - 1) * dirichlet_omega + 1, N] pr_omega;
-  // scaling for logistic normal prior of omega
-  if (dirichlet_omega) {
-    for (i in 1 : N) {
-      pr_omega[ : , i] = rep_vector(pr_pars_omega[i], J);
+  if (!use_zeta) {
+    if (dirichlet_omega) {
+      for (i in 1 : N) {
+        pr_omega[ : , i] = rep_vector(pr_pars_omega[i], J);
+      }
+    } else {
+      pr_omega[1,  : ] = pr_pars_omega' * scaleJ;
     }
-  } else {
-    // adjust the marginal standard deviation of elements of sum-to-zero eta
-    // eta ~ N(0, scale), sum(eta) = 0 => marginal SD(eta_i) = 1
-    pr_omega[1,  : ] = pr_pars_omega' * sqrt(J * inv(J - 1));
   }
   
   // centered donors
@@ -140,6 +143,7 @@ parameters {
   //not supported on the current CRAN versions (as in April 2026)
   //array[N] sum_to_zero_vector[J] eta;
   array[N] vector[J - 1] eta; // omega ~ dirichlet or logistic normal
+  vector<lower=0>[use_zeta ? N : 0] zeta; // scale of logistic normal
   vector<lower=0>[N] sigma; // SD of the error term
   vector[use_alpha ? N : 0] a; // working intercept
   vector[use_beta ? K : 0] beta; // regression coefficients
@@ -151,7 +155,11 @@ parameters {
 }
 transformed parameters {
   matrix[J, N] omega;
-  if (dirichlet_omega) {
+  if (use_zeta) {
+    for (i in 1 : N) {
+      omega[ : , i] = softmax(zeta[i] * scaleJ * zero_sum_constrain(eta[i]));
+    }
+  } else if (dirichlet_omega) {
     for (i in 1 : N) {
       omega[ : , i] = inv_ilr_simplex_constrain_lp(eta[i]);
     }
@@ -190,12 +198,22 @@ model {
       eta[i] ~ std_normal();
     }
   }
+  // prior for zeta
+  if (use_zeta) {
+    if (pr_dist_zeta == 3) {
+      zeta ~ exponential(pr_pars_zeta[ : , 1]);
+    } else if (pr_dist_zeta == 4) {
+      zeta ~ gamma(pr_pars_zeta[ : , 1], pr_pars_zeta[ : , 2]);
+    } else {
+      zeta ~ normal(0, pr_pars_zeta[ : , 1]);
+    }
+  }
   // prior for alpha
-  if (pr_dist_intercept == 1) {
-    a ~ normal(pr_pars_intercept[ : , 1], pr_pars_intercept[ : , 2]);
-  } else if (pr_dist_intercept == 2) {
-    a ~ student_t(pr_pars_intercept[ : , 1], pr_pars_intercept[ : , 2],
-    pr_pars_intercept[ : , 3]);
+  if (pr_dist_alpha == 1) {
+    a ~ normal(pr_pars_alpha[ : , 1], pr_pars_alpha[ : , 2]);
+  } else if (pr_dist_alpha == 2) {
+    a ~ student_t(pr_pars_alpha[ : , 1], pr_pars_alpha[ : , 2],
+    pr_pars_alpha[ : , 3]);
   }
   // prior for beta
   if (pr_dist_beta == 1) {

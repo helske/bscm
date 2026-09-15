@@ -1,5 +1,18 @@
 # bscm 1.0.2
 
+* The scale of the logistic normal prior of the donor weights `omega` can now
+  be estimated from the data instead of being fixed by the user. Calling
+  `logistic_normal_pr()` without arguments (equivalently,
+  `logistic_normal_pr(NA)`) leaves the scale unspecified, in which case it is
+  a unit-specific model parameter `zeta`. The prior for `zeta` is defined as
+  the element `zeta` of the `priors` list of `bscm`.
+* The elements of the `priors` list can now be named either by the name of the
+  parameter in the posterior draws or by a plain-text synonym: `intercept`,
+  `coef`, `scale_gamma`, `slope_gamma`, `ar1`, `weights`, `sd`, and `scale_omega` for `intercept`, `beta`, `kappa`, `nu`, `rho`, `omega`, `zeta`, and `sigma`
+  respectively.
+* The posterior summaries shown by `print` now use plain-text labels
+  throughout, e.g. `scale_gamma_x` in place of `kappa_x` and `coef_x` in 
+  place of `beta_x`. 
 * Fixed `loo_R2` for multiple treated units.
 * `coef` now returns the total effect of each predictor instead of the
   individual model parameters, one type at a time: the intercepts with

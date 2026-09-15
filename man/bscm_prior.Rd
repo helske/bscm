@@ -26,7 +26,7 @@ half_normal_pr(scale)
 
 dirichlet_pr(concentration)
 
-logistic_normal_pr(scale)
+logistic_normal_pr(scale = NA)
 }
 \arguments{
 \item{location}{The location parameter for the prior.}
@@ -61,7 +61,7 @@ currently supported prior distributions are \code{normal_pr(location, scale)} an
 prior corresponds to a value of the intercept when donors and predictors
 corresponding to time-constant coefficients are centered.
 
-For parameters constrained to be positive (\code{sigma}, \code{kappa}),
+For parameters constrained to be positive (\code{sigma}, \code{kappa}, \code{zeta}),
 supported distributions are \code{exponential_pr(rate)}, \code{gamma_pr(shape, rate)},
 and \code{half_normal_pr(scale)}.
 
@@ -76,10 +76,32 @@ For the donor weight vector \code{omega}, supported priors are
 Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
 \eqn{\alpha_\omega = 1} is uniform over the simplex, and
 \eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
-Logistic normal with with scale \eqn{\sigma_\alpha} is defined as
-\eqn{\omega = \text{softmax}(\eta)},
-where \eqn{\eta \sim N(0, \sigma_\alpha^2 I)} constrained to sum to zero.
-Larger \code{scale} induces more concentrated (sparser) weights.
+Logistic normal with with scale \eqn{\zeta} is defined as
+\eqn{\omega = \text{softmax}(\zeta\eta)},
+where \eqn{\eta \sim N(0, I)} constrained to sum to zero. Larger \eqn{\zeta}
+induces more concentrated (sparser) weights, while \eqn{\zeta \to 0}
+corresponds to the uniform weights \eqn{1/J}.
+
+The concentration parameter of the Dirichlet prior is always fixed, but
+the scale of the logistic normal prior can either be fixed by the user or
+estimated from the data. Calling \code{logistic_normal_pr()} without arguments
+(equivalently, \code{logistic_normal_pr(NA)}) leaves the scale unspecified, in
+which case \eqn{\zeta_i} is a parameter of the model, estimated separately
+for each treated unit \eqn{i}. When the scale is estimated, the prior for
+\eqn{\zeta_i} is defined as the element \code{zeta} of the \code{priors} list of \code{\link[=bscm]{bscm()}}.
+
+Each element of the \code{priors} list of \code{\link[=bscm]{bscm()}} can be named either by the
+name of the model parameter or by a plain-text synonym:\tabular{lll}{
+   Parameter \tab Synonym \tab Quantity \cr
+   \code{alpha} \tab \code{intercept} \tab intercept of each treated unit \cr
+   \code{beta} \tab \code{coef} \tab time-constant regression coefficients \cr
+   \code{kappa} \tab \code{scale_gamma} \tab scale of the time-varying coefficients \cr
+   \code{nu} \tab \code{slope_gamma} \tab trend slope of the time-varying coefficients \cr
+   \code{rho} \tab \code{ar1} \tab autoregressive coefficient of the residuals \cr
+   \code{omega} \tab \code{weights} \tab donor weights \cr
+   \code{zeta} \tab \code{scale_omega} \tab scale of the logistic normal prior \cr
+   \code{sigma} \tab \code{sd} \tab standard deviation of the error term \cr
+}
 }
 \examples{
 normal_pr(c(0, 0), c(1, 2))
@@ -90,6 +112,7 @@ beta_pr(2, 2)
 half_normal_pr(1)
 dirichlet_pr(1)
 logistic_normal_pr(2)
+logistic_normal_pr()
 
 }
 \seealso{

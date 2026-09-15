@@ -46,7 +46,7 @@ test_that("print.bscmfit shows the summaries of the model parameters", {
     )
   )
   expect_true(any(grepl("Intercept", out, fixed = TRUE)))
-  expect_true(any(grepl("beta_x", out, fixed = TRUE)))
+  expect_true(any(grepl("coef_x", out, fixed = TRUE)))
   expect_true(any(grepl("Residual SD", out, fixed = TRUE)))
 })
 

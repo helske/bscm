@@ -44,6 +44,12 @@
 #' the effect of covariates \eqn{X_j \beta} for that donor. Note that
 #' \eqn{\beta} is common across donors and the treated units.
 #'
+#' The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
+#' either a symmetric Dirichlet prior or a logistic normal prior, see
+#' [bscm_prior()]. The concentration parameter of the Dirichlet prior is
+#' always fixed, whereas the scale \eqn{\zeta_i} of the logistic normal prior
+#' can either be fixed by or estimated from the data.
+#'
 #' Model can contain missing values in the outcome variable of the treated,
 #' but not of the donors, nor in the covariates. Missing outcomes are
 #' automatically imputed during MCMC sampling under a missing at random
@@ -251,6 +257,30 @@ bscm <- function(
       )
     }
   }
+  stan_args <- list(...)
+  stan_args$chains <- stan_args$chains %||% 4L
+  if (is.null(stan_args$control$adapt_delta) && has_w) {
+    stan_args$control$adapt_delta <- 0.95
+  }
+  if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
+    stan_args$iter <- 5000L
+    stan_args$warmup <- 2500L
+  }
+  stan_args$object <- stanmodels$bscm
+  stan_args$include <- FALSE
+
+  if (has_w) {
+    spline_def <- build_spline(
+      T_total = T_total,
+      T_pre = T_pre,
+      spline_df = spline_df,
+      knot_spacing = knot_spacing,
+      type = spline_type,
+      noncentered = noncentered_xi
+    )
+  } else {
+    spline_def <- NULL
+  }
   setup <- dplyr::lst(
     outcome,
     treatment,
@@ -265,6 +295,7 @@ bscm <- function(
     has_x = has_x,
     has_w = has_w,
     has_ar1 = error == "ar1",
+    has_zeta = FALSE,
     missing_idx = missing_idx,
     predictors,
     beta_names,
@@ -276,39 +307,18 @@ bscm <- function(
     noncentered_xi,
     prior_only
   )
-  stan_args <- list(...)
-  stan_args$chains <- stan_args$chains %||% 4L
-  if (is.null(stan_args$control$adapt_delta) && has_w) {
-    stan_args$control$adapt_delta <- 0.95
-  }
-  if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
-    stan_args$iter <- 5000L
-    stan_args$warmup <- 2500L
-  }
-  stan_args$object <- stanmodels$bscm
-  stan_args$include <- FALSE
+  descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z, beta_names)
+  priors <- define_priors(priors, descriptives, setup, spline_def)
+  setup$has_zeta <- !is.null(priors$zeta)
   stan_args$pars <- setup$excluded_pars <- c(
     if (!has_icpt) "alpha",
     if (!has_x) "beta",
     if (!has_w) c("gamma", "kappa"),
     if (spline_type != "rw2") "nu",
-    if (error != "ar1") "rho"
+    if (error != "ar1") "rho",
+    if (!setup$has_zeta) "zeta"
   )
 
-  if (setup$has_w) {
-    spline_def <- build_spline(
-      T_total = T_total,
-      T_pre = T_pre,
-      spline_df = spline_df,
-      knot_spacing = knot_spacing,
-      type = spline_type,
-      noncentered = noncentered_xi
-    )
-  } else {
-    spline_def <- NULL
-  }
-  descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z, beta_names)
-  priors <- define_priors(priors, descriptives, setup, spline_def)
   stan_args$data <- create_standata(
     setup = setup,
     priors = priors,

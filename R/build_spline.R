@@ -27,10 +27,10 @@ build_spline <- function(
   M <- B %*% L
   if (type == "rw2") {
     M <- M %*% L
-    tc <- seq_len(T_total) - mean(seq_len(T_pre))
+    tc <- seq_len(T_total) - 0.5 * (T_pre + 1)
     a <- colSums(M[seq_len(T_pre), , drop = FALSE])
     b <- as.vector(tc[seq_len(T_pre)] %*% M[seq_len(T_pre), , drop = FALSE])
-    Q <- qr.Q(qr(cbind(a, b, d)))[, -(1:2)]
+    Q <- qr.Q(qr(cbind(a, b, d)))[, -(1:2), drop = FALSE]
     A <- M %*% Q
   } else {
     a <- colSums(M[seq_len(T_pre), , drop = FALSE])

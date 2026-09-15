@@ -91,17 +91,20 @@ compute_descriptives <- function(
 }
 
 prior_to_stan <- function(x, type) {
+
   max_npar <- switch(
     type,
     sigma = 2L,
     omega = 1L,
-    intercept = 3L,
+    alpha = 3L,
     beta = 3L,
     kappa = 2L,
     nu = 3L,
-    rho = 2L
+    rho = 2L,
+    zeta = 2L
   )
   if (type == "omega") {
+    if (x$zeta) x$length <- 0L
     pars <- array(0, dim = max(0, x$length))
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
@@ -187,6 +190,7 @@ create_standata <- function(
       use_gamma = as.integer(setup$has_w),
       use_nu = as.integer(setup$has_w && spline_def$type == "rw2"),
       use_ar1 = as.integer(setup$has_ar1),
+      use_zeta = as.integer(setup$has_zeta),
       J = J,
       N = N,
       "T" = T_total,
@@ -207,7 +211,7 @@ create_standata <- function(
     ),
     unlist(
       lapply(
-        c("sigma", "omega", "intercept", "beta", "kappa", "nu", "rho"),
+        c("sigma", "omega", "alpha", "beta", "kappa", "nu", "rho", "zeta"),
         \(i) prior_to_stan(priors[[i]], i)
       ),
       recursive = FALSE
@@ -216,9 +220,9 @@ create_standata <- function(
 }
 # x: standata, d: descriptives
 create_inits <- function(x, d, spline_def) {
-  eta <- matrix(0, x$N, x$J - 1)
+  eta <- matrix(rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
-  a <- beta <- rho <- kappa <- nu <- array(0, 0)
+  a <- beta <- rho <- kappa <- nu <- zeta <- array(0, 0)
   xi <- matrix(0, 0, 0)
   if (x$use_alpha) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
@@ -237,5 +241,8 @@ create_inits <- function(x, d, spline_def) {
   if (x$use_ar1) {
     rho <- array(stats::runif(x$N, 0, 0.5))
   }
-  dplyr::lst(eta, sigma, a, beta, xi, kappa, nu, rho)
+  if (x$use_zeta) {
+    zeta <- array(stats::runif(x$N, 0.5, 1))
+  }
+  dplyr::lst(eta, sigma, a, beta, xi, kappa, nu, rho, zeta)
 }

@@ -124,6 +124,12 @@ vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
 
+The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
+either a symmetric Dirichlet prior or a logistic normal prior, see
+\code{\link[=bscm_prior]{bscm_prior()}}. The concentration parameter of the Dirichlet prior is
+always fixed, whereas the scale \eqn{\zeta_i} of the logistic normal prior
+can either be fixed by or estimated from the data.
+
 Model can contain missing values in the outcome variable of the treated,
 but not of the donors, nor in the covariates. Missing outcomes are
 automatically imputed during MCMC sampling under a missing at random

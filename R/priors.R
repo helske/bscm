@@ -11,7 +11,7 @@
 #' prior corresponds to a value of the intercept when donors and predictors
 #' corresponding to time-constant coefficients are centered.
 #'
-#' For parameters constrained to be positive (`sigma`, `kappa`),
+#' For parameters constrained to be positive (`sigma`, `kappa`, `zeta`),
 #' supported distributions are `exponential_pr(rate)`, `gamma_pr(shape, rate)`,
 #' and `half_normal_pr(scale)`.
 #'
@@ -26,15 +26,41 @@
 #' Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
 #' \eqn{\alpha_\omega = 1} is uniform over the simplex, and
 #' \eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
-#' Logistic normal with with scale \eqn{\sigma_\alpha} is defined as
-#' \eqn{\omega = \text{softmax}(\eta)},
-#' where \eqn{\eta \sim N(0, \sigma_\alpha^2 I)} constrained to sum to zero.
-#' Larger `scale` induces more concentrated (sparser) weights.
+#' Logistic normal with with scale \eqn{\zeta} is defined as
+#' \eqn{\omega = \text{softmax}(\zeta\eta)},
+#' where \eqn{\eta \sim N(0, I)} constrained to sum to zero. Larger \eqn{\zeta}
+#' induces more concentrated (sparser) weights, while \eqn{\zeta \to 0}
+#' corresponds to the uniform weights \eqn{1/J}.
+#'
+#' The concentration parameter of the Dirichlet prior is always fixed, but
+#' the scale of the logistic normal prior can either be fixed by the user or
+#' estimated from the data. Calling `logistic_normal_pr()` without arguments
+#' (equivalently, `logistic_normal_pr(NA)`) leaves the scale unspecified, in
+#' which case \eqn{\zeta_i} is a parameter of the model, estimated separately
+#' for each treated unit \eqn{i}. When the scale is estimated, the prior for 
+#' \eqn{\zeta_i} is defined as the element `zeta` of the `priors` list of [bscm()].
+#'
+#' Each element of the `priors` list of [bscm()] can be named either by the
+#' name of the model parameter or by a plain-text synonym:
+#'
+#' | Parameter | Synonym | Quantity |
+#' | --- | --- | --- |
+#' | `alpha` | `intercept` | intercept of each treated unit |
+#' | `beta` | `coef` | time-constant regression coefficients |
+#' | `kappa` | `scale_gamma` | scale of the time-varying coefficients |
+#' | `nu` | `slope_gamma` | trend slope of the time-varying coefficients |
+#' | `rho` | `ar1` | autoregressive coefficient of the residuals |
+#' | `omega` | `weights` | donor weights |
+#' | `zeta` | `scale_omega` | scale of the logistic normal prior |
+#' | `sigma` | `sd` | standard deviation of the error term |
+#'
 #'
 #' @param location \[`numeric(1)`]\cr Location parameter for normal and
 #'   Student-t priors.
 #' @param scale \[`numeric(1)`]\cr Scale parameter for normal, Student-t,
-#'   half-normal, and logistic normal priors.
+#'   half-normal, and logistic normal priors. For the logistic normal prior
+#'   this can also be `NA`, in which case the scale is estimated
+#'   from the data, see details.
 #' @param df \[`numeric(1)`]\cr Degrees of freedom for the Student-t prior.
 #' @param shape \[`numeric(1)`]\cr Shape parameter for the gamma prior.
 #' @param rate \[`numeric(1)`]\cr Rate parameter for the gamma and exponential
@@ -55,6 +81,7 @@
 #' half_normal_pr(1)
 #' dirichlet_pr(1)
 #' logistic_normal_pr(2)
+#' logistic_normal_pr()
 #'
 #' @name bscm_prior
 NULL
@@ -219,22 +246,34 @@ dirichlet_pr <- function(concentration) {
       distribution = "dirichlet",
       concentration = concentration,
       npar = 1,
-      length = length(concentration)
+      length = length(concentration),
+      zeta = FALSE
     ),
     class = "bscm_prior"
   )
 }
 #' @export
 #' @rdname bscm_prior
-logistic_normal_pr <- function(scale) {
-  check_positive(scale, "scale")
-
+logistic_normal_pr <- function(scale = NA) {
+  zeta <- anyNA(scale)
+  if (zeta) {
+    stopifnot_(
+      all(is.na(scale)),
+      "Argument {.arg scale} of {.fun logistic_normal_pr} must be either
+      all {.code NA}, in which case the scale is estimated from the data, or
+      all positive."
+    )
+    scale <- rep(NA, length(scale))
+  } else {
+    check_positive(scale, "scale")
+  }
   structure(
     list(
       distribution = "logistic_normal",
       scale = scale,
       npar = 1,
-      length = length(scale)
+      length = length(scale),
+      zeta = zeta
     ),
     class = "bscm_prior"
   )
@@ -242,6 +281,7 @@ logistic_normal_pr <- function(scale) {
 
 #' @export
 as.character.bscm_prior <- function(x, ...) {
+  
   switch(
     x$distribution,
     normal = {
@@ -298,7 +338,11 @@ as.character.bscm_prior <- function(x, ...) {
       paste0("dirichlet(", x$concentration, ")")
     },
     logistic_normal = {
-      paste0("logistic_normal(", x$scale, ")")
+      if (x$zeta) {
+        "logistic_normal(zeta)"
+      } else {
+        paste0("logistic_normal(", x$scale, ")")
+      }
     }
   )
 }
@@ -351,13 +395,53 @@ default_priors <- function(d, setup, spline_def) {
   priors <- list(
     sigma = pr_sigma,
     omega = pr_omega,
-    intercept = pr_alpha,
+    alpha = pr_alpha,
     beta = pr_beta,
     kappa = pr_kappa,
     nu = pr_nu,
     rho = pr_rho
   )
   priors[lengths(priors) > 0]
+}
+
+#' Plain-text synonyms for the names of the `priors` list
+#'
+#' @noRd
+prior_aliases <- c(
+  intercept = "alpha",
+  coef = "beta",
+  scale_gamma = "kappa",
+  slope_gamma = "nu",
+  ar1 = "rho",
+  weights = "omega",
+  scale_omega = "zeta",
+  sd = "sigma"
+)
+
+#' Rename the elements of `priors` given by a synonym to the canonical name
+#'
+#' @param priors \[`list()`]\cr The `priors` argument of [bscm()].
+#' @param call The calling environment reported in the error message.
+#' @noRd
+resolve_prior_aliases <- function(priors, call = rlang::caller_env()) {
+  idx <- match(names(priors), names(prior_aliases))
+  if (all(is.na(idx))) {
+    return(priors)
+  }
+  canonical <- names(priors)
+  canonical[!is.na(idx)] <- prior_aliases[idx[!is.na(idx)]]
+  duplicated_priors <- unique(canonical[duplicated(canonical)])
+  stopifnot_(
+    length(duplicated_priors) == 0L,
+    c(
+      "{cli::qty(duplicated_priors)}Parameter{?s} {.val {duplicated_priors}}
+      {?is/are} given more than once in {.arg priors}.",
+      i = "A parameter can be named either by its canonical name or by a
+      synonym, but not by both."
+    ),
+    call = call
+  )
+  stats::setNames(priors, canonical)
 }
 
 define_priors <- function(priors, descriptives, setup, spline_def) {
@@ -368,7 +452,8 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   valid_priors <- list(
     sigma = c("exponential", "gamma", "half_normal"),
     omega = c("dirichlet", "logistic_normal"),
-    intercept = c("normal", "student_t"),
+    zeta = c("exponential", "gamma", "half_normal"),
+    alpha = c("normal", "student_t"),
     beta = c("normal", "student_t"),
     kappa = c("exponential", "gamma", "half_normal"),
     nu = c("normal", "student_t"),
@@ -378,7 +463,46 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
     checkmate::test_list(priors, types = "bscm_prior", names = "named"),
     "Argument {.arg priors} must be a named list of {.cls bscm_prior} objects."
   )
-  invalid_priors <- setdiff(names(priors), names(defaults))
+  priors <- resolve_prior_aliases(priors)
+  has_zeta <- "zeta" %in% names(priors)
+  has_omega <- "omega" %in% names(priors)
+  
+  if (has_zeta && has_omega) {
+    stopifnot_(
+      priors$omega$distribution == "logistic_normal",
+      c(
+        "Prior for {.val zeta} can only be defined in combination with
+        logistic normal prior of {.val omega}.",
+        i = "Use {.code omega = logistic_normal_pr()} to estimate the scale, or
+        drop the prior for {.val zeta}."
+      )
+    )
+    stopifnot_(
+      isTRUE(priors$omega$zeta),
+      c(
+        "Prior for {.val zeta} can only be defined in combination with
+        logistic normal prior for {.val omega} without fixed scale.",
+        i = "Use {.code omega = logistic_normal_pr()}, 
+        {.code omega = logistic_normal_pr(NA)}, or
+        drop the prior for {.val zeta}."
+      )
+    )
+  }
+  if (has_zeta && !has_omega) {
+    priors$omega <- logistic_normal_pr(rep(NA, length(setup$treated)))
+  }
+  stopifnot_(
+    has_zeta || !isTRUE(priors$omega$zeta),
+    c(
+      "Logistic normal prior of {.val omega} is specified without a fixed 
+      hyperparameter or a prior for {.val zeta}.",
+      i = "There is no default prior for {.val zeta}. Either fix the scale or 
+      use {.code zeta} to define the prior for {.val zeta}."
+    )
+  )
+  # this fails as zeta is not in defaults
+  used_parameters <- c(names(defaults), if (has_zeta) zeta = "zeta")
+  invalid_priors <- setdiff(names(priors), used_parameters)
   stopifnot_(
     length(invalid_priors) == 0,
     c(
@@ -389,7 +513,6 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   )
   for (nm in names(priors)) {
     pr <- priors[[nm]]
-    ref <- defaults[[nm]]
     dist <- pr$distribution
     stopifnot_(
       dist %in% valid_priors[[nm]],
@@ -399,7 +522,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
       )
     )
     n_pr <- pr$length
-    n_ref <- ref$length
+    n_ref <- defaults[[nm]]$length %||% length(setup$treated)
 
     if (n_pr != n_ref) {
       stopifnot_(

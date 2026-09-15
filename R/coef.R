@@ -9,8 +9,8 @@
 #' `gamma_t` the deviation from it. Every predictor appears in exactly one of
 #' the types `"fixed"` and `"varying"`.
 #'
-#' The individual components `beta`, `nu`, `gamma`, `kappa` and `rho` are not
-#' returned here; use [as_draws.bscmfit()] to extract them.
+#' The individual components `beta`, `nu`, `gamma`, `kappa`, `rho` and
+#' `zeta` are not returned here; use [as_draws.bscmfit()] to extract them.
 #'
 #' @inheritParams bscm_postprocessing
 #' @param type \[`character(1)`]\cr Type of coefficients to return, either
@@ -87,7 +87,7 @@ coef.bscmfit <- function(
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param type \[`character(1)`]\cr One of `"intercept"`, `"fixed"`,
-#'   `"varying"`, `"beta"`, `"nu"`, `"kappa"`, and `"rho"`.
+#'   `"varying"`, `"beta"`, `"nu"`, `"kappa"`, `"rho"`, and `"zeta"`.
 #' @noRd
 coef_draws <- function(x, type) {
   unit <- get_unit(x)
@@ -117,21 +117,26 @@ coef_draws <- function(x, type) {
       )
     },
     beta = dplyr::tibble(
-      parameter = paste0("beta_", x$setup$beta_names),
-      coef = rvars_of(x, "beta")
+      parameter = paste0("coef_", x$setup$beta_names),
+        coef = rvars_of(x, "beta")
     ),
     nu = dplyr::tibble(
-      parameter = paste0("nu_", x$setup$gamma_names),
+      parameter = paste0("slope_", x$setup$gamma_names),
       coef = rvars_of(x, "nu")
     ),
     kappa = dplyr::tibble(
-      parameter = paste0("kappa_", x$setup$gamma_names),
+      parameter = paste0("scale_", x$setup$gamma_names),
       coef = rvars_of(x, "kappa")
     ),
     rho = dplyr::tibble(
-      parameter = "rho",
+      parameter = "ar1_",
       "{unit}" := get_treated(x),
       coef = rvars_of(x, "rho")
+    ),
+    zeta = dplyr::tibble(
+      parameter = "concentration",
+      "{unit}" := get_treated(x),
+      coef = rvars_of(x, "zeta")
     )
   )
 }

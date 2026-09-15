@@ -39,6 +39,7 @@ has_predictors <- \(x) x$setup$has_x
 has_tv_coefs <- \(x) x$setup$has_w
 get_predictors <- \(x) x$setup$predictors
 has_ar1_error <- \(x) x$setup$has_ar1
+has_zeta <- \(x) x$setup$has_zeta
 
 #' @noRd
 get_stan_y <- function(x) {
