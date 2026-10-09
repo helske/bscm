@@ -98,8 +98,8 @@
 #'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many
 #'   control arguments for Stan can be passed using a named list `control`,
 #'   such as `control = list(adapt_delta = 0.95)` which corresponds to the
-#'   default `adapt_delta` value of `bscm` when model contains time-varying
-#'   coefficients (otherwise the default is `0.8` as in `rstan`).
+#'   default `adapt_delta` value of `bscm`(differing from the `rstan` default 
+#'   `0.8`).
 #' @return An object of class `bscmfit`.
 #' @export
 #' @seealso [summary.bscmfit()], [as_draws.bscmfit()], [rstan::sampling()].
@@ -259,7 +259,7 @@ bscm <- function(
   }
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
-  if (is.null(stan_args$control$adapt_delta) && has_w) {
+  if (is.null(stan_args$control$adapt_delta)) {
     stan_args$control$adapt_delta <- 0.95
   }
   if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {

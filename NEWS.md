@@ -6,10 +6,9 @@
   `logistic_normal_pr(NA)`) leaves the scale unspecified, in which case it is
   a unit-specific model parameter `zeta`. The prior for `zeta` is defined as
   the element `zeta` of the `priors` list of `bscm`.
+* Added more prior distributions.
 * The elements of the `priors` list can now be named either by the name of the
-  parameter in the posterior draws or by a plain-text synonym: `intercept`,
-  `coef`, `scale_gamma`, `slope_gamma`, `ar1`, `weights`, `sd`, and `scale_omega` for `intercept`, `beta`, `kappa`, `nu`, `rho`, `omega`, `zeta`, and `sigma`
-  respectively.
+  parameter in the posterior draws or by a plain-text synonym.
 * The posterior summaries shown by `print` now use plain-text labels
   throughout, e.g. `scale_gamma_x` in place of `kappa_x` and `coef_x` in 
   place of `beta_x`. 
@@ -26,6 +25,9 @@
   in the posterior draws, and no longer has a class and a print method of its
   own. It gained an argument `parameters` for selecting the parameters to
   summarise.
+* All methods returning posterior summaries, such as `coef` and `rmse`, gain 
+  new argument `diagnostics` to control whether to compute and return the MCMC 
+  diagnostics such as Rhat and ESS values.
 * `print` now shows the posterior summaries of the model parameters and the
   average pre- and post-treatment effects. With a single treated unit, the
   Bayesian R2 and the pre- and post-treatment RMSEs are shown as well, and
@@ -36,9 +38,6 @@
   This leads considerably better behaving sampler with small concentration 
   parameters of the Dirichlet distribution. Note: The old and new constructions 
   correspond to pre-2.37 and post-2.37 versions of Stan, respectively.
-* Due to improved stability of the new simplex construction, default 
- `adapt_delta` is now 0.8 for models without time-varying coefficients while the 
-  old default 0.95 is still used with time-varying coefficients.
 * Changes to the definition of the splines for time-varying 
   coefficients via `tv()` in order to make the pre-treatment coefficients 
   invariant to the length of the post-treatment period. For this purpose, 
