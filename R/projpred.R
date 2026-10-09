@@ -264,6 +264,8 @@ get_refmodel.bscmfit <- function(object, ...) {
 #'   instead of posterior draws.
 #' @param probs Numeric vector of probabilities used for the posterior
 #'   intervals. Defaults to `c(0.025, 0.975)`.
+#' @param diagnostics if `TRUE` (the default), the summary output contains the
+#'   MCMC convergence measures and the Monte Carlo standard error of the mean.
 #' @param ... Additional arguments passed to [projpred::proj_predict()].
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior draws (`summary = FALSE`) of predictions in long format.
@@ -275,6 +277,7 @@ proj_predict_bscm <- function(
   newdata = NULL,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -309,7 +312,7 @@ proj_predict_bscm <- function(
     y_rep = posterior::rvar(y_rep)
   )
   if (summary) {
-    d <- summarise_column(d, "y_rep", probs)
+    d <- summarise_column(d, "y_rep", probs, diagnostics)
   }
   d
 }

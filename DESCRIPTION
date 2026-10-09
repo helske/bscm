@@ -17,7 +17,6 @@ Description: Implements the synthetic control method of Abadie, Diamond, and
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Biarch: true
 Depends: 
     R (>= 4.1.0)
@@ -53,3 +52,4 @@ BugReports: https://github.com/helske/bscm/issues
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

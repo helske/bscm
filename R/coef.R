@@ -29,6 +29,7 @@ coef.bscmfit <- function(
   type = NULL,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   N <- get_N(object)
@@ -71,7 +72,7 @@ coef.bscmfit <- function(
   d <- coef_draws(object, type)
   if (summary) {
     d <- d |>
-      summarise_column("coef", probs) |>
+      summarise_column("coef", probs, diagnostics) |>
       dplyr::rename(variable = "parameter")
   }
   d
@@ -129,12 +130,12 @@ coef_draws <- function(x, type) {
       coef = rvars_of(x, "kappa")
     ),
     rho = dplyr::tibble(
-      parameter = "ar1_",
+      parameter = "ar1",
       "{unit}" := get_treated(x),
       coef = rvars_of(x, "rho")
     ),
     zeta = dplyr::tibble(
-      parameter = "concentration",
+      parameter = "scale_omega",
       "{unit}" := get_treated(x),
       coef = rvars_of(x, "zeta")
     )

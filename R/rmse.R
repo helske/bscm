@@ -24,6 +24,7 @@ rmse.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(average, "average")
@@ -32,7 +33,7 @@ rmse.bscmfit <- function(
   check_has_data(x, "x")
   d <- rmse_draws(x, average)
   if (summary) {
-    d <- summarise_column(d, "rmse", probs)
+    d <- summarise_column(d, "rmse", probs, diagnostics)
   }
   d
 }
@@ -61,6 +62,7 @@ rmse_ratio.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(average, "average")
@@ -79,7 +81,7 @@ rmse_ratio.bscmfit <- function(
       dplyr::summarise(ratio = posterior::rvar_mean(.data$ratio))
   }
   if (summary) {
-    d <- summarise_column(d, "ratio", probs)
+    d <- summarise_column(d, "ratio", probs, diagnostics)
   }
   d
 }

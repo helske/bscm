@@ -46,17 +46,18 @@ placebo_effects <- function(x, ...) {
 #'   contains the placebo type, summary probabilities, model setup, and the
 #'   placebo labels used. The result can be visualized with [plot_effects()].
 placebo_effects.bscmfit <- function(
-  x,
-  type,
-  L = NULL,
-  probs = c(0.025, 0.975),
-  ...
+    x,
+    type,
+    L = NULL,
+    probs = c(0.025, 0.975),
+    ...
 ) {
   stopifnot_(
     identical(get_N(x), 1L),
     "Placebo effect computation is currently supported only for models with a 
     single treated unit."
   )
+  diagnostics <- FALSE
   probs <- sort_probs(probs)
   type <- try_(match.arg(type, c("donor", "time")))
   stopifnot_(
@@ -83,9 +84,15 @@ placebo_effects.bscmfit <- function(
     placebo_labels <- c(treated, donors)
     effects <- rmses <- rmse_ratios <- diagnostics_list <-
       stats::setNames(vector("list", length(placebo_labels)), placebo_labels)
-    effects[[1L]] <- treatment_effect(x, probs = probs)
-    rmses[[1L]] <- rmse(x, probs = probs)
-    rmse_ratios[[1L]] <- rmse_ratio(x, probs = probs)
+    effects[[1L]] <- treatment_effect(
+      x, probs = probs, diagnostics = diagnostics
+    )
+    rmses[[1L]] <- rmse(
+      x, probs = probs, diagnostics = diagnostics
+    )
+    rmse_ratios[[1L]] <- rmse_ratio(
+      x, probs = probs, diagnostics = diagnostics
+    )
     diagnostics_list[[1L]] <- check_mcmc_diagnostics(x, warn = FALSE)
     data <- data |> dplyr::filter(.data[[unit]] %in% .env$donors)
     end <- times[T_pre]
@@ -108,9 +115,15 @@ placebo_effects.bscmfit <- function(
         priors = priors,
         ...
       )
-      effects[[i + 1L]] <- treatment_effect(fit, probs = probs)
-      rmses[[i + 1L]] <- rmse(fit, probs = probs)
-      rmse_ratios[[i + 1L]] <- rmse_ratio(fit, probs = probs)
+      effects[[i + 1L]] <- treatment_effect(
+        fit, probs = probs, diagnostics = diagnostics
+      )
+      rmses[[i + 1L]] <- rmse(
+        fit, probs = probs, diagnostics = diagnostics
+      )
+      rmse_ratios[[i + 1L]] <- rmse_ratio(
+        fit, probs = probs, diagnostics = diagnostics
+      )
       diagnostics_list[[i + 1L]] <- check_mcmc_diagnostics(fit, warn = FALSE)
     }
   }
@@ -139,9 +152,15 @@ placebo_effects.bscmfit <- function(
         priors = priors,
         ...
       )
-      effects[[i]] <- treatment_effect(fit, probs = probs)
-      rmses[[i]] <- rmse(fit, probs = probs)
-      rmse_ratios[[i]] <- rmse_ratio(fit, probs = probs)
+      effects[[i]] <- treatment_effect(
+        fit, probs = probs, diagnostics = diagnostics
+      )
+      rmses[[i]] <- rmse(
+        fit, probs = probs, diagnostics = diagnostics
+      )
+      rmse_ratios[[i]] <- rmse_ratio(
+        fit, probs = probs, diagnostics = diagnostics
+      )
       diagnostics_list[[i]] <- check_mcmc_diagnostics(fit, warn = FALSE)
     }
   }

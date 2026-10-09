@@ -22,6 +22,7 @@ synthetic_control.bscmfit <- function(
   x,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -29,7 +30,7 @@ synthetic_control.bscmfit <- function(
   check_has_data(x, "x")
   d <- sc_draws(x)
   if (summary) {
-    d <- summarise_column(d, "y_rep", probs)
+    d <- summarise_column(d, "y_rep", probs, diagnostics)
   }
   d
 }

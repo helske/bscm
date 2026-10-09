@@ -27,7 +27,7 @@ the output can be trusted in terms of convergence of the MCMC sampling.
 Checks consists of the common diagnostics of Hamiltonian Monte Carlo variant
 used by Stan, as well as the Rhat values and effective sample sizes of model
 parameters. See \code{\link[rstan:check_hmc_diagnostics]{rstan::check_hmc_diagnostics()}} and
-\code{\link[posterior:draws_summary]{posterior::default_convergence_measures()}} for details on the definitions
+\code{\link[posterior:default_convergence_measures]{posterior::default_convergence_measures()}} for details on the definitions
 of these.
 }
 \examples{

@@ -2,46 +2,58 @@
 % Please edit documentation in R/priors.R
 \name{bscm_prior}
 \alias{bscm_prior}
-\alias{normal_pr}
-\alias{student_pr}
-\alias{gamma_pr}
-\alias{exponential_pr}
 \alias{beta_pr}
+\alias{cauchy_pr}
+\alias{exponential_pr}
+\alias{gamma_pr}
 \alias{half_normal_pr}
+\alias{normal_pr}
+\alias{laplace_pr}
+\alias{student_pr}
 \alias{dirichlet_pr}
+\alias{logistic_t_pr}
+\alias{logistic_laplace_pr}
 \alias{logistic_normal_pr}
 \title{Prior distributions in the Bayesian synthetic control model}
 \usage{
-normal_pr(location, scale)
+beta_pr(shape1, shape2)
 
-student_pr(df, location, scale)
-
-gamma_pr(shape, rate)
+cauchy_pr(location, scale)
 
 exponential_pr(rate)
 
-beta_pr(shape1, shape2)
+gamma_pr(shape, rate)
 
 half_normal_pr(scale)
 
-dirichlet_pr(concentration)
+normal_pr(location, scale)
+
+laplace_pr(location, scale)
+
+student_pr(df, location, scale)
+
+dirichlet_pr(concentration = NA)
+
+logistic_t_pr(scale = NA)
+
+logistic_laplace_pr(scale = NA)
 
 logistic_normal_pr(scale = NA)
 }
 \arguments{
+\item{shape1}{The first shape parameter for the beta prior.}
+
+\item{shape2}{The second shape parameter for the beta prior.}
+
 \item{location}{The location parameter for the prior.}
 
 \item{scale}{The scale parameter for the prior.}
 
-\item{df}{The degrees of freedom for the Student's t prior.}
+\item{rate}{The rate parameter for the gamma and exponential priors.}
 
 \item{shape}{The shape parameter for the gamma prior.}
 
-\item{rate}{The rate parameter for the gamma and exponential priors.}
-
-\item{shape1}{The first shape parameter for the beta prior.}
-
-\item{shape2}{The second shape parameter for the beta prior.}
+\item{df}{The degrees of freedom for the Student's t prior.}
 
 \item{concentration}{The concentration parameter for the Dirichlet prior.}
 }
@@ -71,24 +83,25 @@ supported prior distribution for this is \code{beta_pr(shape1, shape2)}.
 
 For the donor weight vector \code{omega}, supported priors are
 \code{dirichlet_pr(concentration)} and \code{logistic_normal_pr(scale)}. The
-(symmetric) Dirichlet prior with concentration \eqn{\alpha_\omega} defined as
-\eqn{\omega \sim \text{Dirichlet}(\alpha_\omega, \ldots,\alpha_\omega)}.
-Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
-\eqn{\alpha_\omega = 1} is uniform over the simplex, and
-\eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
+(symmetric) Dirichlet prior with concentration \eqn{\zeta} defined as
+\eqn{\omega \sim \text{Dirichlet}(\zeta, \ldots,\zeta)}.
+Values \eqn{\zeta < 1} concentrate weight on few donors, while
+\eqn{\zeta = 1} is uniform over the simplex, and
+\eqn{\zeta > 1} pulls weights toward the center of the simplex.
 Logistic normal with with scale \eqn{\zeta} is defined as
 \eqn{\omega = \text{softmax}(\zeta\eta)},
 where \eqn{\eta \sim N(0, I)} constrained to sum to zero. Larger \eqn{\zeta}
 induces more concentrated (sparser) weights, while \eqn{\zeta \to 0}
 corresponds to the uniform weights \eqn{1/J}.
 
-The concentration parameter of the Dirichlet prior is always fixed, but
-the scale of the logistic normal prior can either be fixed by the user or
-estimated from the data. Calling \code{logistic_normal_pr()} without arguments
-(equivalently, \code{logistic_normal_pr(NA)}) leaves the scale unspecified, in
+The \eqn{\zeta} parameter of the Dirichlet and logistic normal priors can
+either be fixed by the user or estimated from the data. Calling
+\code{logistic_normal_pr()} (and equivalently for \code{dirichlet_pr()}without
+arguments (or argument value \code{NA}) leaves the prior parameter unspecified, in
 which case \eqn{\zeta_i} is a parameter of the model, estimated separately
 for each treated unit \eqn{i}. When the scale is estimated, the prior for
-\eqn{\zeta_i} is defined as the element \code{zeta} of the \code{priors} list of \code{\link[=bscm]{bscm()}}.
+\eqn{\zeta_i} is defined as the element \code{zeta} of the \code{priors} list of
+\code{\link[=bscm]{bscm()}}.
 
 Each element of the \code{priors} list of \code{\link[=bscm]{bscm()}} can be named either by the
 name of the model parameter or by a plain-text synonym:\tabular{lll}{
@@ -99,7 +112,7 @@ name of the model parameter or by a plain-text synonym:\tabular{lll}{
    \code{nu} \tab \code{slope_gamma} \tab trend slope of the time-varying coefficients \cr
    \code{rho} \tab \code{ar1} \tab autoregressive coefficient of the residuals \cr
    \code{omega} \tab \code{weights} \tab donor weights \cr
-   \code{zeta} \tab \code{scale_omega} \tab scale of the logistic normal prior \cr
+   \code{zeta} \tab \code{scale_omega} \tab scale or concentration of Dirirchlet or logistic normal prior \cr
    \code{sigma} \tab \code{sd} \tab standard deviation of the error term \cr
 }
 }

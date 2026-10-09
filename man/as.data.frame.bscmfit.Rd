@@ -23,9 +23,7 @@
 
 \item{parameters}{[\code{character()}]\cr Vector of parameter names. When
 \code{NULL}, (the default), corresponds to a relevant subset of
-\code{c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")}, where
-\code{"zeta"} is available only when the scale of the logistic normal prior of
-the donor weights is estimated, see \code{\link[=bscm_prior]{bscm_prior()}}. Other possible
+\code{c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")}. Other possible
 choices are \code{"gamma"} (time-varying part of the regression coefficients), \code{"xi"}
 (spline coefficients), \code{"lp__"} (log-posterior values without
 constants), \code{"a"} (working intercepts corresponding to centered donors and covariates), and

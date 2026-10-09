@@ -140,6 +140,7 @@ residual_acf.bscmfit <- function(
   max_lag = 5L,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -148,7 +149,7 @@ residual_acf.bscmfit <- function(
   check_has_data(x, "x")
   d <- residual_acf_draws(x, get_treated(x), max_lag)
   if (summary) {
-    d <- summarise_column(d, "ac", probs)
+    d <- summarise_column(d, "ac", probs, diagnostics)
   }
   d
 }

@@ -7,3 +7,4 @@ air.toml
 *.h
 *.dll
 R/stanmodels.R
+.positai

@@ -10,7 +10,7 @@
 \arguments{
 \item{object}{A \code{bscmfit} object from \code{\link[=bscm]{bscm()}}.}
 
-\item{...}{Additional arguments passed to \code{\link[projpred:refmodel-init-get]{projpred::init_refmodel()}}.}
+\item{...}{Additional arguments passed to \code{\link[projpred:init_refmodel]{projpred::init_refmodel()}}.}
 }
 \value{
 An object of class \code{refmodel}.
@@ -20,7 +20,7 @@ Creates a \code{refmodel} object from \code{bscmfit} to be used with \code{projp
 package. This enables the usage of \code{\link[projpred:varsel]{projpred::varsel()}} and
 \code{\link[projpred:cv_varsel]{projpred::cv_varsel()}} for donor selection. Note that for predictions with
 \code{newdata}, you need to call \code{\link[=proj_predict_bscm]{proj_predict_bscm()}} which is a wrapper of
-\code{\link[projpred:pred-projection]{projpred::proj_predict()}} to which converts the data to the wide format
+\code{\link[projpred:proj_predict]{projpred::proj_predict()}} to which converts the data to the wide format
 used by \code{projpred}.
 }
 \details{

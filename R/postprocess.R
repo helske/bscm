@@ -8,17 +8,38 @@
 #' @param object \[`bscmfit`]\cr The model fit object.
 #' @param summary \[`logical(1)`]\cr If `TRUE` (the default), returns posterior
 #'   mean, standard deviation, posterior quantiles (as defined by the
-#'   `probs` argument), and MCMC convergence measures.
+#'   `probs` argument), and by default, MCMC convergence measures.
 #'   If `FALSE`, returns the posterior draws instead.
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #'   Default is `c(0.025, 0.975)`.
+#' @param diagnostics if `TRUE` (the default), the summary output contains the
+#'   MCMC convergence measures and the Monte Carlo standard error of the mean.
 #' @param average \[`logical(1)`]\cr If `TRUE`, the quantity is averaged over
 #'   the treated units within each posterior draw in case of multiple treated
 #'   units. If `FALSE` (the default), unit-specific values are returned.
 #' @param ... Ignored.
+#' @seealso [posterior::summarise_draws()] for additional summaries of 
+#'   posterior draws.
 #' @name bscm_postprocessing
 #' @keywords internal
 NULL
+
+#' custom summary function for posterior::summarise_draws()
+#' @param x draws object
+#' @param probs quantile probabilities
+#' @param diagnostics if `TRUE` (the default), the summaries also contain the
+#'   MCMC convergence measures and the Monte Carlo standard error of the mean.
+#' @noRd
+summarise_with_probs <- function(x, probs, diagnostics) {
+  posterior::summarise_draws(
+    x,
+    mean,
+    sd,
+    if (length(probs) > 0) ~ posterior::quantile2(.x, probs = probs),
+    if (diagnostics) posterior::default_convergence_measures(),
+    if (diagnostics) "mcse_mean"
+  )
+}
 
 #' Replace an rvar column by posterior summaries
 #'
@@ -31,14 +52,13 @@ NULL
 #' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
 #' @param diagnostics \[`logical(1)`]\cr See `summarise_with_probs()`.
 #' @noRd
-summarise_column <- function(d, column, probs, diagnostics = TRUE) {
-  # the summaries are bound rather than mutated in, so that a `variable`
-  # column of `d` is not overwritten by the one `summarise_draws()` adds
-  summaries <- summarise_with_probs(d[[column]], probs, diagnostics) |>
-    dplyr::select(-"variable")
-  d |>
-    dplyr::select(-dplyr::all_of(column)) |>
-    dplyr::bind_cols(summaries)
+summarise_column <- function(d, column, probs, diagnostics) {
+  d |> 
+    dplyr::mutate(
+      summarise_with_probs(.data[[column]], probs, diagnostics) |> 
+        dplyr::select(-"variable")
+    ) |>
+    dplyr::select(-dplyr::all_of(column))
 }
 
 #' Extract posterior draws of a single model parameter as an rvar

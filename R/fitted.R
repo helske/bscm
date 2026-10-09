@@ -15,6 +15,7 @@ fitted.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -22,7 +23,7 @@ fitted.bscmfit <- function(
   check_has_data(object, "object")
   d <- fitted_draws(object)
   if (summary) {
-    d <- summarise_column(d, "y_mean", probs)
+    d <- summarise_column(d, "y_mean", probs, diagnostics)
   }
   d
 }

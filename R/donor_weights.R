@@ -17,13 +17,14 @@ donor_weights.bscmfit <- function(
   x,
   summary = TRUE,
   probs = c(0.025, 0.5, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
   probs <- sort_probs(probs)
   d <- weights_draws(x)
   if (summary) {
-    d <- summarise_column(d, "weight", probs)
+    d <- summarise_column(d, "weight", probs, diagnostics)
   }
   d
 }

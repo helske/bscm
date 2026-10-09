@@ -12,6 +12,7 @@ sigma.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -22,7 +23,7 @@ sigma.bscmfit <- function(
     sigma = rvars_of(object, "sigma")
   )
   if (summary) {
-    d <- summarise_column(d, "sigma", probs)
+    d <- summarise_column(d, "sigma", probs, diagnostics)
   }
   d
 }

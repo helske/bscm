@@ -9,6 +9,7 @@
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   pretreatment_only = TRUE,
   ...
 )
@@ -18,11 +19,14 @@
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
-\code{probs} argument), and MCMC convergence measures.
+\code{probs} argument), and by default, MCMC convergence measures.
 If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{diagnostics}{if \code{TRUE} (the default), the summary output contains the
+MCMC convergence measures and the Monte Carlo standard error of the mean.}
 
 \item{pretreatment_only}{[\code{logical(1)}]\cr If \code{TRUE} (the default), only
 pre-treatment time points are returned, while \code{FALSE} returns all time

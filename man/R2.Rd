@@ -7,20 +7,36 @@
 \alias{bayes_R2}
 \title{Bayesian R-squared value}
 \usage{
-\method{loo_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), fixed_seed = TRUE, ...)
+\method{loo_R2}{bscmfit}(
+  object,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  diagnostics = TRUE,
+  fixed_seed = TRUE,
+  ...
+)
 
-\method{bayes_R2}{bscmfit}(object, summary = TRUE, probs = c(0.025, 0.975), ...)
+\method{bayes_R2}{bscmfit}(
+  object,
+  summary = TRUE,
+  probs = c(0.025, 0.975),
+  diagnostics = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
-\code{probs} argument), and MCMC convergence measures.
+\code{probs} argument), and by default, MCMC convergence measures.
 If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{diagnostics}{if \code{TRUE} (the default), the summary output contains the
+MCMC convergence measures and the Monte Carlo standard error of the mean.}
 
 \item{fixed_seed}{[logical(1)]\cr If \code{TRUE} (the default), fixes the seed
 of random number generator (RNG) so that \code{loo_R2}, which uses Bayesian

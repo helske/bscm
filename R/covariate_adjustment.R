@@ -44,6 +44,7 @@ covariate_adjustment.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   warn_deprecated_plot(..., replacement = "plot_covariate_adjustment")
@@ -53,7 +54,7 @@ covariate_adjustment.bscmfit <- function(
   check_has_predictors(x)
   d <- covariate_adjustment_draws(x, average)
   if (summary) {
-    d <- summarise_column(d, "adjustment", probs)
+    d <- summarise_column(d, "adjustment", probs, diagnostics)
   }
   d
 }

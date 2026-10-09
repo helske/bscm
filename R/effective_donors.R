@@ -24,6 +24,7 @@ effective_donors.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(average, "average")
@@ -41,7 +42,7 @@ effective_donors.bscmfit <- function(
       dplyr::summarise(ess = posterior::rvar_mean(.data$ess))
   }
   if (summary) {
-    d <- summarise_column(d, "ess", probs)
+    d <- summarise_column(d, "ess", probs, diagnostics)
   }
   d
 }

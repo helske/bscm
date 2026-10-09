@@ -21,24 +21,25 @@
 #'
 #' For the donor weight vector `omega`, supported priors are
 #' `dirichlet_pr(concentration)` and `logistic_normal_pr(scale)`. The
-#' (symmetric) Dirichlet prior with concentration \eqn{\alpha_\omega} defined as
-#' \eqn{\omega \sim \text{Dirichlet}(\alpha_\omega, \ldots,\alpha_\omega)}.
-#' Values \eqn{\alpha_\omega < 1} concentrate weight on few donors, while
-#' \eqn{\alpha_\omega = 1} is uniform over the simplex, and
-#' \eqn{\alpha_\omega > 1} pulls weights toward the center of the simplex.
+#' (symmetric) Dirichlet prior with concentration \eqn{\zeta} defined as
+#' \eqn{\omega \sim \text{Dirichlet}(\zeta, \ldots,\zeta)}.
+#' Values \eqn{\zeta < 1} concentrate weight on few donors, while
+#' \eqn{\zeta = 1} is uniform over the simplex, and
+#' \eqn{\zeta > 1} pulls weights toward the center of the simplex.
 #' Logistic normal with with scale \eqn{\zeta} is defined as
 #' \eqn{\omega = \text{softmax}(\zeta\eta)},
 #' where \eqn{\eta \sim N(0, I)} constrained to sum to zero. Larger \eqn{\zeta}
 #' induces more concentrated (sparser) weights, while \eqn{\zeta \to 0}
 #' corresponds to the uniform weights \eqn{1/J}.
 #'
-#' The concentration parameter of the Dirichlet prior is always fixed, but
-#' the scale of the logistic normal prior can either be fixed by the user or
-#' estimated from the data. Calling `logistic_normal_pr()` without arguments
-#' (equivalently, `logistic_normal_pr(NA)`) leaves the scale unspecified, in
+#' The \eqn{\zeta} parameter of the Dirichlet and logistic normal priors can 
+#' either be fixed by the user or estimated from the data. Calling 
+#' `logistic_normal_pr()` (and equivalently for `dirichlet_pr()`without 
+#' arguments (or argument value `NA`) leaves the prior parameter unspecified, in
 #' which case \eqn{\zeta_i} is a parameter of the model, estimated separately
 #' for each treated unit \eqn{i}. When the scale is estimated, the prior for 
-#' \eqn{\zeta_i} is defined as the element `zeta` of the `priors` list of [bscm()].
+#' \eqn{\zeta_i} is defined as the element `zeta` of the `priors` list of 
+#' [bscm()].
 #'
 #' Each element of the `priors` list of [bscm()] can be named either by the
 #' name of the model parameter or by a plain-text synonym:
@@ -51,7 +52,7 @@
 #' | `nu` | `slope_gamma` | trend slope of the time-varying coefficients |
 #' | `rho` | `ar1` | autoregressive coefficient of the residuals |
 #' | `omega` | `weights` | donor weights |
-#' | `zeta` | `scale_omega` | scale of the logistic normal prior |
+#' | `zeta` | `scale_omega` | scale or concentration of Dirirchlet or logistic normal prior |
 #' | `sigma` | `sd` | standard deviation of the error term |
 #'
 #'
@@ -95,6 +96,116 @@ NULL
 #' @param concentration The concentration parameter for the Dirichlet prior.
 #' @export
 #' @rdname bscm_prior
+beta_pr <- function(shape1, shape2) {
+  check_positive(shape1, "shape1")
+  check_positive(shape2, "shape2")
+  n <- max(length(shape1), length(shape2))
+  if (length(shape1) == 1) {
+    shape1 <- rep_len(shape1, n)
+  }
+  if (length(shape2) == 1) {
+    shape2 <- rep_len(shape2, n)
+  }
+  stopifnot_(
+    length(shape1) == length(shape2),
+    "Lengths of {.arg shape1} and {.arg shape2} should match."
+  )
+  structure(
+    list(
+      distribution = "beta",
+      shape1 = shape1,
+      shape2 = shape2,
+      npar = 2,
+      length = n
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+cauchy_pr <- function(location, scale) {
+  check_real(location, "location")
+  check_positive(scale, "scale")
+  n <- max(length(location), length(scale))
+  if (length(location) == 1) {
+    location <- rep_len(location, n)
+  }
+  if (length(scale) == 1) {
+    scale <- rep_len(scale, n)
+  }
+  stopifnot_(
+    length(location) == length(scale),
+    "Lengths of {.arg location} and {.arg scale} should match."
+  )
+  structure(
+    list(
+      distribution = "cauchy",
+      location = location,
+      scale = scale,
+      npar = 2,
+      length = n
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+exponential_pr <- function(rate) {
+  check_positive(rate, "rate")
+  structure(
+    list(
+      distribution = "exponential",
+      rate = rate,
+      npar = 1,
+      length = length(rate)
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+gamma_pr <- function(shape, rate) {
+  check_positive(shape, "shape")
+  check_positive(rate, "rate")
+  n <- max(length(shape), length(rate))
+  if (length(shape) == 1) {
+    shape <- rep_len(shape, n)
+  }
+  if (length(rate) == 1) {
+    rate <- rep_len(rate, n)
+  }
+  stopifnot_(
+    length(shape) == length(rate),
+    "Lengths of {.arg shape} and {.arg rate} should match."
+  )
+  structure(
+    list(
+      distribution = "gamma",
+      shape = shape,
+      rate = rate,
+      npar = 2,
+      length = n
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+half_normal_pr <- function(scale) {
+  check_positive(scale, "scale")
+  
+  structure(
+    list(
+      distribution = "half_normal",
+      scale = scale,
+      npar = 1,
+      length = length(scale)
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
 normal_pr <- function(location, scale) {
   check_real(location, "location")
   check_positive(scale, "scale")
@@ -107,11 +218,37 @@ normal_pr <- function(location, scale) {
   }
   stopifnot_(
     length(location) == length(scale),
-    "Lengths of {.arg location} and {.arg scale} should be match."
+    "Lengths of {.arg location} and {.arg scale} should match."
   )
   structure(
     list(
       distribution = "normal",
+      location = location,
+      scale = scale,
+      npar = 2,
+      length = n
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @rdname bscm_prior
+laplace_pr <- function(location, scale) {
+  check_real(location, "location")
+  check_positive(scale, "scale")
+  n <- max(length(location), length(scale))
+  if (length(location) == 1) {
+    location <- rep_len(location, n)
+  }
+  if (length(scale) == 1) {
+    scale <- rep_len(scale, n)
+  }
+  stopifnot_(
+    length(location) == length(scale),
+    "Lengths of {.arg location} and {.arg scale} should match."
+  )
+  structure(
+    list(
+      distribution = "laplace",
       location = location,
       scale = scale,
       npar = 2,
@@ -138,7 +275,7 @@ student_pr <- function(df, location, scale) {
   }
   stopifnot_(
     length(location) == length(scale) && length(location) == length(df),
-    "Lengths of {.arg location}, {.arg scale}, and {.arg df} should be match."
+    "Lengths of {.arg location}, {.arg scale}, and {.arg df} should match."
   )
   structure(
     list(
@@ -152,102 +289,86 @@ student_pr <- function(df, location, scale) {
     class = "bscm_prior"
   )
 }
-#' @export
-#' @rdname bscm_prior
-gamma_pr <- function(shape, rate) {
-  check_positive(shape, "shape")
-  check_positive(rate, "rate")
-  n <- max(length(shape), length(rate))
-  if (length(shape) == 1) {
-    shape <- rep_len(shape, n)
-  }
-  if (length(rate) == 1) {
-    rate <- rep_len(rate, n)
-  }
-  stopifnot_(
-    length(shape) == length(rate),
-    "Lengths of {.arg shape} and {.arg rate} should be match."
-  )
-  structure(
-    list(
-      distribution = "gamma",
-      shape = shape,
-      rate = rate,
-      npar = 2,
-      length = n
-    ),
-    class = "bscm_prior"
-  )
-}
-#' @export
-#' @rdname bscm_prior
-exponential_pr <- function(rate) {
-  check_positive(rate, "rate")
 
-  structure(
-    list(
-      distribution = "exponential",
-      rate = rate,
-      npar = 1,
-      length = length(rate)
-    ),
-    class = "bscm_prior"
-  )
-}
 #' @export
 #' @rdname bscm_prior
-beta_pr <- function(shape1, shape2) {
-  check_positive(shape1, "shape1")
-  check_positive(shape2, "shape2")
-  n <- max(length(shape1), length(shape2))
-  if (length(shape1) == 1) {
-    shape1 <- rep_len(shape1, n)
+dirichlet_pr <- function(concentration = NA) {
+  zeta <- anyNA(concentration)
+  if (zeta) {
+    stopifnot_(
+      all(is.na(concentration)),
+      "Argument {.arg concentration} of {.fun dirichlet_pr} must be either all 
+      positive values or all {.code NA}, in which case the concentrations are 
+      defined priors using the element named {.val zeta} of the list argument 
+      {.arg prior}."
+    )
+    concentration <- rep(NA, length(concentration))
+  } else {
+    check_positive(concentration, "concentration")
   }
-  if (length(shape2) == 1) {
-    shape2 <- rep_len(shape2, n)
-  }
-  stopifnot_(
-    length(shape1) == length(shape2),
-    "Lengths of {.arg shape1} and {.arg shape2} should be match."
-  )
-  structure(
-    list(
-      distribution = "beta",
-      shape1 = shape1,
-      shape2 = shape2,
-      npar = 2,
-      length = n
-    ),
-    class = "bscm_prior"
-  )
-}
-#' @export
-#' @rdname bscm_prior
-half_normal_pr <- function(scale) {
-  check_positive(scale, "scale")
-
-  structure(
-    list(
-      distribution = "half_normal",
-      scale = scale,
-      npar = 1,
-      length = length(scale)
-    ),
-    class = "bscm_prior"
-  )
-}
-#' @export
-#' @rdname bscm_prior
-dirichlet_pr <- function(concentration) {
-  check_positive(concentration, "concentration")
-
+  
   structure(
     list(
       distribution = "dirichlet",
       concentration = concentration,
       npar = 1,
       length = length(concentration),
-      zeta = FALSE
+      zeta = zeta
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+logistic_t_pr <- function(scale = NA) {
+  # Note: The degrees of freedom is hard-coded to 3
+  zeta <- anyNA(scale)
+  if (zeta) {
+    stopifnot_(
+      all(is.na(scale)),
+      "Argument {.arg scale} of {.fun logistic_t_pr} must be either all 
+      positive values or all {.code NA}, in which case the scales are 
+      defined priors using the element named {.val zeta} of the list argument 
+      {.arg prior}."
+    )
+    scale <- rep(NA, length(scale))
+  } else {
+    check_positive(scale, "scale")
+  }
+  structure(
+    list(
+      distribution = "logistic_t",
+      scale = scale,
+      npar = 1,
+      length = length(scale),
+      zeta = zeta
+    ),
+    class = "bscm_prior"
+  )
+}
+#' @export
+#' @rdname bscm_prior
+logistic_laplace_pr <- function(scale = NA) {
+  zeta <- anyNA(scale)
+  if (zeta) {
+    stopifnot_(
+      all(is.na(scale)),
+      "Argument {.arg scale} of {.fun logistic_laplace_pr} must be either all 
+      positive values or all {.code NA}, in which case the scales are 
+      defined priors using the element named {.val zeta} of the list argument 
+      {.arg prior}."
+    )
+    scale <- rep(NA, length(scale))
+  } else {
+    check_positive(scale, "scale")
+  }
+  structure(
+    list(
+      distribution = "logistic_laplace",
+      scale = scale,
+      npar = 1,
+      length = length(scale),
+      zeta = zeta
     ),
     class = "bscm_prior"
   )
@@ -259,9 +380,10 @@ logistic_normal_pr <- function(scale = NA) {
   if (zeta) {
     stopifnot_(
       all(is.na(scale)),
-      "Argument {.arg scale} of {.fun logistic_normal_pr} must be either
-      all {.code NA}, in which case the scale is estimated from the data, or
-      all positive."
+      "Argument {.arg scale} of {.fun logistic_normal_pr} must be either all 
+      positive values or all {.code NA}, in which case the scales are 
+      defined priors using the element named {.val zeta} of the list argument 
+      {.arg prior}."
     )
     scale <- rep(NA, length(scale))
   } else {
@@ -335,7 +457,11 @@ as.character.bscm_prior <- function(x, ...) {
       paste0("half_normal(", x$scale, ")")
     },
     dirichlet = {
-      paste0("dirichlet(", x$concentration, ")")
+      if (x$zeta) {
+        "dirichlet(zeta)"
+      } else {
+        paste0("dirichlet(", x$concentration, ")")
+      }
     },
     logistic_normal = {
       if (x$zeta) {
@@ -343,7 +469,21 @@ as.character.bscm_prior <- function(x, ...) {
       } else {
         paste0("logistic_normal(", x$scale, ")")
       }
-    }
+    },
+    logistic_t = {
+      if (x$zeta) {
+        paste0("logistic_t(", x$df, ", zeta)")
+      } else {
+        paste0("logistic_t(", x$df, ", ", x$scale, ")")
+      }
+    },
+    logistic_laplace = {
+      if (x$zeta) {
+        "logistic_laplace(zeta)"
+      } else {
+        paste0("logistic_laplace(", x$scale, ")")
+      }
+    },
   )
 }
 
@@ -449,14 +589,24 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   if (is.null(priors)) {
     return(defaults)
   }
+  simplex_priors <- c(
+    "dirichlet", "logistic_normal", "logistic_laplace", "logistic_t"
+  )
+  bounded_priors <- c(
+    "exponential", "gamma", "half_normal"
+  )
+  unbounded_priors <- c(
+    "cauchy", "laplace", "normal", "student_t"
+  )
+  # unbounded can be used for bounded but not vice versa
   valid_priors <- list(
-    sigma = c("exponential", "gamma", "half_normal"),
-    omega = c("dirichlet", "logistic_normal"),
-    zeta = c("exponential", "gamma", "half_normal"),
-    alpha = c("normal", "student_t"),
-    beta = c("normal", "student_t"),
-    kappa = c("exponential", "gamma", "half_normal"),
-    nu = c("normal", "student_t"),
+    sigma = c(bounded_priors, unbounded_priors),
+    omega = simplex_priors,
+    zeta = c(bounded_priors, unbounded_priors),
+    alpha = unbounded_priors,
+    beta = unbounded_priors,
+    kappa = c(bounded_priors, unbounded_priors),
+    nu = unbounded_priors,
     rho = "beta"
   )
   stopifnot_(
@@ -467,40 +617,25 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   has_zeta <- "zeta" %in% names(priors)
   has_omega <- "omega" %in% names(priors)
   
-  if (has_zeta && has_omega) {
-    stopifnot_(
-      priors$omega$distribution == "logistic_normal",
-      c(
-        "Prior for {.val zeta} can only be defined in combination with
-        logistic normal prior of {.val omega}.",
-        i = "Use {.code omega = logistic_normal_pr()} to estimate the scale, or
-        drop the prior for {.val zeta}."
-      )
+  stopifnot_(
+    !has_zeta || has_omega && isTRUE(priors$omega$zeta),
+    c(
+      "Prior for {.val zeta} cannot be used with prior on {.val omega} with 
+        fixed scale.",
+      i = "Use, e.g., {.code omega = logistic_normal_pr(NA)}, or drop the prior 
+      for {.val zeta}."
     )
-    stopifnot_(
-      isTRUE(priors$omega$zeta),
-      c(
-        "Prior for {.val zeta} can only be defined in combination with
-        logistic normal prior for {.val omega} without fixed scale.",
-        i = "Use {.code omega = logistic_normal_pr()}, 
-        {.code omega = logistic_normal_pr(NA)}, or
-        drop the prior for {.val zeta}."
-      )
-    )
-  }
-  if (has_zeta && !has_omega) {
-    priors$omega <- logistic_normal_pr(rep(NA, length(setup$treated)))
-  }
+  )
   stopifnot_(
     has_zeta || !isTRUE(priors$omega$zeta),
     c(
-      "Logistic normal prior of {.val omega} is specified without a fixed 
+      "Prior of {.val omega} is specified without a fixed 
       hyperparameter or a prior for {.val zeta}.",
-      i = "There is no default prior for {.val zeta}. Either fix the scale or 
+      i = "Either fix the concentration/scale or 
       use {.code zeta} to define the prior for {.val zeta}."
     )
   )
-  # this fails as zeta is not in defaults
+  
   used_parameters <- c(names(defaults), if (has_zeta) zeta = "zeta")
   invalid_priors <- setdiff(names(priors), used_parameters)
   stopifnot_(
@@ -541,6 +676,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
         pr$shape1 <- rep(pr$shape1, n_ref)
         pr$shape2 <- rep(pr$shape2, n_ref)
         pr$concentration <- rep(pr$concentration, n_ref)
+        pr$df <- rep(pr$df, n_ref)
         pr$length <- n_ref
         priors[[nm]] <- pr
       }

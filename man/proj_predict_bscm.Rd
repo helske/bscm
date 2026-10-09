@@ -9,6 +9,7 @@ proj_predict_bscm(
   newdata = NULL,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 )
 }
@@ -28,14 +29,17 @@ instead of posterior draws.}
 \item{probs}{Numeric vector of probabilities used for the posterior
 intervals. Defaults to \code{c(0.025, 0.975)}.}
 
-\item{...}{Additional arguments passed to \code{\link[projpred:pred-projection]{projpred::proj_predict()}}.}
+\item{diagnostics}{if \code{TRUE} (the default), the summary output contains the
+MCMC convergence measures and the Monte Carlo standard error of the mean.}
+
+\item{...}{Additional arguments passed to \code{\link[projpred:proj_predict]{projpred::proj_predict()}}.}
 }
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior draws (\code{summary = FALSE}) of predictions in long format.
 }
 \description{
-Convenience wrapper around \code{\link[projpred:pred-projection]{projpred::proj_predict()}} that accepts data in
+Convenience wrapper around \code{\link[projpred:proj_predict]{projpred::proj_predict()}} that accepts data in
 the original long format used by \code{\link[=bscm]{bscm()}}. If \code{newdata} is supplied in long
 format, it is converted internally to the wide format for \code{projpred}.
 }

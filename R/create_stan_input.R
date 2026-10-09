@@ -94,14 +94,14 @@ prior_to_stan <- function(x, type) {
 
   max_npar <- switch(
     type,
-    sigma = 2L,
+    sigma = 3L,
     omega = 1L,
     alpha = 3L,
     beta = 3L,
-    kappa = 2L,
+    kappa = 3L,
     nu = 3L,
     rho = 2L,
-    zeta = 2L
+    zeta = 3L
   )
   if (type == "omega") {
     if (x$zeta) x$length <- 0L
@@ -116,12 +116,16 @@ prior_to_stan <- function(x, type) {
     dist <- c(
       normal = 1L,
       student_t = 2L,
-      exponential = 3L,
-      gamma = 4L,
-      beta = 5L,
+      laplace = 3L,
+      exponential = 4L,
+      gamma = 5L,
       half_normal = 6L,
-      dirichlet = 7L,
-      logistic_normal = 8L
+      beta = 7L,
+      cauchy = 8L,
+      dirichlet = -1L,
+      logistic_normal = -2L,
+      logistic_laplace = -3L,
+      logistic_t = -4L
     )[x$distribution]
     switch(
       x$distribution,
@@ -134,16 +138,16 @@ prior_to_stan <- function(x, type) {
         pars[, 2] <- x$location
         pars[, 3] <- x$scale
       },
-      gamma = {
-        pars[, 1] <- x$shape
-        pars[, 2] <- x$rate
-      },
-      beta = {
-        pars[, 1] <- x$shape1
-        pars[, 2] <- x$shape2
+      laplace = {
+        pars[, 1] <- x$location
+        pars[, 2] <- x$scale
       },
       exponential = {
         pars[, 1] <- x$rate
+      },
+      gamma = {
+        pars[, 1] <- x$shape
+        pars[, 2] <- x$rate
       },
       half_normal = {
         pars[, 1] <- x$scale
@@ -152,6 +156,20 @@ prior_to_stan <- function(x, type) {
         pars[] <- x$concentration
       },
       logistic_normal = {
+        pars[] <- x$scale
+      },
+      logistic_laplace = {
+        pars[] <- x$scale
+      },
+      beta = {
+        pars[, 1] <- x$shape1
+        pars[, 2] <- x$shape2
+      },
+      cauchy = {
+        pars[, 1] <- x$location
+        pars[, 2] <- x$scale
+      },
+      logistic_t = {
         pars[] <- x$scale
       }
     )
@@ -220,7 +238,7 @@ create_standata <- function(
 }
 # x: standata, d: descriptives
 create_inits <- function(x, d, spline_def) {
-  eta <- matrix(rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
+  eta <- matrix(stats::rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
   a <- beta <- rho <- kappa <- nu <- zeta <- array(0, 0)
   xi <- matrix(0, 0, 0)

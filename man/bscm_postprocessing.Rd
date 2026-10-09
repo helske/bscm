@@ -10,11 +10,14 @@
 
 \item{summary}{[\code{logical(1)}]\cr If \code{TRUE} (the default), returns posterior
 mean, standard deviation, posterior quantiles (as defined by the
-\code{probs} argument), and MCMC convergence measures.
+\code{probs} argument), and by default, MCMC convergence measures.
 If \code{FALSE}, returns the posterior draws instead.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
+
+\item{diagnostics}{if \code{TRUE} (the default), the summary output contains the
+MCMC convergence measures and the Monte Carlo standard error of the mean.}
 
 \item{average}{[\code{logical(1)}]\cr If \code{TRUE}, the quantity is averaged over
 the treated units within each posterior draw in case of multiple treated
@@ -26,5 +29,9 @@ units. If \code{FALSE} (the default), unit-specific values are returned.}
 Documents the arguments shared by the methods which
 return posterior draws, or posterior summaries, of a quantity computed
 from a \code{bscmfit} object.
+}
+\seealso{
+\code{\link[posterior:summarise_draws]{posterior::summarise_draws()}} for additional summaries of
+posterior draws.
 }
 \keyword{internal}

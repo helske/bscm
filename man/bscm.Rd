@@ -51,7 +51,7 @@ predictive distribution. Default is \code{FALSE}.}
 \item{mcmc_diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the
 output of \code{\link[=bscm]{bscm()}} includes the results of MCMC diagnostics checks
 performed by \code{\link[=check_mcmc_diagnostics.bscmfit]{check_mcmc_diagnostics.bscmfit()}}. Note that regardless
-of the value of \code{mcmc_diagnostics}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} can still
+of the value of \code{mcmc_diagnostics}, \code{\link[rstan:sampling]{rstan::sampling()}} can still
 generate warnings regarding convergence and other sampling issues.}
 
 \item{save_data}{[\code{logical(1)}]\cr If \code{TRUE} (the default), \code{bscmfit}
@@ -68,10 +68,10 @@ setting this to \code{FALSE} will cause \code{\link[=treatment_effect]{treatment
 other methods that rely on posterior predictions to fail, so you rarely
 want to set this to \code{FALSE}.}
 
-\item{...}{Additional parameters passed on to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} to
+\item{...}{Additional parameters passed on to \code{\link[rstan:sampling]{rstan::sampling()}} to
 adjust the sampling options, for example \code{iter} and \code{chains}.  Note that
 defaults \code{iter = 5000} and \code{warmup = 2500} differ from the defaults of
-\code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many
+\code{\link[rstan:sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many
 control arguments for Stan can be passed using a named list \code{control},
 such as \code{control = list(adapt_delta = 0.95)} which corresponds to the
 default \code{adapt_delta} value of \code{bscm} when model contains time-varying
@@ -125,10 +125,10 @@ the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
 
 The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-either a symmetric Dirichlet prior or a logistic normal prior, see
-\code{\link[=bscm_prior]{bscm_prior()}}. The concentration parameter of the Dirichlet prior is
-always fixed, whereas the scale \eqn{\zeta_i} of the logistic normal prior
-can either be fixed by or estimated from the data.
+either a symmetric Dirichlet prior or a logistic normal or logistic laplace
+prior, with the corresponding concentration or scale parameters
+\eqn{\zeta_i} either fixed or given their own prior.
+See \code{\link[=bscm_prior]{bscm_prior()}} for details.
 
 Model can contain missing values in the outcome variable of the treated,
 but not of the donors, nor in the covariates. Missing outcomes are
@@ -146,5 +146,5 @@ fit <- bscm(
 fit
 }
 \seealso{
-\code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
+\code{\link[=summary.bscmfit]{summary.bscmfit()}}, \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}, \code{\link[rstan:sampling]{rstan::sampling()}}.
 }

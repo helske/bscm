@@ -21,5 +21,5 @@ get_stanfit(x, ...)
 Object of class \code{stanfit}.
 }
 \description{
-This function returns the output (\code{stanfit} object) from \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
+This function returns the output (\code{stanfit} object) from \code{\link[rstan:sampling]{rstan::sampling()}}.
 }

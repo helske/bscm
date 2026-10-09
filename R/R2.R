@@ -24,6 +24,7 @@ loo_R2.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   fixed_seed = TRUE,
   ...
 ) {
@@ -76,7 +77,7 @@ loo_R2.bscmfit <- function(
   ) |>
     dplyr::bind_rows()
   if (summary) {
-    d <- summarise_column(d, "R2", probs)
+    d <- summarise_column(d, "R2", probs, diagnostics)
   }
   d
 }
@@ -88,6 +89,7 @@ bayes_R2.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(summary, "summary")
@@ -110,7 +112,7 @@ bayes_R2.bscmfit <- function(
     R2 = do.call(c, r2)
   )
   if (summary) {
-    d <- summarise_column(d, "R2", probs)
+    d <- summarise_column(d, "R2", probs, diagnostics)
   }
   d
 }

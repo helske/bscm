@@ -22,6 +22,7 @@ treatment_effect.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(average, "average")
@@ -30,7 +31,7 @@ treatment_effect.bscmfit <- function(
   check_has_data(x, "x")
   d <- effects_draws(x, average = average && get_N(x) > 1L)
   if (summary) {
-    d <- summarise_column(d, "effect", probs)
+    d <- summarise_column(d, "effect", probs, diagnostics)
   }
   d
 }
@@ -54,6 +55,7 @@ average_treatment_effect.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   check_flag(average, "average")
@@ -71,7 +73,7 @@ average_treatment_effect.bscmfit <- function(
       .by = dplyr::all_of(cols)
     )
   if (summary) {
-    d <- summarise_column(d, "effect", probs)
+    d <- summarise_column(d, "effect", probs, diagnostics)
   }
   d
 }

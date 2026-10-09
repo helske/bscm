@@ -17,6 +17,7 @@ residuals.bscmfit <- function(
   object,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   pretreatment_only = TRUE,
   ...
 ) {
@@ -25,7 +26,7 @@ residuals.bscmfit <- function(
   check_has_data(object, "object")
   d <- residuals_draws(object, pretreatment_only)
   if (summary) {
-    d <- summarise_column(d, "residuals", probs)
+    d <- summarise_column(d, "residuals", probs, diagnostics)
   }
   d
 }

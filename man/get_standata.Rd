@@ -12,7 +12,7 @@ get_standata(x, ...)
 \item{...}{Ignored.}
 }
 \value{
-A named list suitable for passing to \code{\link[rstan:stanmodel-method-sampling]{rstan::sampling()}}.
+A named list suitable for passing to \code{\link[rstan:sampling]{rstan::sampling()}}.
 }
 \description{
 Reconstructs the data list passed to Stan in \code{\link[=bscm]{bscm()}}. Used by methods such

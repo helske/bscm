@@ -8,9 +8,7 @@
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param parameters \[`character()`]\cr Vector of parameter names. When
 #'   `NULL`, (the default), corresponds to a relevant subset of
-#'   `c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")`, where
-#'   `"zeta"` is available only when the scale of the logistic normal prior of
-#'   the donor weights is estimated, see [bscm_prior()]. Other possible
+#'   `c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")`. Other possible
 #'   choices are `"gamma"` (time-varying part of the regression coefficients), `"xi"`
 #'   (spline coefficients), `"lp__"` (log-posterior values without
 #'   constants), `"a"` (working intercepts corresponding to centered donors and covariates), and

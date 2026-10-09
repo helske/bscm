@@ -83,23 +83,23 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
       "iterations ended with a divergence. This can affect the validity of",
       "the results. Increasing `adapt_delta` might help."
     ),
-    x = paste0(
-      "Largest Rhat convergence diagnostic is ",
+    x = paste(
+      "Largest Rhat convergence diagnostic is",
       sumr$rhat[1],
-      " > 1.01 for variable ",
+      "> 1.01 for variable",
       sumr$variable[1],
       ". As the chains have not necessarily converged, results might not be ",
       "reliable. Increasing the number of iterations might help."
     ),
-    `!` = paste0(
-      "Smallest effective samples sizes are less than 100 x number of chains ",
-      "(bulk-ESS ",
+    `!` = paste(
+      "Smallest effective samples sizes are less than 100 x number of chains",
+      "(bulk-ESS",
       sumr$ess_bulk[2],
-      " for variable ",
+      "for variable ",
       sumr$variable[2],
-      " and tail-ESS ",
+      "and tail-ESS",
       sumr$ess_tail[3],
-      " for ",
+      "for",
       sumr$variable[3],
       "). This affects the accuracy of the posterior summaries. ",
       "Increasing the number of iterations might help."

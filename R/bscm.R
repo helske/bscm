@@ -45,10 +45,10 @@
 #' \eqn{\beta} is common across donors and the treated units.
 #'
 #' The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-#' either a symmetric Dirichlet prior or a logistic normal prior, see
-#' [bscm_prior()]. The concentration parameter of the Dirichlet prior is
-#' always fixed, whereas the scale \eqn{\zeta_i} of the logistic normal prior
-#' can either be fixed by or estimated from the data.
+#' either a symmetric Dirichlet prior or a logistic normal or logistic laplace 
+#' prior, with the corresponding concentration or scale parameters 
+#' \eqn{\zeta_i} either fixed or given their own prior. 
+#' See [bscm_prior()] for details.
 #'
 #' Model can contain missing values in the outcome variable of the treated,
 #' but not of the donors, nor in the covariates. Missing outcomes are
@@ -335,6 +335,7 @@ bscm <- function(
       simplify = FALSE
     )
   }
+  
   start_time <- proc.time()
   fit <- do.call(rstan::sampling, stan_args)
   stan_args$data$sample_y_rep <- compute_predictions

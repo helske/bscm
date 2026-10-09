@@ -30,6 +30,7 @@ covariate_imbalance.bscmfit <- function(
   average = FALSE,
   summary = TRUE,
   probs = c(0.025, 0.975),
+  diagnostics = TRUE,
   ...
 ) {
   warn_deprecated_plot(..., replacement = "plot_covariate_imbalance")
@@ -39,7 +40,7 @@ covariate_imbalance.bscmfit <- function(
   check_has_predictors(x)
   d <- covariate_imbalance_draws(x, average)
   if (summary) {
-    d <- summarise_column(d, "imbalance", probs)
+    d <- summarise_column(d, "imbalance", probs, diagnostics)
   }
   d
 }

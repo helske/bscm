@@ -43,13 +43,13 @@ print.bscmfit <- function(x, diagnostics = FALSE, ...) {
   cat(
     "MCMC sampling using",
     n_chains,
-    "chains, each with",
+    "chains with",
     n_warmup,
     "+",
     n_post,
     "iterations took",
     round(max(rowSums(x$elapsed_time$sampling)), 2),
-    "seconds for the slowest chain\n"
+    "seconds\n"
   )
   if (!is.null(x$converge)) {
     print(x$converge)
