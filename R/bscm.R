@@ -45,10 +45,22 @@
 #' \eqn{\beta} is common across donors and the treated units.
 #'
 #' The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-#' either a symmetric Dirichlet prior or a logistic normal or logistic laplace 
-#' prior, with the corresponding concentration or scale parameters 
+#' either a symmetric Dirichlet, a logistic normal or logistic Laplace 
+#' prior, with the corresponding concentration parameters 
 #' \eqn{\zeta_i} either fixed or given their own prior. 
 #' See [bscm_prior()] for details.
+#'
+#' By default, the standard deviations \eqn{\sigma_i} of the error term are
+#' integrated out analytically during MCMC sampling (`marginalize_sigma`).
+#' The posterior draws of
+#' \eqn{\sigma_i} are then sampled from their conditional posterior
+#' distribution given the other parameters, so they are available for
+#' post-processing as usual. Marginalization is supported for the priors
+#' [half_normal_pr()], [scaled_inv_chi_pr()], and [sqrt_inv_gamma_pr()] on
+#' \eqn{\sigma_i}. The default prior for \eqn{\sigma_i} is
+#' `half_normal_pr(0.5 * s_i)`, where \eqn{s_i} is the standard deviation of the
+#' pre-treatment outcome of treated unit \eqn{i}, or of its difference to the
+#' mean of the donors, whichever is smaller.
 #'
 #' Model can contain missing values in the outcome variable of the treated,
 #' but not of the donors, nor in the covariates. Missing outcomes are
@@ -73,6 +85,13 @@
 #'   parameters. See [bscm_prior()] for details on the available prior
 #' families and how to define them. If `NULL` (the default), default
 #' priors are used.
+#' @param marginalize_sigma \[`logical(1)` or `NULL`]\cr If `TRUE`, the
+#'   standard deviations of the error term are integrated out during MCMC
+#'   sampling, and drawn afterwards from their conditional posterior
+#'   distribution. If `FALSE`, they are sampled jointly with the
+#'   other parameters. The default `NULL` corresponds to `TRUE` if the prior of 
+#'   `sigma` is either `scaled_inv_chi_pr` (the default),
+#'   `half_normal_pr`, or `sqrt_inv_gamma`.
 #' @param prior_only \[`logical(1)`]\cr If `TRUE`, samples from prior
 #'   predictive distribution. Default is `FALSE`.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
@@ -97,7 +116,7 @@
 #'   defaults `iter = 5000` and `warmup = 2500` differ from the defaults of
 #'   [rstan::sampling()] (which are 2000 and 1000 respectively). Many
 #'   control arguments for Stan can be passed using a named list `control`,
-#'   such as `control = list(adapt_delta = 0.95)` which corresponds to the
+#'   such as `control = list(adapt_delta = 0.9)` which corresponds to the
 #'   default `adapt_delta` value of `bscm`(differing from the `rstan` default 
 #'   `0.8`).
 #' @return An object of class `bscmfit`.
@@ -106,25 +125,26 @@
 #' @examples
 #' # skip diagnostics and use small number of iterations for CRAN checks
 #' fit <- bscm(
-#'   y ~ 1, single_treated, "treatment", "time", "id",
-#'   priors = list(omega = dirichlet_pr(0.5)),
+#'   y ~ x, single_treated, "treatment", "time", "id",
+#'   priors = list(omega = logistic_normal_pr(0.5)),
 #'   chains = 1, cores = 1, refresh = 0, iter = 1000,
 #'   mcmc_diagnostics = FALSE
 #' )
 #' fit
 bscm <- function(
-  formula,
-  data,
-  treatment = "treatment",
-  time = "time",
-  unit = "id",
-  error = "iid",
-  priors = NULL,
-  prior_only = FALSE,
-  mcmc_diagnostics = TRUE,
-  save_data = TRUE,
-  compute_predictions = TRUE,
-  ...
+    formula,
+    data,
+    treatment = "treatment",
+    time = "time",
+    unit = "id",
+    error = "iid",
+    priors = NULL,
+    marginalize_sigma = NULL,
+    prior_only = FALSE,
+    mcmc_diagnostics = TRUE,
+    save_data = TRUE,
+    compute_predictions = TRUE,
+    ...
 ) {
   check_bscm_arguments(
     formula,
@@ -135,7 +155,9 @@ bscm <- function(
     mcmc_diagnostics,
     save_data,
     compute_predictions,
-    prior_only
+    prior_only,
+    priors,
+    marginalize_sigma
   )
   outcome <- get_outcome(formula)
   parsed_formula <- parse_bscm_formula(formula)
@@ -164,6 +186,23 @@ bscm <- function(
     all(table(data[[unit]], data[[time]]) == 1),
     "Data is not balanced."
   )
+  priors <- resolve_prior_aliases(priors)
+  marginalizable_sigma_priors <- c(
+    "half_normal", "scaled_inv_chi", "sqrt_inv_gamma"
+  )
+  marginalizable_sigma <- is.null(priors$sigma) || 
+    priors$sigma$distribution %in% marginalizable_sigma_priors
+  marginalize_sigma <- marginalize_sigma %||% marginalizable_sigma
+  stopifnot_(
+    !marginalize_sigma || marginalizable_sigma,
+    c(
+      "Prior {.val {priors$sigma$distribution}} for {.val sigma} is not
+      supported with {.code marginalize_sigma = TRUE}.",
+      i = "Use one of {.val {marginalizable_sigma_priors}}, or set
+      {.code marginalize_sigma = FALSE}."
+    )
+  )
+
   treatment_table <- table(data[[treatment]], data[[unit]])
   treated_idx <- which(treatment_table[2, ] > 0)
   treated <- colnames(treatment_table)[treated_idx]
@@ -183,9 +222,8 @@ bscm <- function(
   T_pre <- unname(treatment_table[1, treated])
   T_total <- length(unique(data[[time]]))
   stopifnot_(
-    error == "iid" || min(T_pre) > 1L,
-    "When {.arg error} is {.val ar1}, all treated units must have at least 
-    two pre-treatment time points."
+    min(T_pre) > 1L,
+    "All treated units must have at least two pre-treatment time points."
   )
   Y <- data |>
     dplyr::filter(.data[[unit]] %in% .env$treated) |>
@@ -260,15 +298,19 @@ bscm <- function(
   stan_args <- list(...)
   stan_args$chains <- stan_args$chains %||% 4L
   if (is.null(stan_args$control$adapt_delta)) {
-    stan_args$control$adapt_delta <- 0.95
+    stan_args$control$adapt_delta <- 0.9
   }
   if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
     stan_args$iter <- 5000L
     stan_args$warmup <- 2500L
   }
-  stan_args$object <- stanmodels$bscm
+  stan_args$object <- if (marginalize_sigma) {
+    stanmodels$bscm_marginalized_sigma
+  } else {
+    stanmodels$bscm
+  }
   stan_args$include <- FALSE
-
+  
   if (has_w) {
     spline_def <- build_spline(
       T_total = T_total,
@@ -305,20 +347,26 @@ bscm <- function(
     knot_spacing,
     spline_type,
     noncentered_xi,
-    prior_only
+    prior_only,
+    marginalize_sigma
   )
   descriptives <- compute_descriptives(Y, Z, T_pre, X_y, X_z, beta_names)
-  priors <- define_priors(priors, descriptives, setup, spline_def)
+  priors <- define_priors(
+    priors, descriptives, setup, spline_def
+  )
+  
   setup$has_zeta <- !is.null(priors$zeta)
-  stan_args$pars <- setup$excluded_pars <- c(
+  excluded_pars <- c(
     if (!has_icpt) "alpha",
     if (!has_x) "beta",
-    if (!has_w) c("gamma", "kappa"),
+    if (!has_w) c("gamma", "xi", "kappa"),
     if (spline_type != "rw2") "nu",
     if (error != "ar1") "rho",
-    if (!setup$has_zeta) "zeta"
+    if (!setup$has_zeta) "zeta",
+    if (marginalize_sigma) "rss"
   )
-
+  stan_args$pars <- setup$excluded_pars <- union(excluded_pars, stan_args$pars)
+  
   stan_args$data <- create_standata(
     setup = setup,
     priors = priors,
@@ -331,7 +379,12 @@ bscm <- function(
   if (is.null(stan_args$init)) {
     stan_args$init <- replicate(
       stan_args$chains,
-      create_inits(stan_args$data, descriptives, spline_def),
+      create_inits(
+        stan_args$data,
+        descriptives,
+        spline_def,
+        marginalize_sigma
+      ),
       simplify = FALSE
     )
   }
@@ -350,7 +403,7 @@ bscm <- function(
     ),
     type = "output"
   )
-
+  
   out <- list(
     stanfit = fit,
     y_mean = as.matrix(gq, "y_mean"),
@@ -360,7 +413,7 @@ bscm <- function(
     priors = priors
   )
   class(out) <- "bscmfit"
-
+  
   run_diags <- mcmc_diagnostics &&
     ndraws(out) > 50L &&
     !identical(stan_args$algorithm, "Fixed_param")

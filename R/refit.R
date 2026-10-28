@@ -4,9 +4,14 @@
 refit_bscm <- function(x, standata) {
   init <- lapply(x$stanfit@stan_args, `[[`, "init")
   stan_args <- x$stanfit@stan_args[[1]]
+  model <- if (isTRUE(x$setup$marginalize_sigma)) {
+    stanmodels$bscm_marginalized_sigma
+  } else {
+    stanmodels$bscm
+  }
   stan_args <- list(
-    object <- stanmodels$bscm,
-    data <- standata,
+    object = model,
+    data = standata,
     chains = length(init),
     iter = stan_args$iter,
     thin = stan_args$thin,

@@ -13,10 +13,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 
 RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4bscm_marginalized_sigma_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4generated_quantities_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_stan_fit4bscm_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_mod, 0},
+    {"_rcpp_module_boot_stan_fit4bscm_marginalized_sigma_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4bscm_marginalized_sigma_mod, 0},
     {"_rcpp_module_boot_stan_fit4generated_quantities_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4generated_quantities_mod, 0},
     {NULL, NULL, 0}
 };

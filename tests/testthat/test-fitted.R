@@ -1,10 +1,10 @@
 test_that("fitted returns data.frame with correct structure", {
-  suppressWarnings(d <- fitted(fit1_noint))
+  suppressWarnings(d <- fitted(fit1_noint, diagnostics = FALSE))
   expect_s3_class(d, "tbl_df")
   expect_identical(names(d)[1:4], c("id", "time", "treatment", "mean"))
   expect_equal(nrow(d), get_T_total(fit1_noint))
 
-  suppressWarnings(d <- fitted(fitN_int))
+  suppressWarnings(d <- fitted(fitN_int, diagnostics = FALSE))
   expect_equal(d$time, rep(get_times(fitN_int), 3))
   expect_equal(d$id, rep(get_treated(fitN_int), each = get_T_total(fitN_int)))
 })
@@ -37,7 +37,7 @@ test_that("fitted validates probs argument", {
 })
 
 test_that("residuals equal observed minus fitted", {
-  f <- fitted(fit1_int, summary = FALSE)
+  f <- fitted(fit1_int, summary = FALSE, diagnostics = FALSE)
   r <- residuals(fit1_int, summary = FALSE, pretreatment_only = FALSE)
   y <- c(get_stan_y(fit1_int))
   expect_equal(

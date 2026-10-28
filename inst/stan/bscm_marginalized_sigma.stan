@@ -1,0 +1,222 @@
+functions {
+#include functions/features.stan
+#include functions/priors.stan
+#include functions/marginalization.stan
+}
+
+data {
+  int<lower=0, upper=1> use_alpha;
+  int<lower=0, upper=1> use_beta;
+  int<lower=0, upper=1> use_gamma;
+  int<lower=0, upper=1> use_nu;
+  int<lower=0, upper=1> use_ar1;
+  int<lower=0, upper=1> use_zeta;
+  int<lower=2> J; // number of donor series
+  int<lower=1> N; // number of treated series
+  int<lower=2> T; // number of time points
+  array[N] int<lower=1, upper=T> T_pre; // number of pre-treatment time points
+  int<lower=use_beta> K; // number of covariates
+  int<lower=use_gamma, upper=K> L; // number of time-varying coefficients
+  int<lower=0> D; // number of spline coefficients
+  array[N] vector[T] y; // treated (0 at missing positions)
+  matrix[T, J] Z; // donors
+  array[use_beta ? N : 0] matrix[T, K] X_y; // covariates for treated
+  array[use_beta ? J : 0] matrix[T, K] X_z; // covariates for donors
+  array[L] int<lower=1, upper=K> tv_idx; // indices of gamma coefs
+  matrix[use_gamma ? T : 0, D] A; // spline matrix
+  int<lower=0, upper=1> likelihood; // if 0, sample from prior only
+  int<lower=0> pr_dist_sigma;
+  int<upper=0> pr_dist_omega;
+  int<lower=0> pr_dist_zeta;
+  int<lower=0> pr_dist_alpha;
+  int<lower=0> pr_dist_beta;
+  int<lower=0> pr_dist_kappa;
+  int<lower=0> pr_dist_nu;
+  int<lower=0> pr_dist_rho;
+  // dirichlet or logistic
+  vector[use_zeta ? 0 : N] pr_pars_omega;
+  matrix[N, 3] pr_pars_sigma;
+  matrix[use_zeta ? N : 0, 3] pr_pars_zeta;
+  matrix[use_alpha ? N : 0, 3] pr_pars_alpha;
+  matrix[use_beta ? K : 0, 3] pr_pars_beta;
+  matrix[use_gamma ? L : 0, 3] pr_pars_kappa;
+  matrix[use_nu ? L : 0, 3] pr_pars_nu;
+  matrix[use_ar1 ? N : 0, 2] pr_pars_rho;
+  int<lower=0, upper=1> noncentered_xi;
+  int<lower=0> n_missing; // number of missing treated observations
+  array[n_missing, 2] int missing_idx; // (unit, time) indices of missing obs
+}
+transformed data {
+  int T0 = min(T_pre);
+  
+  // adjust the marginal standard deviation of elements of sum-to-zero eta
+  // eta ~ N(0, scale), sum(eta) = 0 => marginal SD(eta_i) = 1
+  real scaleJ = sqrt(J * inv(J - 1));
+  
+  // centered donors
+  row_vector[J] Z_mean = rep_row_vector(0, J);
+  matrix[T, J] cZ = Z;
+  if (use_alpha) {
+    for (j in 1:J) {
+      Z_mean[j] = mean(Z[1:T0, j]);
+      cZ[, j] -= Z_mean[j];
+    }
+  }
+  
+  matrix[N, K] X_y_mean;
+  matrix[J, K] X_z_mean;
+  array[N] matrix[T, K] cX_y;
+  array[K] matrix[T, J] cX_z;
+  if (use_beta) {
+    for (i in 1:N) {
+      for (k in 1:K) {
+        X_y_mean[i, k] = mean(X_y[i, 1:T0, k]);
+        cX_y[i, , k] = X_y[i, , k] - X_y_mean[i, k];
+      }
+    }
+    for (j in 1:J) {
+      for (k in 1:K) {
+        X_z_mean[j, k] = mean(X_z[j, 1:T0, k]);
+        cX_z[k, , j] = X_z[j, , k] - X_z_mean[j, k];
+      }
+    }
+  }
+  array[N] matrix[T, L] W_y;
+  array[L] matrix[T, J] W_z;
+  if (use_gamma) {
+    for (i in 1:N) {
+      W_y[i] = X_y[i, , tv_idx];
+    }
+    for (l in 1:L) {
+      for (j in 1:J) {
+        W_z[l, , j] = X_z[j, , tv_idx[l]];
+      }
+    }
+  }
+  vector[T] trend = linspaced_vector(T, 1, T) - 0.5 * (max(T_pre) + 1);
+}
+parameters {
+  //not supported on the current CRAN versions (as in April 2026)
+  //array[N] sum_to_zero_vector[J] eta;
+  array[N] vector[J - 1] eta; // omega ~ dirichlet or logistic
+  vector<lower=0>[use_zeta ? N : 0] zeta; // concentration of weight prior
+  vector[use_alpha ? N : 0] a; // working intercept
+  vector[use_beta ? K : 0] beta; // regression coefficients
+  matrix[D, use_gamma ? L : 0] xi; // spline coefficients
+  vector<lower=0>[use_gamma ? L : 0] kappa; // SD of RW1/RW2 prior xi
+  vector[use_nu ? L : 0] nu; // slope of gamma in case of RW2 prior
+  vector<lower=-1, upper=1>[use_ar1 ? N : 0] rho; // autoregressive parameters
+  vector[n_missing] y_imputed; // imputed values for missing treated observations
+}
+transformed parameters {
+  matrix[J, N] omega;
+  for (i in 1:N) {
+    omega[, i] =  build_omega_lp(
+      eta[i], 
+      use_zeta ? zeta[i] : pr_pars_omega[i],
+      pr_dist_omega
+      );
+  }
+  
+  // time-varying regression coefficients
+  matrix[use_gamma ? T : 0, L] gamma;
+  if (noncentered_xi) {
+    gamma = A * diag_post_multiply(xi, kappa);
+  } else {
+    gamma = A * xi;
+  }
+  if (use_nu) {
+    gamma += trend * nu';
+  }
+  
+  // residual sums of squares of the pre-treatment period
+  // sigma is integrated out
+  vector<lower=0>[N] rss = rep_vector(0, N);
+  if (likelihood) {
+    array[N] vector[T] y_full = y;
+    for (m in 1:n_missing) {
+      y_full[missing_idx[m, 1], missing_idx[m, 2]] = y_imputed[m];
+    }
+    matrix[T, N] Z_term = cZ * omega;
+    if (use_beta) {
+      for (k in 1:K) {
+        Z_term -= beta[k] * cX_z[k] * omega;
+      }
+      if (use_gamma) {
+        for (l in 1:L) {
+          Z_term -= diag_pre_multiply(gamma[, l], W_z[l] * omega);
+        }
+      }
+    }
+    for (i in 1:N) {
+      int Ti = T_pre[i];
+      vector[Ti] mu = Z_term[1:Ti, i];
+      if (use_alpha) {
+        mu += a[i];
+      }
+      if (use_beta) {
+        mu += cX_y[i, 1:Ti, ] * beta;
+      }
+      if (use_gamma) {
+        mu += rows_dot_product(W_y[i, 1:Ti, ], gamma[1:Ti, ]);
+      }
+      if (use_ar1) {
+        mu[2:Ti] += rho[i] * (y_full[i, 1:(Ti - 1)] - mu[1:(Ti - 1)]);
+      }
+      rss[i] = dot_self(y_full[i, 1:Ti] - mu);
+    }
+  }
+}
+model {
+
+  if (use_zeta) {
+    zeta ~ prior(pr_dist_zeta, pr_pars_zeta);
+  }
+  
+  a ~ prior(pr_dist_alpha, pr_pars_alpha);
+  beta ~ prior(pr_dist_beta, pr_pars_beta);
+  kappa ~ prior(pr_dist_kappa, pr_pars_kappa);
+  nu ~ prior(pr_dist_nu, pr_pars_nu);
+  if (noncentered_xi) {
+    to_vector(xi) ~ std_normal();
+  } else {
+    for (l in 1:L) {
+      xi[, l] ~ normal(0, kappa[l]);
+    }
+  }
+  0.5 * (1 + rho) ~ prior(pr_dist_rho, pr_pars_rho);
+  
+  if (likelihood) {
+    for (i in 1:N) {
+      rss[i] ~ marginal_log_likelihood(T_pre[i], pr_dist_sigma, pr_pars_sigma[i, ]');
+    }
+  }
+}
+generated quantities {
+  vector[use_alpha ? N : 0] alpha = rep_vector(0, N * use_alpha);
+  if (use_alpha) {
+    alpha = a;
+    for (i in 1:N) {
+      alpha[i] -= Z_mean * omega[, i];
+    }
+    if (use_beta) {
+      alpha -= X_y_mean * beta;
+      vector[J] xzb = X_z_mean * beta;
+      for (i in 1:N) {
+        alpha[i] += dot_product(xzb, omega[, i]);
+      }
+    }
+  }
+
+  // draw sigma from its conditional posterior given the other parameters,
+  // or from the prior when sampling from the prior only
+  vector<lower=0>[N] sigma;
+  for (i in 1:N) {
+    sigma[i] = marginalized_sigma_rng(
+      rss[i],
+      likelihood ? T_pre[i] : 0,
+      pr_dist_sigma,
+      pr_pars_sigma[i, ]'
+      );
+  }
+}

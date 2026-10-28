@@ -98,7 +98,7 @@ parameters {
   //not supported on the current CRAN versions (as in April 2026)
   //array[N] sum_to_zero_vector[J] eta;
   array[N] vector[J - 1] eta; // omega ~ dirichlet or logistic
-  vector<lower=0>[use_zeta ? N : 0] zeta; // scale/concentration of weight prior
+  vector<lower=0>[use_zeta ? N : 0] zeta; // concentration of weight prior
   vector<lower=0>[N] sigma; // SD of the error term
   vector[use_alpha ? N : 0] a; // working intercept
   vector[use_beta ? K : 0] beta; // regression coefficients

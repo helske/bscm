@@ -78,9 +78,66 @@ test_that("as.character works for all prior families", {
   expect_equal(as.character(half_normal_pr(2)), "half_normal(2)")
   expect_equal(as.character(dirichlet_pr(1)), "dirichlet(1)")
   expect_equal(as.character(logistic_normal_pr(2)), "logistic_normal(2)")
+  expect_equal(as.character(cauchy_pr(0, 1)), "cauchy(0, 1)")
+  expect_equal(as.character(laplace_pr(0, 1)), "laplace(0, 1)")
+  expect_equal(as.character(inv_gamma_pr(2, 1)), "inv_gamma(2, 1)")
+  expect_equal(
+    as.character(scaled_inv_chi_pr(4, 1)),
+    "scaled_inv_chi(4, 1)"
+  )
+  expect_equal(
+    as.character(sqrt_inv_gamma_pr(2, 1)),
+    "sqrt_inv_gamma(2, 1)"
+  )
+  expect_equal(
+    as.character(logistic_laplace_pr(2)),
+    "logistic_laplace(2)"
+  )
+})
+test_that("inv_gamma_pr uses shape and scale", {
+  pr <- inv_gamma_pr(shape = 2, scale = c(1, 3))
+  expect_equal(pr$shape, c(2, 2))
+  expect_equal(pr$scale, c(1, 3))
+  expect_null(pr$rate)
+})
+test_that("prior constructors check the correct arguments", {
+  expect_error(student_pr(-1, 0, 1), "df")
+  expect_error(sqrt_inv_gamma_pr(-1, 1), "shape")
+  expect_error(scaled_inv_chi_pr(4, -1), "scale")
+})
+test_that("available_priors lists all prior constructors", {
+  pr <- available_priors()
+  expect_s3_class(pr, "data.frame")
+  expect_equal(pr$distribution, sort(pr$distribution))
+  fns <- sub("()", "", pr$constructor, fixed = TRUE)
+  expect_true(all(vapply(fns, exists, logical(1))))
+  expect_true(all(pr$support %in% c("real", "positive", "(0, 1)", "simplex")))
+})
+test_that("prior_to_stan has a code for all available priors", {
+  pr <- available_priors()
+  for (i in seq_len(nrow(pr))) {
+    x <- structure(
+      list(
+        distribution = pr$distribution[i],
+        location = 0,
+        scale = 1,
+        shape = 1,
+        rate = 1,
+        df = 1,
+        shape1 = 1,
+        shape2 = 1,
+        concentration = 1,
+        length = 1L,
+        zeta = FALSE
+      ),
+      class = "bscm_prior"
+    )
+    type <- if (pr$support[i] == "simplex") "omega" else "sigma"
+    expect_false(anyNA(prior_to_stan(x, type)[[1]]))
+  }
 })
 test_that("get_priors returns a list of bscm_prior objects", {
-  pr_list <- get_priors(fit1_int)
+  pr_list <- get_priors(fit1_int, FALSE)
   expect_type(pr_list, "list")
   expect_true(all(vapply(pr_list, inherits, logical(1L), "bscm_prior")))
 })
@@ -93,7 +150,7 @@ test_that("logistic_normal() and dirichlet() return correct objects", {
   x <- logistic_normal_pr(2)
   expect_s3_class(x, "bscm_prior")
   expect_equal(x$distribution, "logistic_normal")
-  expect_equal(x$scale, 2)
+  expect_equal(x$concentration, 2)
   z <- 0.5
   x <- dirichlet_pr(z)
   expect_s3_class(x, "bscm_prior")

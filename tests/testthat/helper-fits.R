@@ -7,7 +7,7 @@ tryCatch(
       time = "time",
       unit = "id",
       chains = 2,
-      iter = 2000,
+      iter = 500,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -20,8 +20,7 @@ tryCatch(
       unit = "id",
       error = "ar1",
       chains = 2,
-      iter = 200,
-      init = 0,
+      iter = 500,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -33,8 +32,7 @@ tryCatch(
       time = "time",
       unit = "id",
       chains = 2,
-      iter = 200,
-      init = 0,
+      iter = 500,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -45,9 +43,8 @@ tryCatch(
       treatment = "treatment",
       time = "time",
       unit = "id",
-      chains = 2,
-      iter = 200,
-      init = 0,
+      chains = 1,
+      iter = 1000,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -59,8 +56,7 @@ tryCatch(
       time = "time",
       unit = "id",
       chains = 2,
-      iter = 200,
-      init = 0,
+      iter = 500,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE
@@ -72,12 +68,11 @@ tryCatch(
       time = "time",
       unit = "id",
       priors = list(
-        intercept = normal_pr(0, 1),
-        scale_gamma = exponential_pr(1)
+        intercept = normal_pr(0, 10),
+        scale_gamma = exponential_pr(1/2)
       ),
-      chains = 2,
-      iter = 200,
-      init = 0,
+      chains = 1,
+      iter = 1000,
       refresh = 0,
       seed = 1,
       save_warmup = FALSE

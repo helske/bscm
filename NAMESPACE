@@ -55,6 +55,7 @@ S3method(treatment_effect,bscmfit)
 S3method(variance_components,bscmfit)
 export(as_draws)
 export(as_draws_rvars)
+export(available_priors)
 export(average_treatment_effect)
 export(bayes_R2)
 export(beta_pr)
@@ -76,12 +77,13 @@ export(get_standata)
 export(get_stanfit)
 export(get_treated)
 export(half_normal_pr)
+export(inv_gamma_pr)
+export(laplace_pr)
 export(leave_donor_out)
 export(lfo)
 export(log_lik)
 export(logistic_laplace_pr)
 export(logistic_normal_pr)
-export(logistic_t_pr)
 export(loo)
 export(loo_R2)
 export(nchains)
@@ -101,6 +103,8 @@ export(proj_predict_bscm)
 export(residual_acf)
 export(rmse)
 export(rmse_ratio)
+export(scaled_inv_chi_pr)
+export(sqrt_inv_gamma_pr)
 export(student_pr)
 export(synthetic_control)
 export(treatment_effect)
@@ -110,25 +114,33 @@ import(ggplot2)
 importFrom(RcppParallel,RcppParallelLibs)
 importFrom(loo,loo)
 importFrom(methods,new)
-importFrom(posterior,as_draws)
-importFrom(posterior,as_draws_rvars)
-importFrom(posterior,nchains)
-importFrom(posterior,ndraws)
+importFrom(posterior,
+  as_draws,
+  as_draws_rvars,
+  nchains,
+  ndraws
+)
 importFrom(projpred,get_refmodel)
-importFrom(rlang,":=")
-importFrom(rlang,.data)
-importFrom(rlang,.env)
+importFrom(rlang,
+  ":=",
+  .data,
+  .env
+)
 importFrom(rstan,sampling)
-importFrom(rstantools,bayes_R2)
-importFrom(rstantools,log_lik)
-importFrom(rstantools,loo_R2)
-importFrom(rstantools,posterior_epred)
-importFrom(rstantools,posterior_linpred)
-importFrom(rstantools,posterior_predict)
-importFrom(rstantools,rstan_config)
-importFrom(stats,coef)
-importFrom(stats,fitted)
-importFrom(stats,residuals)
-importFrom(stats,sd)
-importFrom(stats,sigma)
+importFrom(rstantools,
+  bayes_R2,
+  log_lik,
+  loo_R2,
+  posterior_epred,
+  posterior_linpred,
+  posterior_predict,
+  rstan_config
+)
+importFrom(stats,
+  coef,
+  fitted,
+  residuals,
+  sd,
+  sigma
+)
 useDynLib(bscm, .registration = TRUE)

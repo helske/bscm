@@ -1,20 +1,20 @@
 test_that("print.bscmfit returns x invisibly", {
-  out <- capture.output(result <- print(fit1_int))
-  expect_identical(result, fit1_int)
+  out <- capture.output(result <- print(fit_single_treated))
+  expect_identical(result, fit_single_treated)
 })
 
 test_that("print.bscmfit output contains expected header", {
-  out <- capture.output(print(fit1_int))
+  out <- capture.output(print(fit_single_treated))
   expect_true(any(grepl("Bayesian synthetic control model", out)))
 })
 
 test_that("print.bscmfit output contains MCMC info", {
-  out <- capture.output(print(fit1_int))
+  out <- capture.output(print(fit_single_treated))
   expect_true(any(grepl("MCMC sampling", out)))
 })
 
 test_that("print.bscmfit shows treated unit info for single treated", {
-  out <- capture.output(print(fit1_int))
+  out <- capture.output(print(fit_single_treated))
   expect_true(any(grepl("Treated unit:", out)))
   expect_true(any(grepl("Number of donors:", out)))
 })
@@ -30,7 +30,7 @@ test_that("print.bscmfit shows AR(1) residuals for AR(1) model", {
 })
 
 test_that("print.bscmfit does not show AR(1) for IID model", {
-  out <- capture.output(print(fit1_int))
+  out <- capture.output(print(fit_single_treated))
   expect_false(any(grepl("AR(1) residuals", out, fixed = TRUE)))
 })
 

@@ -4,21 +4,25 @@
 \alias{bscm_prior}
 \alias{beta_pr}
 \alias{cauchy_pr}
+\alias{dirichlet_pr}
 \alias{exponential_pr}
 \alias{gamma_pr}
 \alias{half_normal_pr}
-\alias{normal_pr}
+\alias{inv_gamma_pr}
 \alias{laplace_pr}
-\alias{student_pr}
-\alias{dirichlet_pr}
-\alias{logistic_t_pr}
 \alias{logistic_laplace_pr}
 \alias{logistic_normal_pr}
+\alias{normal_pr}
+\alias{scaled_inv_chi_pr}
+\alias{sqrt_inv_gamma_pr}
+\alias{student_pr}
 \title{Prior distributions in the Bayesian synthetic control model}
 \usage{
 beta_pr(shape1, shape2)
 
 cauchy_pr(location, scale)
+
+dirichlet_pr(concentration = NA)
 
 exponential_pr(rate)
 
@@ -26,82 +30,83 @@ gamma_pr(shape, rate)
 
 half_normal_pr(scale)
 
-normal_pr(location, scale)
+inv_gamma_pr(shape, scale)
 
 laplace_pr(location, scale)
 
+logistic_laplace_pr(concentration = NA)
+
+logistic_normal_pr(concentration = NA)
+
+normal_pr(location, scale)
+
+scaled_inv_chi_pr(df, scale)
+
+sqrt_inv_gamma_pr(shape, scale)
+
 student_pr(df, location, scale)
-
-dirichlet_pr(concentration = NA)
-
-logistic_t_pr(scale = NA)
-
-logistic_laplace_pr(scale = NA)
-
-logistic_normal_pr(scale = NA)
 }
 \arguments{
-\item{shape1}{The first shape parameter for the beta prior.}
+\item{shape1}{[\code{numeric()}]\cr First shape parameter(s) of the beta prior.}
 
-\item{shape2}{The second shape parameter for the beta prior.}
+\item{shape2}{[\code{numeric()}]\cr Second shape parameter(s) of the beta
+prior.}
 
-\item{location}{The location parameter for the prior.}
+\item{location}{[\code{numeric()}]\cr Location parameter(s).}
 
-\item{scale}{The scale parameter for the prior.}
+\item{scale}{[\code{numeric()}]\cr Scale parameter(s). For the priors of the
+donor weights \code{omega}, this can also be \code{NA}, in which case the scale is
+estimated from the data, see details.}
 
-\item{rate}{The rate parameter for the gamma and exponential priors.}
+\item{concentration}{[\code{numeric()}]\cr Concentration parameter(s). Can
+also be \code{NA}, in which case the concentration is estimated from the data,
+see details.}
 
-\item{shape}{The shape parameter for the gamma prior.}
+\item{rate}{[\code{numeric()}]\cr Rate parameter(s).}
 
-\item{df}{The degrees of freedom for the Student's t prior.}
+\item{shape}{[\code{numeric()}]\cr Shape parameter(s).}
 
-\item{concentration}{The concentration parameter for the Dirichlet prior.}
+\item{df}{[\code{numeric()}]\cr Degrees of freedom parameter(s).}
 }
 \value{
 A \code{bscm_prior} object.
 }
 \description{
-The functions \code{normal_pr()}, \code{student_pr()}, \code{exponential_pr()}, \code{gamma_pr()},
-\code{beta_pr()}, \code{half_normal_pr()}, \code{dirichlet_pr()}, and \code{logistic_normal_pr()}
-specify prior distributions for parameters of the Bayesian synthetic
-control model estimated by \code{\link[=bscm]{bscm()}}.
+These functions specify prior distributions for parameters of the Bayesian
+synthetic control model estimated by \code{\link[=bscm]{bscm()}}. See \code{\link[=available_priors]{available_priors()}} for
+the list of available prior distributions and their definitions.
 }
 \details{
-For parameters that can take any real value (\code{alpha}, \code{beta}, \code{nu}),
-currently supported prior distributions are \code{normal_pr(location, scale)} and
-\code{student_pr(df, location, scale)}. Note however that for the intercept the
-prior corresponds to a value of the intercept when donors and predictors
-corresponding to time-constant coefficients are centered.
+Priors with support on the real line can be used for parameters that can
+take any real value (\code{alpha}, \code{beta}, \code{nu}). Note however that for the
+intercept the prior corresponds to a value of the intercept when donors and
+predictors corresponding to time-constant coefficients are centered.
 
 For parameters constrained to be positive (\code{sigma}, \code{kappa}, \code{zeta}),
-supported distributions are \code{exponential_pr(rate)}, \code{gamma_pr(shape, rate)},
-and \code{half_normal_pr(scale)}.
+priors with positive support can be used, as well as the priors with
+support on the real line, which are then truncated to positive values.
 
 For autoregressive coefficients of the residuals (rho) the prior corresponds
 to transformation \code{0.5 * (1 + rho)}, so that the support is (0, 1). Only
 supported prior distribution for this is \code{beta_pr(shape1, shape2)}.
 
-For the donor weight vector \code{omega}, supported priors are
-\code{dirichlet_pr(concentration)} and \code{logistic_normal_pr(scale)}. The
-(symmetric) Dirichlet prior with concentration \eqn{\zeta} defined as
-\eqn{\omega \sim \text{Dirichlet}(\zeta, \ldots,\zeta)}.
-Values \eqn{\zeta < 1} concentrate weight on few donors, while
-\eqn{\zeta = 1} is uniform over the simplex, and
-\eqn{\zeta > 1} pulls weights toward the center of the simplex.
-Logistic normal with with scale \eqn{\zeta} is defined as
-\eqn{\omega = \text{softmax}(\zeta\eta)},
-where \eqn{\eta \sim N(0, I)} constrained to sum to zero. Larger \eqn{\zeta}
-induces more concentrated (sparser) weights, while \eqn{\zeta \to 0}
-corresponds to the uniform weights \eqn{1/J}.
-
-The \eqn{\zeta} parameter of the Dirichlet and logistic normal priors can
+For the donor weight vector \code{omega}, priors with support on the simplex are
+used. The concentration or scale parameter \eqn{\zeta} of these priors can
 either be fixed by the user or estimated from the data. Calling
-\code{logistic_normal_pr()} (and equivalently for \code{dirichlet_pr()}without
-arguments (or argument value \code{NA}) leaves the prior parameter unspecified, in
-which case \eqn{\zeta_i} is a parameter of the model, estimated separately
-for each treated unit \eqn{i}. When the scale is estimated, the prior for
-\eqn{\zeta_i} is defined as the element \code{zeta} of the \code{priors} list of
-\code{\link[=bscm]{bscm()}}.
+\code{logistic_normal_pr()} (and equivalently for \code{dirichlet_pr()} and
+\code{logistic_laplace_pr()}) without arguments (or argument value \code{NA}) leaves
+the prior parameter unspecified, in which case \eqn{\zeta_i} is a parameter
+of the model, estimated separately for each treated unit \eqn{i}, with the
+prior for \eqn{\zeta_i} is defined as the element
+\code{zeta} of the \code{priors} list of \code{\link[=bscm]{bscm()}}. The default prior for \eqn{\zeta_i}
+is \verb{inv_gamma_pr(sqrt(J), 0.5 * sqrt(J) / log(1 + J / 5)}, where \code{J} is the
+number of donors. This prior penalizes very small concentrations
+which are prone to cause sampling problems due to challenging posterior
+geometry and concentration of weights for a single donor.
+Note: This default is chosen based on prior calibration
+of the distribution of effective number of donors \eqn{1/\sum(\omega^2)}
+with the total number of donors \eqn{J} ranging from 20 to 200,
+leading to 5\% and 95\% prior quantiles about 2 and J/10.
 
 Each element of the \code{priors} list of \code{\link[=bscm]{bscm()}} can be named either by the
 name of the model parameter or by a plain-text synonym:\tabular{lll}{
@@ -112,7 +117,7 @@ name of the model parameter or by a plain-text synonym:\tabular{lll}{
    \code{nu} \tab \code{slope_gamma} \tab trend slope of the time-varying coefficients \cr
    \code{rho} \tab \code{ar1} \tab autoregressive coefficient of the residuals \cr
    \code{omega} \tab \code{weights} \tab donor weights \cr
-   \code{zeta} \tab \code{scale_omega} \tab scale or concentration of Dirirchlet or logistic normal prior \cr
+   \code{zeta} \tab \code{concentration} \tab concentration of the prior of \code{omega} \cr
    \code{sigma} \tab \code{sd} \tab standard deviation of the error term \cr
 }
 }
@@ -120,14 +125,13 @@ name of the model parameter or by a plain-text synonym:\tabular{lll}{
 normal_pr(c(0, 0), c(1, 2))
 student_pr(df = 4, location = 0, scale = 2)
 exponential_pr(rate = c(1, 0.1))
-gamma_pr(2, 1)
+scaled_inv_chi_pr(df = 4, scale = 1)
 beta_pr(2, 2)
-half_normal_pr(1)
 dirichlet_pr(1)
 logistic_normal_pr(2)
 logistic_normal_pr()
 
 }
 \seealso{
-\code{\link[=bscm]{bscm()}}
+\code{\link[=available_priors]{available_priors()}}, \code{\link[=bscm]{bscm()}}
 }

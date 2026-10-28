@@ -113,34 +113,36 @@ prior_to_stan <- function(x, type) {
   if (is.null(x)) {
     dist <- 0
   } else {
+    # codes must match prior_lpdf() and build_omega_lp() in priors.stan,
+    # negative codes are used for the simplex priors of omega
     dist <- c(
-      normal = 1L,
-      student_t = 2L,
-      laplace = 3L,
-      exponential = 4L,
-      gamma = 5L,
-      half_normal = 6L,
-      beta = 7L,
-      cauchy = 8L,
+      beta = 1L,
+      cauchy = 2L,
       dirichlet = -1L,
-      logistic_normal = -2L,
-      logistic_laplace = -3L,
-      logistic_t = -4L
+      exponential = 3L,
+      gamma = 4L,
+      half_normal = 5L,
+      inv_gamma = 6L,
+      laplace = 7L,
+      logistic_laplace = -2L,
+      logistic_normal = -3L,
+      normal = 8L,
+      scaled_inv_chi = 9L,
+      sqrt_inv_gamma = 10L,
+      student_t = 11L
     )[x$distribution]
     switch(
       x$distribution,
-      normal = {
+      beta = {
+        pars[, 1] <- x$shape1
+        pars[, 2] <- x$shape2
+      },
+      cauchy = {
         pars[, 1] <- x$location
         pars[, 2] <- x$scale
       },
-      student_t = {
-        pars[, 1] <- x$df
-        pars[, 2] <- x$location
-        pars[, 3] <- x$scale
-      },
-      laplace = {
-        pars[, 1] <- x$location
-        pars[, 2] <- x$scale
+      dirichlet = {
+        pars[] <- x$concentration
       },
       exponential = {
         pars[, 1] <- x$rate
@@ -152,25 +154,36 @@ prior_to_stan <- function(x, type) {
       half_normal = {
         pars[, 1] <- x$scale
       },
-      dirichlet = {
-        pars[] <- x$concentration
+      inv_gamma = {
+        pars[, 1] <- x$shape
+        pars[, 2] <- x$scale
       },
-      logistic_normal = {
-        pars[] <- x$scale
-      },
-      logistic_laplace = {
-        pars[] <- x$scale
-      },
-      beta = {
-        pars[, 1] <- x$shape1
-        pars[, 2] <- x$shape2
-      },
-      cauchy = {
+      laplace = {
         pars[, 1] <- x$location
         pars[, 2] <- x$scale
       },
-      logistic_t = {
-        pars[] <- x$scale
+      logistic_laplace = {
+        pars[] <- x$concentration
+      },
+      logistic_normal = {
+        pars[] <- x$concentration
+      },
+      normal = {
+        pars[, 1] <- x$location
+        pars[, 2] <- x$scale
+      },
+      scaled_inv_chi = {
+        pars[, 1] <- x$df
+        pars[, 2] <- x$scale
+      },
+      sqrt_inv_gamma = {
+        pars[, 1] <- x$shape
+        pars[, 2] <- x$scale
+      },
+      student_t = {
+        pars[, 1] <- x$df
+        pars[, 2] <- x$location
+        pars[, 3] <- x$scale
       }
     )
   }
@@ -237,7 +250,7 @@ create_standata <- function(
   )
 }
 # x: standata, d: descriptives
-create_inits <- function(x, d, spline_def) {
+create_inits <- function(x, d, spline_def, marginalize_sigma = FALSE) {
   eta <- matrix(stats::rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
   sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
   a <- beta <- rho <- kappa <- nu <- zeta <- array(0, 0)
@@ -262,5 +275,10 @@ create_inits <- function(x, d, spline_def) {
   if (x$use_zeta) {
     zeta <- array(stats::runif(x$N, 0.5, 1))
   }
-  dplyr::lst(eta, sigma, a, beta, xi, kappa, nu, rho, zeta)
+  inits <- dplyr::lst(eta, sigma, a, beta, xi, kappa, nu, rho, zeta)
+  # sigma is not a parameter of the marginalized model
+  if (marginalize_sigma) {
+    inits$sigma <- NULL
+  }
+  inits
 }

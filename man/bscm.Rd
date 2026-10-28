@@ -12,6 +12,7 @@ bscm(
   unit = "id",
   error = "iid",
   priors = NULL,
+  marginalize_sigma = NULL,
   prior_only = FALSE,
   mcmc_diagnostics = TRUE,
   save_data = TRUE,
@@ -45,6 +46,14 @@ parameters. See \code{\link[=bscm_prior]{bscm_prior()}} for details on the avail
 families and how to define them. If \code{NULL} (the default), default
 priors are used.}
 
+\item{marginalize_sigma}{[\code{logical(1)} or \code{NULL}]\cr If \code{TRUE}, the
+standard deviations of the error term are integrated out during MCMC
+sampling, and drawn afterwards from their conditional posterior
+distribution. If \code{FALSE}, they are sampled jointly with the
+other parameters. The default \code{NULL} corresponds to \code{TRUE} if the prior of
+\code{sigma} is either \code{scaled_inv_chi_pr} (the default),
+\code{half_normal_pr}, or \code{sqrt_inv_gamma}.}
+
 \item{prior_only}{[\code{logical(1)}]\cr If \code{TRUE}, samples from prior
 predictive distribution. Default is \code{FALSE}.}
 
@@ -73,9 +82,9 @@ adjust the sampling options, for example \code{iter} and \code{chains}.  Note th
 defaults \code{iter = 5000} and \code{warmup = 2500} differ from the defaults of
 \code{\link[rstan:sampling]{rstan::sampling()}} (which are 2000 and 1000 respectively). Many
 control arguments for Stan can be passed using a named list \code{control},
-such as \code{control = list(adapt_delta = 0.95)} which corresponds to the
-default \code{adapt_delta} value of \code{bscm} when model contains time-varying
-coefficients (otherwise the default is \code{0.8} as in \code{rstan}).}
+such as \code{control = list(adapt_delta = 0.9)} which corresponds to the
+default \code{adapt_delta} value of \code{bscm}(differing from the \code{rstan} default
+\code{0.8}).}
 }
 \value{
 An object of class \code{bscmfit}.
@@ -125,10 +134,22 @@ the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
 
 The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-either a symmetric Dirichlet prior or a logistic normal or logistic laplace
-prior, with the corresponding concentration or scale parameters
+either a symmetric Dirichlet, a logistic normal or logistic Laplace
+prior, with the corresponding concentration parameters
 \eqn{\zeta_i} either fixed or given their own prior.
 See \code{\link[=bscm_prior]{bscm_prior()}} for details.
+
+By default, the standard deviations \eqn{\sigma_i} of the error term are
+integrated out analytically during MCMC sampling (\code{marginalize_sigma}).
+The posterior draws of
+\eqn{\sigma_i} are then sampled from their conditional posterior
+distribution given the other parameters, so they are available for
+post-processing as usual. Marginalization is supported for the priors
+\code{\link[=half_normal_pr]{half_normal_pr()}}, \code{\link[=scaled_inv_chi_pr]{scaled_inv_chi_pr()}}, and \code{\link[=sqrt_inv_gamma_pr]{sqrt_inv_gamma_pr()}} on
+\eqn{\sigma_i}. The default prior for \eqn{\sigma_i} is
+\code{half_normal_pr(0.5 * s_i)}, where \eqn{s_i} is the standard deviation of the
+pre-treatment outcome of treated unit \eqn{i}, or of its difference to the
+mean of the donors, whichever is smaller.
 
 Model can contain missing values in the outcome variable of the treated,
 but not of the donors, nor in the covariates. Missing outcomes are
@@ -138,8 +159,8 @@ automatically imputed during MCMC sampling under a missing at random
 \examples{
 # skip diagnostics and use small number of iterations for CRAN checks
 fit <- bscm(
-  y ~ 1, single_treated, "treatment", "time", "id",
-  priors = list(omega = dirichlet_pr(0.5)),
+  y ~ x, single_treated, "treatment", "time", "id",
+  priors = list(omega = logistic_normal_pr(0.5)),
   chains = 1, cores = 1, refresh = 0, iter = 1000,
   mcmc_diagnostics = FALSE
 )

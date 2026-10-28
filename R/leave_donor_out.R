@@ -81,7 +81,7 @@ leave_donor_out.bscmfit <- function(
   weights[[1]] <- donor_weights(x, probs = probs)
   diagnostics[[1]] <- check_mcmc_diagnostics(x, warn = FALSE)
 
-  priors <- get_priors(x)
+  priors <- get_priors(x, FALSE)
   p <- progressr::progressor(along = removed_donors)
   for (i in seq_along(removed_donors)) {
     p(paste0("Removing donor ", donor_order[i + 1]))
@@ -93,6 +93,7 @@ leave_donor_out.bscmfit <- function(
       refresh = 0,
       mcmc_diagnostics = FALSE,
       priors = priors,
+      marginalize_sigma = isTRUE(x$setup$marginalize_sigma),
       ...
     )
     effects[[i + 1]] <- treatment_effect(fit, average = TRUE, probs = probs)

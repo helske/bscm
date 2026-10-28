@@ -6,7 +6,7 @@ test_that("summary returns posterior summaries of the model parameters", {
       c("variable", "mean", "sd", "q2.5", "q97.5", "rhat") %in% names(s)
     )
   )
-  expect_setequal(s$variable, c("alpha[1]", "sigma[1]"))
+  expect_setequal(s$variable, c("alpha[1]", "sigma[1]", "zeta[1]"))
 })
 
 test_that("summary respects the parameters argument", {

@@ -1,11 +1,17 @@
-# bscm 1.0.2
+# bscm 1.1.0
 
-* The scale of the logistic normal prior of the donor weights `omega` can now
+* Logistic normal prior (and new logistic Laplace prior) of weights `omega` is 
+  no parameterized by concentration `zeta = 1/scale^2`, where scale is the 
+  standard deviation of the log-weights.
+* Concentration parameter `zeta` of donor weights `omega` can now
   be estimated from the data instead of being fixed by the user. Calling
   `logistic_normal_pr()` without arguments (equivalently,
-  `logistic_normal_pr(NA)`) leaves the scale unspecified, in which case it is
+  `logistic_normal_pr(NA)`, and similarly for `dirichlet_pr()` and 
+  `logistic_laplace_pr()`) leaves the scale unspecified, in which case it is
   a unit-specific model parameter `zeta`. The prior for `zeta` is defined as
   the element `zeta` of the `priors` list of `bscm`.
+* The default prior of the donor weights `omega` is now the logistic normal
+  prior with estimated scale `zeta` instead of the uniform Dirichlet prior.
 * Added more prior distributions.
 * The elements of the `priors` list can now be named either by the name of the
   parameter in the posterior draws or by a plain-text synonym.

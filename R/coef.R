@@ -135,7 +135,7 @@ coef_draws <- function(x, type) {
       coef = rvars_of(x, "rho")
     ),
     zeta = dplyr::tibble(
-      parameter = "scale_omega",
+      parameter = "concentration",
       "{unit}" := get_treated(x),
       coef = rvars_of(x, "zeta")
     )

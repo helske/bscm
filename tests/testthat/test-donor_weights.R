@@ -1,5 +1,5 @@
 test_that("donor_weights returns tibble with correct structure for single treated", {
-  d <- donor_weights(fit1_int)
+  d <- donor_weights(fit_single_treated)
   expect_s3_class(d, "tbl_df")
   expect_named(
     d,
@@ -29,7 +29,7 @@ test_that("donor_weights returns raw draws when summary = FALSE", {
 })
 
 test_that("donor_weights respects custom probs", {
-  d <- donor_weights(fit1_int, probs = c(0.1, 0.9))
+  d <- donor_weights(fit1_int, probs = c(0.1, 0.9), diagnostics = FALSE)
   expect_true("q10" %in% names(d))
   expect_true("q90" %in% names(d))
 })
@@ -49,12 +49,12 @@ test_that("donor_weights validates probs argument", {
 })
 
 test_that("donor_weights covers all treated units for N > 1", {
-  suppressWarnings(d <- donor_weights(fitN_int))
+  suppressWarnings(d <- donor_weights(fitN_int, diagnostics = FALSE))
   expect_setequal(unique(d$treated), get_treated(fitN_int))
   expect_equal(nrow(d), get_N(fitN_int) * get_J(fitN_int))
 })
 
 test_that("donor_weights sum to 1 per treated unit", {
-  d <- donor_weights(fit1_int)
+  d <- donor_weights(fit1_int, diagnostics = FALSE)
   expect_equal(sum(d$mean), 1, tolerance = 0.01)
 })

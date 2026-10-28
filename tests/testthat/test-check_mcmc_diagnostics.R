@@ -1,5 +1,5 @@
 test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
-  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
   expect_s3_class(diag, "bscmfit_diagnostics")
   expected <- c(
     "n_divergences",
@@ -21,23 +21,23 @@ test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
 })
 
 test_that("print.bscmfit_diagnostics returns x invisibly", {
-  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
   expect_invisible(print(diag))
 })
 
 test_that("print.bscmfit_diagnostics indicates no issues for a well-fit model", {
-  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
   out <- capture.output(print(diag))
   expect_true(any(grepl("no issues", out)))
 })
 
 test_that("print.bscmfit_diagnostics with print_table = TRUE includes Rhat row", {
-  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
   out <- capture.output(print(diag, print_table = TRUE))
   expect_true(any(grepl("Rhat", out, fixed = TRUE)))
 })
 
 test_that("print.bscmfit_diagnostics validates print_table argument", {
-  diag <- check_mcmc_diagnostics(fit1_int, warn = FALSE)
+  diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
   expect_error(print(diag, print_table = "yes"), "single <logical>")
 })

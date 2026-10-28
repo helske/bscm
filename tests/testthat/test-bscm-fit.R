@@ -35,9 +35,49 @@ test_that("bscmfit$setup has correct structure", {
     "spline_df",
     "knot_spacing",
     "prior_only",
+    "marginalize_sigma",
     "excluded_pars"
   )
   expect_true(all(expected_fields %in% names(setup)))
+})
+
+test_that("sigma is marginalized by default", {
+  expect_true(fit1_int$setup$marginalize_sigma)
+  expect_true(fitN_tv$setup$marginalize_sigma)
+  expect_equal(fit1_int$priors$sigma$distribution, "half_normal")
+  sigma_draws <- as.matrix(get_stanfit(fitN_int), pars = "sigma")
+  expect_equal(ncol(sigma_draws), 3L)
+  expect_true(all(sigma_draws > 0))
+})
+
+test_that("incompatible prior for sigma turns off marginalization by default", {
+  fit <- suppressWarnings(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(sd = exponential_pr(1)),
+      chains = 1,
+      iter = 200,
+      refresh = 0,
+      seed = 1,
+      mcmc_diagnostics = FALSE
+    )
+  )
+  expect_false(fit$setup$marginalize_sigma)
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(sigma = exponential_pr(1)),
+      marginalize_sigma = TRUE,
+      chains = 1,
+      iter = 200,
+      refresh = 0,
+      seed = 1,
+      mcmc_diagnostics = FALSE
+    ),
+    "is not supported with"
+  )
 })
 
 test_that("bscmfit$setup values are correct", {

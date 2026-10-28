@@ -47,6 +47,27 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
     bscm(y ~ treatment, data = single_treated, treatment = "treatment"),
     "must not contain the treatment variable"
   )
+  expect_error(
+    bscm(y ~ 1, data = single_treated, marginalize_sigma = "yes"),
+    "Argument `marginalize_sigma` must be either `NULL` or a single"
+  )
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(sigma = exponential_pr(1)),
+      marginalize_sigma = TRUE
+    ),
+    "is not supported with `marginalize_sigma = TRUE`"
+  )
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(omega = dirichlet_pr(1), zeta = gamma_pr(2, 1))
+    ),
+    "cannot be used with prior on"
+  )
 })
 
 

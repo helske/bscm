@@ -15,7 +15,7 @@ test_that("donor_ranking contains exactly the donor IDs", {
 
 test_that("donor_ranking returns donors in descending weight order", {
   d <- donor_ranking(fit1_int)
-  w <- donor_weights(fit1_int, probs = numeric(0))
+  w <- donor_weights(fit1_int, probs = numeric(0), diagnostics = FALSE)
   w_ordered <- w |> dplyr::arrange(dplyr::desc(mean))
   expect_equal(d, w_ordered$donor)
 })

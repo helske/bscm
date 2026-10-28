@@ -11,7 +11,9 @@ check_bscm_arguments <- function(
   mcmc_diagnostics,
   save_data,
   compute_predictions,
-  prior_only
+  prior_only,
+  priors,
+  marginalize_sigma
 ) {
   stopifnot_(
     !missing(formula),
@@ -89,6 +91,16 @@ check_bscm_arguments <- function(
   check_flag(save_data, "save_data")
   check_flag(compute_predictions, "compute_predictions")
   check_flag(prior_only, "prior_only")
+  stopifnot_(
+    is.null(priors) ||
+      checkmate::test_list(priors, types = "bscm_prior", names = "named"),
+    "Argument {.arg priors} must be a named list of {.cls bscm_prior} objects."
+  )
+  stopifnot_(
+    is.null(marginalize_sigma) || checkmate::test_flag(marginalize_sigma),
+    "Argument {.arg marginalize_sigma} must be either {.code NULL} or a single
+    {.cls logical} value."
+  )
 }
 
 sort_probs <- function(probs, call = rlang::caller_env()) {
