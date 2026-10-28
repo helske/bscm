@@ -39,38 +39,37 @@ set.seed(3546)
 fit <- bscm(
     y ~ x, data = single_treated, 
     treatment = "treatment",  time = "time",  unit = "id",
-    chains = 2, refresh = 0, 
-    priors = list(omega = dirichlet_pr(0.5), beta = normal_pr(0, 2))
+    chains = 2, refresh = 0
 )
 ```
 Basic summary of the estimated model:
 ``` r
 Call:
 bscm(formula = y ~ x, data = single_treated, treatment = "treatment", 
-    time = "time", unit = "id", priors = list(omega = dirichlet_pr(0.5), 
-        beta = normal_pr(0, 2)), chains = 2, refresh = 0)
+    time = "time", unit = "id", chains = 2, refresh = 0)
 
 Bayesian synthetic control model y ~ x  
 Treated unit: 1 
 Number of donors: 50 
 Number of time periods (pre + post): 40 + 10 
-MCMC sampling using 2 chains, each with 2500 + 2500 iterations took 5.77 seconds for the slowest chain
+MCMC sampling using 2 chains with 2500 + 2500 iterations took 7.73 seconds
 
 MCMC diagnostics indicate no issues. 
 
 Summary statistics of the time-invariant parameters:
-  variable     mean     sd   q2.5 q97.5
-1 Intercept   0.455 0.395  -0.313 1.23 
-2 beta_x      1.01  0.0687  0.870 1.14 
-3 Residual SD 0.678 0.0977  0.515 0.900
+  variable        mean     sd   q2.5 q97.5
+1 Intercept     0.0910 0.437  -0.646 1.06 
+2 coef_x        0.982  0.0606  0.856 1.10 
+3 concentration 0.199  0.0663  0.106 0.355
+4 Residual SD   0.593  0.0779  0.461 0.765
 
 Average treatment effects and measures of model fit:
-  variable                            mean      sd   q2.5 q97.5
-1 Average pre-treatment effect  -0.0000702 0.156   -0.303 0.314
-2 Average post-treatment effect  6.33      0.331    5.69  6.99 
-3 Bayesian R2                    0.991     0.00271  0.984 0.995
-4 Pre-treatment RMSE             0.946     0.136    0.714 1.24 
-5 Post-treatment RMSE            7.29      0.340    6.64  7.99
+  variable                           mean      sd   q2.5 q97.5
+1 Average pre-treatment effect  -0.000720 0.135   -0.265 0.262
+2 Average post-treatment effect  5.90     0.319    5.24  6.52 
+3 Bayesian R2                    0.993    0.00187  0.989 0.996
+4 Pre-treatment RMSE             0.824    0.108    0.639 1.05 
+5 Post-treatment RMSE            6.75     0.331    6.08  7.42 
 ```
 And default visualization:
 ``` r
