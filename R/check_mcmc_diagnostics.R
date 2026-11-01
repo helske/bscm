@@ -92,7 +92,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
       "reliable. Increasing the number of iterations might help."
     ),
     `!` = paste0(
-      "Smallest effective samples sizes are less than 100 x number of chains ",
+      "Smallest effective sample sizes are less than 100 x number of chains ",
       "(bulk-ESS ",
       sumr$ess_bulk[2],
       " for variable ",
