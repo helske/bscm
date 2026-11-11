@@ -38,7 +38,7 @@ library(bscm)
 set.seed(3546)
 fit <- bscm(
     y ~ x, data = single_treated, 
-    treatment = "treatment",  time = "time",  unit = "id",
+    treatment = "treatment", time = "time", unit = "id",
     chains = 2, refresh = 0
 )
 ```
@@ -52,33 +52,30 @@ Bayesian synthetic control model y ~ x
 Treated unit: 1 
 Number of donors: 50 
 Number of time periods (pre + post): 40 + 10 
-MCMC sampling using 2 chains with 2500 + 2500 iterations took 12.5 seconds
+MCMC sampling using 2 chains with 2500 + 2500 iterations took 18.63 seconds
 
 MCMC diagnostics indicate no issues. 
 
 Coefficients:
-  variable   mean     sd   q2.5 q97.5
-1 intercept 0.468 0.459  -0.421  1.38
-2 x         0.936 0.0860  0.770  1.11
+  variable   mean     sd   q2.5 q97.5  rhat ess_bulk ess_tail mcse_mean
+1 intercept 0.461 0.457  -0.412  1.40 1.000    4306.    4061.   0.00694
+2 x         0.935 0.0848  0.769  1.10 1.00     4894.    3982.   0.00121
 
 Error:
-  variable  mean     sd  q2.5 q97.5
-1 sigma    0.594 0.0766 0.464 0.761
+  variable  mean     sd  q2.5 q97.5  rhat ess_bulk ess_tail mcse_mean
+1 sigma    0.592 0.0749 0.467 0.760  1.00    3707.    4336.   0.00122
 
 Donor weights:
-  variable        mean    sd   q2.5 q97.5
-1 concentration  0.277 0.129  0.123 0.614
-2 tilt(PC1)     -0.435 0.975 -2.53  1.37 
-3 tilt(PC2)     -0.973 0.942 -3.01  0.734
-4 tilt(PC3)      2.27  0.964  0.471 4.38 
+  variable                    mean    sd  q2.5 q97.5  rhat ess_bulk ess_tail mcse_mean
+1 Effective number of donors  4.90  1.53  2.47  8.46  1.00    3933.    3886.    0.0241
 
 Average treatment effects and measures of model fit:
-  variable                          mean      sd   q2.5 q97.5
-1 Average pre-treatment effect  0.000539 0.133   -0.266 0.266
-2 Average post-treatment effect 5.50     0.443    4.67  6.41 
-3 Bayesian R2                   0.993    0.00185  0.989 0.996
-4 Pre-treatment RMSE            0.823    0.104    0.644 1.05 
-5 Post-treatment RMSE           6.28     0.453    5.42  7.19 
+  variable                           mean      sd   q2.5 q97.5  rhat ess_bulk ess_tail mcse_mean
+1 Average pre-treatment effect  -0.000354 0.134   -0.262 0.268  1.00    7274.    4633. 0.00158  
+2 Average post-treatment effect  5.50     0.438    4.66  6.37   1.00    4731.    4598. 0.00639  
+3 Bayesian R2                    0.993    0.00180  0.989 0.996  1.00    3691.    4476. 0.0000292
+4 Pre-treatment RMSE             0.823    0.105    0.638 1.05   1.00    3738.    4351. 0.00172  
+5 Post-treatment RMSE            6.28     0.449    5.43  7.15   1.00    4480.    4491. 0.00673
 ```
 And default visualization:
 ``` r
