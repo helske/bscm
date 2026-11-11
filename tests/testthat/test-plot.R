@@ -4,7 +4,7 @@ test_that("plot.bscmfit returns a ggplot object", {
 })
 
 test_that("plot.bscmfit returns averaged ggplot for N > 1", {
-  p <- plot(fitN_int)
+  p <- plot(fitN_tv)
   expect_s3_class(p[["2"]], "ggplot")
 })
 
@@ -45,7 +45,7 @@ test_that("plot_coefs errors for a model without predictors", {
 
 test_that("plot_coefs does not show the intercepts", {
   d <- ggplot2::ggplot_build(plot_coefs(fit1_x))$plot$data
-  expect_false("Intercept" %in% as.character(d$parameter))
+  expect_equal(as.character(d$term), "x")
 })
 
 test_that("plot_coefs errors for time-varying coefficients of a model with none", {

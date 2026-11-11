@@ -1,10 +1,11 @@
 default_priors <- function(d, setup, spline_def) {
   N <- length(setup$treated)
   J <- length(setup$donors)
-  pr_sigma <- half_normal_pr(signif(0.5 * d$sd_e, 2))
-  pr_omega <- logistic_normal_pr(rep(NA, N))
-  pr_zeta <- inv_gamma_pr(rep(sqrt(J), N), rep(0.5 * sqrt(J) / log(1 + J / 5), N))
-  
+  pr_sigma <- half_normal_pr(signif(d$sd_e, 2))
+  pr_omega <- logistic_normal_pr(
+    default_zeta_prior(N, J),
+    tilt = if (setup$marginalize_sigma) list(R = 3, scale = 2)
+  )
   pr_alpha <- pr_beta <- pr_kappa <- pr_nu <- pr_rho <- NULL
   if (setup$has_icpt) {
     pr_alpha <- normal_pr(
@@ -26,56 +27,45 @@ default_priors <- function(d, setup, spline_def) {
     pr_rho <- beta_pr(rep(2, N), rep(2, N))
   }
   priors <- list(
+    intercept = pr_alpha,
+    coef = pr_beta,
+    tv_sd = pr_kappa,
+    tv_slope = pr_nu,
     sigma = pr_sigma,
-    omega = pr_omega,
-    zeta = pr_zeta,
-    alpha = pr_alpha,
-    beta = pr_beta,
-    kappa = pr_kappa,
-    nu = pr_nu,
-    rho = pr_rho
+    ar1 = pr_rho,
+    weights = pr_omega
   )
   priors[lengths(priors) > 0]
 }
 
-#' Plain-text synonyms for the names of the `priors` list
+#' Names of the model parameters in Stan corresponding to the role names
+#'
+#' The `priors` list and the user-facing output use the role names, while the
+#' Stan models and the posterior draws use the names of the model parameters.
+#' `concentration` and `tilt` are defined inside the prior of `weights`.
 #'
 #' @noRd
-prior_aliases <- c(
+stan_parameter_names <- c(
   intercept = "alpha",
   coef = "beta",
-  scale_gamma = "kappa",
-  slope_gamma = "nu",
+  tv_sd = "kappa",
+  tv_slope = "nu",
+  sigma = "sigma",
   ar1 = "rho",
   weights = "omega",
   concentration = "zeta",
-  sd = "sigma"
+  tilt = "phi"
 )
 
-#' Rename the elements of `priors` given by a synonym to the canonical name
+#' Default prior of the concentrations of the prior of the donor weights
 #'
-#' @param priors \[`list()`]\cr The `priors` argument of [bscm()].
-#' @param call The calling environment reported in the error message.
+#' @param N \[`integer(1)`]\cr Number of treated units.
+#' @param J \[`integer(1)`]\cr Number of donors.
 #' @noRd
-resolve_prior_aliases <- function(priors, call = rlang::caller_env()) {
-  idx <- match(names(priors), names(prior_aliases))
-  if (all(is.na(idx))) {
-    return(priors)
-  }
-  canonical <- names(priors)
-  canonical[!is.na(idx)] <- prior_aliases[idx[!is.na(idx)]]
-  duplicated_priors <- unique(canonical[duplicated(canonical)])
-  stopifnot_(
-    length(duplicated_priors) == 0L,
-    c(
-      "{cli::qty(duplicated_priors)}Parameter{?s} {.val {duplicated_priors}}
-      {?is/are} given multiple priors in {.arg priors}.",
-      i = "A parameter can be named either by its canonical name or by a
-      synonym, but not by both."
-    ),
-    call = call
-  )
-  stats::setNames(priors, canonical)
+default_zeta_prior <- function(N, J) {
+  a <- signif(sqrt(J), 2)
+  b <- signif(0.5 * sqrt(J) / log(1 + J / 5), 2)
+  inv_gamma_pr(rep(a, N), rep(b, N))
 }
 
 define_priors <- function(priors, descriptives, setup, spline_def) {
@@ -95,30 +85,16 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
   )
   # unbounded can be used for bounded but not vice versa
   valid_priors <- list(
+    intercept = unbounded_priors,
+    coef = unbounded_priors,
+    tv_sd = c(bounded_priors, unbounded_priors),
+    tv_slope = unbounded_priors,
     sigma = c(bounded_priors, unbounded_priors),
-    omega = simplex_priors,
-    zeta = c(bounded_priors, unbounded_priors),
-    alpha = unbounded_priors,
-    beta = unbounded_priors,
-    kappa = c(bounded_priors, unbounded_priors),
-    nu = unbounded_priors,
-    rho = "beta"
+    ar1 = "beta",
+    weights = simplex_priors,
+    concentration = c(bounded_priors, unbounded_priors)
   )
-  omega_defined <- "omega" %in% names(priors)
-  zeta_defined <- "zeta" %in% names(priors)
-  
-  pr_omega <- priors$omega %||% defaults$omega
-  
-  stopifnot_(
-    !zeta_defined || pr_omega$zeta,
-    c(
-      "Prior for {.val zeta} cannot be used with prior on {.val omega} with
-        fixed scale.",
-      i = "Use, e.g., {.code omega = logistic_normal_pr(NA)}, or drop the prior
-      for {.val zeta}."
-    )
-  )
-  if (!pr_omega$zeta) defaults$zeta <- NULL
+
   invalid_priors <- setdiff(names(priors), names(defaults))
   stopifnot_(
     length(invalid_priors) == 0,
@@ -128,6 +104,7 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
       i = "Parameters of this model are {.val {names(defaults)}}."
     )
   )
+  N <- length(setup$treated)
   for (nm in names(priors)) {
     pr <- priors[[nm]]
     dist <- pr$distribution
@@ -138,31 +115,55 @@ define_priors <- function(priors, descriptives, setup, spline_def) {
         i = "Allowed families: {valid_priors[[nm]]}"
       )
     )
-    n_pr <- pr$length
-    n_ref <- defaults[[nm]]$length %||% length(setup$treated)
-    
-    if (n_pr != n_ref) {
+    if (nm == "weights" && !is.numeric(pr$concentration)) {
+      zeta_prior <- pr$concentration %||% defaults$weights$concentration
+      dist <- zeta_prior$distribution
       stopifnot_(
-        n_pr == 1,
+        dist %in% valid_priors$concentration,
         c(
-          "Length mismatch for parameter '{nm}'.",
-          i = "Got {n_pr}, expected {n_ref}.",
-          i = "Only scalar priors (length = 1) can be recycled."
+          "Invalid prior family '{dist}' for the concentration of the prior
+          of 'weights'.",
+          i = "Allowed families: {valid_priors$concentration}"
         )
       )
-      if (n_pr == 1 && n_ref > 1) {
-        pr$location <- rep(pr$location, n_ref)
-        pr$scale <- rep(pr$scale, n_ref)
-        pr$shape <- rep(pr$shape, n_ref)
-        pr$rate <- rep(pr$rate, n_ref)
-        pr$shape1 <- rep(pr$shape1, n_ref)
-        pr$shape2 <- rep(pr$shape2, n_ref)
-        pr$concentration <- rep(pr$concentration, n_ref)
-        pr$df <- rep(pr$df, n_ref)
-        pr$length <- n_ref
-        priors[[nm]] <- pr
-      }
+      pr$concentration <- recycle_prior(zeta_prior, "concentration", N)
+      pr$length <- N
     }
+    priors[[nm]] <- recycle_prior(pr, nm, defaults[[nm]]$length %||% N)
   }
-  utils::modifyList(defaults, priors)
+  defaults[names(priors)] <- priors
+  defaults
+}
+
+#' Recycle a scalar prior to the required length
+#'
+#' @param pr \[`bscm_prior`]\cr Prior to recycle
+#' @param nm \[`character(1)`]\cr Name of the parameter
+#' @param n_ref \[`integer(1)`]\cr Required length of the prior.
+#' @param call The calling environment reported in the error message.
+#' @noRd
+recycle_prior <- function(pr, nm, n_ref, call = rlang::caller_env()) {
+  n_pr <- pr$length
+  if (n_pr == n_ref) {
+    return(pr)
+  }
+  stopifnot_(
+    n_pr == 1,
+    c(
+      "Length mismatch for parameter '{nm}'.",
+      i = "Got {n_pr}, expected {n_ref}.",
+      i = "Only scalar priors (length = 1) can be recycled."
+    ),
+    call = call
+  )
+  pr$location <- rep(pr$location, n_ref)
+  pr$scale <- rep(pr$scale, n_ref)
+  pr$shape <- rep(pr$shape, n_ref)
+  pr$rate <- rep(pr$rate, n_ref)
+  pr$shape1 <- rep(pr$shape1, n_ref)
+  pr$shape2 <- rep(pr$shape2, n_ref)
+  pr$concentration <- rep(pr$concentration, n_ref)
+  pr$df <- rep(pr$df, n_ref)
+  pr$length <- n_ref
+  pr
 }

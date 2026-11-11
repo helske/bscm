@@ -84,10 +84,10 @@ test_that("parse_bscm_formula errors on empty tv()", {
   )
 })
 test_that("parse_bscm_formula errors on df < 5", {
-  f <- y ~ tv(~x, 2)
+  f <- y ~ tv(~x, df = 2)
   expect_error(
-    parse_bscm_formula(y ~ tv(~x, 2)),
-    "must be an integer larger than 4"
+    parse_bscm_formula(y ~ tv(~x, df = 2)),
+    "must be an integer of at least 4"
   )
 })
 

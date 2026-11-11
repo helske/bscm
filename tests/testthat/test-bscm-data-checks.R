@@ -5,8 +5,8 @@ test_that("bscm() rejects unbalanced panel data", {
     "Data is not balanced"
   )
   d <- single_treated
-  d <- d[d$time != -25 | d$id < 30, ]
-  d <- d[d$time != -2 | d$id > 30, ]
+  d <- d[d$time != -25 | as.integer(d$id) < 30, ]
+  d <- d[d$time != -2 | as.integer(d$id) > 30, ]
   expect_error(
     fit <- bscm(
       y ~ x,
@@ -60,7 +60,7 @@ test_that("bscm() accepts multiple treated units", {
   )
   expect_equal(
     get_donors(fit),
-    as.character(setdiff(seq_len(max(d$id)), c(2:3, 6)))
+    as.character(setdiff(seq_len(53), c(2:3, 6)))
   )
 })
 test_that("bscm() rejects missing values in covariates and  donors", {

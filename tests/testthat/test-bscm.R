@@ -64,9 +64,41 @@ test_that("Incorrect arguments to bscm result in meaningful error message", {
     bscm(
       y ~ 1,
       data = single_treated,
-      priors = list(omega = dirichlet_pr(1), zeta = gamma_pr(2, 1))
+      priors = list(weights = dirichlet_pr(1), foo = gamma_pr(2, 1))
     ),
-    "cannot be used with prior on"
+    "Invalid parameter name in `priors`: \"foo\"\\."
+  )
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(
+        weights = logistic_normal_pr(tilt = list(R = 2, scale = 1))
+      ),
+      marginalize_sigma = FALSE
+    ),
+    "The tilt of the prior of \"weights\" is not supported with"
+  )
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(
+        weights = logistic_normal_pr(tilt = list(R = 1000, scale = 1))
+      )
+    ),
+    "Element \"R\" of `tilt` must be at most 39\\."
+  )
+  V <- matrix(1:6, 3, dimnames = list(c("a", "b", "c"), NULL))
+  expect_error(
+    bscm(
+      y ~ 1,
+      data = single_treated,
+      priors = list(
+        weights = logistic_normal_pr(tilt = list(V = V, scale = 1))
+      )
+    ),
+    "Element \"V\" of `tilt` has no rows for"
   )
 })
 

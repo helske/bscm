@@ -24,7 +24,7 @@ test_that("nchains returns the correct integer", {
 test_that("get_treated returns character vector of treated unit IDs", {
   expect_type(get_treated(fit1_int), "character")
   expect_length(get_treated(fit1_int), 1L)
-  expect_length(get_treated(fitN_int), 3L)
+  expect_length(get_treated(fitN_tv), 3L)
 })
 
 test_that("get_donors returns a character vector", {
@@ -45,7 +45,7 @@ test_that("get_T_pre returns a named integer", {
 
 test_that("get_N returns 1 for single treated and 3 for multiple treated", {
   expect_equal(get_N(fit1_int), 1L)
-  expect_equal(get_N(fitN_int), 3L)
+  expect_equal(get_N(fitN_tv), 3L)
 })
 
 test_that("get_J returns a positive integer", {

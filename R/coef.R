@@ -9,8 +9,10 @@
 #' `gamma_t` the deviation from it. Every predictor appears in exactly one of
 #' the types `"fixed"` and `"varying"`.
 #'
-#' The individual components `beta`, `nu`, `gamma`, `kappa`, `rho` and
-#' `zeta` are not returned here; use [as_draws.bscmfit()] to extract them.
+#' The output has the columns `parameter` (`"intercept"` or `"coef"`),
+#' `term` (the predictor, not for intercepts), a column named by the unit
+#' variable (intercepts) or the time variable (`type = "varying"`), and the
+#' posterior summaries or the draws in column `coef`.
 #'
 #' @inheritParams bscm_postprocessing
 #' @param type \[`character(1)`]\cr Type of coefficients to return, either
@@ -19,7 +21,7 @@
 #'   first of `"varying"` and `"intercept"` which the model contains.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or posterior
 #'   draws (`summary = FALSE`).
-#' @seealso [as_draws.bscmfit()] for the individual model parameters.
+#' @seealso [summary.bscmfit()] for the other model parameters.
 #' @aliases coef
 #' @export
 #' @examples
@@ -71,75 +73,42 @@ coef.bscmfit <- function(
   }
   d <- coef_draws(object, type)
   if (summary) {
-    d <- d |>
-      summarise_column("coef", probs, diagnostics) |>
-      dplyr::rename(variable = "parameter")
+    d <- summarise_column(d, "coef", probs, diagnostics)
   }
   d
 }
 
 #' Posterior draws of the coefficients of a BSCM
 #'
-#' Returns the posterior draws of one type of coefficients as a tibble with a
-#' `parameter` column and an `rvar` column named `coef`. The types
-#' `"intercept"`, `"fixed"`, and `"varying"` are the views returned by
-#' [coef.bscmfit()], the rest are the individual model parameters shown by
-#' the print method.
-#'
+#' Returns the posterior draws of one type of coefficients returned by
+#' [coef.bscmfit()] as a tibble with columns `parameter`, `term` (except for
+#' intercepts), a column named by the unit variable (intercepts) or the time
+#' variable (`"varying"`), and an `rvar` column named `coef`.
+#' 
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param type \[`character(1)`]\cr One of `"intercept"`, `"fixed"`,
-#'   `"varying"`, `"beta"`, `"nu"`, `"kappa"`, `"rho"`, and `"zeta"`.
+#' @param type \[`character(1)`]\cr One of `"intercept"`, `"fixed"`, and
+#'   `"varying"`.
 #' @noRd
 coef_draws <- function(x, type) {
-  unit <- get_unit(x)
   switch(
     type,
-    intercept = dplyr::tibble(
-      parameter = "Intercept",
-      "{unit}" := get_treated(x),
-      coef = rvars_of(x, "alpha")
-    ),
-    fixed = {
-      idx <- fixed_idx(x)
-      dplyr::tibble(
-        parameter = paste0("coef_", x$setup$beta_names[idx]),
-        coef = rvars_of(x, "beta")[idx]
-      )
-    },
+    intercept = parameter_draws(x, "intercept"),
+    fixed = parameter_draws(x, "coef") |>
+      dplyr::filter(.data$term %in% x$setup$beta_names[fixed_idx(x)]),
     varying = {
       T_total <- get_T_total(x)
       gamma_names <- x$setup$gamma_names
       dplyr::tibble(
-        parameter = paste0("coef_", rep(gamma_names, each = T_total)),
+        parameter = "coef",
+        term = rep(gamma_names, each = T_total),
         "{get_time(x)}" := rep(get_times(x), times = length(gamma_names)),
         # total effect of a time-varying predictor, beta + gamma_t
-        coef = c(rvars_of(x, "gamma")) +
+        value = c(rvars_of(x, "gamma")) +
           rep(rvars_of(x, "beta")[x$setup$tv_idx], each = T_total)
       )
-    },
-    beta = dplyr::tibble(
-      parameter = paste0("coef_", x$setup$beta_names),
-        coef = rvars_of(x, "beta")
-    ),
-    nu = dplyr::tibble(
-      parameter = paste0("slope_", x$setup$gamma_names),
-      coef = rvars_of(x, "nu")
-    ),
-    kappa = dplyr::tibble(
-      parameter = paste0("scale_", x$setup$gamma_names),
-      coef = rvars_of(x, "kappa")
-    ),
-    rho = dplyr::tibble(
-      parameter = "ar1",
-      "{unit}" := get_treated(x),
-      coef = rvars_of(x, "rho")
-    ),
-    zeta = dplyr::tibble(
-      parameter = "concentration",
-      "{unit}" := get_treated(x),
-      coef = rvars_of(x, "zeta")
-    )
-  )
+    }
+  ) |>
+    dplyr::rename(coef = "value")
 }
 
 #' Indices of the predictors with a time-constant coefficient
@@ -149,3 +118,4 @@ coef_draws <- function(x, type) {
 fixed_idx <- function(x) {
   setdiff(seq_along(x$setup$beta_names), x$setup$tv_idx)
 }
+

@@ -4,7 +4,7 @@ test_that("donor_weights returns tibble with correct structure for single treate
   expect_named(
     d,
     c(
-      "treated",
+      "id",
       "donor",
       "mean",
       "sd",
@@ -23,7 +23,7 @@ test_that("donor_weights returns tibble with correct structure for single treate
 test_that("donor_weights returns raw draws when summary = FALSE", {
   d <- donor_weights(fit1_int, summary = FALSE)
   expect_s3_class(d, "tbl_df")
-  expect_named(d, c("treated", "donor", "weight"))
+  expect_named(d, c("id", "donor", "weight"))
   expect_true(posterior::is_rvar(d$weight))
   expect_equal(nrow(d), get_J(fit1_int))
 })
@@ -49,9 +49,9 @@ test_that("donor_weights validates probs argument", {
 })
 
 test_that("donor_weights covers all treated units for N > 1", {
-  suppressWarnings(d <- donor_weights(fitN_int, diagnostics = FALSE))
-  expect_setequal(unique(d$treated), get_treated(fitN_int))
-  expect_equal(nrow(d), get_N(fitN_int) * get_J(fitN_int))
+  suppressWarnings(d <- donor_weights(fitN_tv, diagnostics = FALSE))
+  expect_setequal(unique(d$id), get_treated(fitN_tv))
+  expect_equal(nrow(d), get_N(fitN_tv) * get_J(fitN_tv))
 })
 
 test_that("donor_weights sum to 1 per treated unit", {

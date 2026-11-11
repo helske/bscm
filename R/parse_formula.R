@@ -13,33 +13,36 @@
 #' where `t_c` is the time index centered at the pre-treatment period, `nu`
 #' the slope, `A` the constrained spline basis, and `xi` the spline
 #' coefficients with standard deviation `kappa`, with separate priors
-#' for `beta`, `nu`, and `kappa`.
+#' `coef` for `beta`, `tv_slope` for `nu`, and `tv_sd` for `kappa` (see
+#' [bscm_prior()]).
 #'
 #' @param tv_formula \[`formula`]\cr One-sided formula, e.g., `~ x + z`
 #'   defining the the time-varying part of the BSCM formula.
-#' @param df \[`integer(1)`]\cr Integer defining the number of spline basis
-#'   functions in the pre-treatment period
-#'   (maximum in case of staggered adoptation). Default is `df = 10`, which is
-#'   completely arbitrary. Must be larger than 4.
-#' @param knot_spacing \[`numeric(1)`]\cr Optional argument to specify the
-#'   equidistant spacing of knots for the spline basis. If `NULL` (the default),
-#'   knots, spacing is defined by `df` argument.
-#' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline
-#'   coefficients are sampled using a non-centered parameterization.
-#'   If `FALSE`, a centered parameterization is used.
-#'   Depending on the case, one of these might lead to more efficient and
-#'   numerically stable sampling, so if you encounter divergences,
-#'   try changing this.
+#' @param knot_spacing \[`numeric(1)`]\cr Positive value (typically integer)
+#'   defining the equidistant spacing of knots for the spline basis. Default is 
+#'   2, i.e. there is a knot at every other time point.
 #' @param type \[`character(1)`]\cr Prior type for spline coefficients. Either
 #'   `"rw1"` or `"rw2"` for first and second order random walks.
 #'   Default is "rw2".
+#' @param df \[`integer(1)`]\cr Optional integer defining the number of 
+#'   spline basis functions in the pre-treatment period
+#'   (maximum in case of staggered adoptation). Must be at least 4. 
+#'   Overrides argument `knot_spacing`.
+#' @param noncentered \[`logical(1)`]\cr If `TRUE` (the default), the spline
+#'   coefficients are sampled using a non-centered parameterization.
+#'   If `FALSE`, a centered parameterization is used. This is only a 
+#'   computational choice and does not affect the model definition.
+#'   Depending on the case, one of these might lead to more efficient and
+#'   numerically stable sampling, so if you encounter divergences,
+#'   try changing this.
+
 #' @return Object of class `tv_term` (a `list`).
 #' @export
 tv <- function(
   tv_formula,
-  df = 10,
-  knot_spacing = NULL,
+  knot_spacing = 2,
   type = "rw2",
+  df = NULL,
   noncentered = TRUE
 ) {
   stopifnot_(
@@ -47,18 +50,12 @@ tv <- function(
     "Argument {.arg tv_formula} of {.code tv()} must be a one-sided formula."
   )
   stopifnot_(
-    checkmate::test_int(df, lower = 4),
-    "Argument {.arg df} of {.code tv()} must be an integer larger than 4."
-  )
-  stopifnot_(
     checkmate::test_number(
       knot_spacing,
       lower = 0,
-      finite = TRUE,
-      null.ok = TRUE
-    ),
-    "Argument {.arg knot_spacing} of {.code tv()} must be NULL or a 
-    positive finite number."
+      finite = TRUE
+    ) && knot_spacing > 0,
+    "Argument {.arg knot_spacing} of {.code tv()} must be a positive number."
   )
   stopifnot_(
     checkmate::test_flag(noncentered),
@@ -69,6 +66,13 @@ tv <- function(
     !inherits(type, "try-error"),
     "Argument {.arg type} must be either {.val rw1} or {.val rw2}."
   )
+  stopifnot_(
+    checkmate::test_int(df, lower = 4, null.ok = TRUE),
+    "Argument {.arg df} of {.code tv()} must be an integer of at least 4."
+  )
+  if (!is.null(df)) {
+    knot_spacing <- NULL
+  }
   tv_terms_obj <- stats::terms(tv_formula, specials = "tv")
   nested_tv <- attr(tv_terms_obj, "specials")$tv
   stopifnot_(

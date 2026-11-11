@@ -1,29 +1,33 @@
 test_that("coef() returns the intercept for an intercept-only model", {
   d <- coef(fit1_int)
   expect_s3_class(d, "tbl_df")
-  expect_equal(d$variable, "Intercept")
+  expect_equal(d$parameter, "intercept")
+  expect_null(d[["term"]])
 })
 
 test_that("coef() returns the constant coefficients by default", {
   suppressWarnings(d <- coef(fitN_xz))
   expect_s3_class(d, "tbl_df")
-  expect_equal(d$variable, c("coef_x", "coef_z"))
+  expect_equal(d$parameter, c("coef", "coef"))
+  expect_equal(d$term, c("x", "z"))
+  expect_null(d[[get_unit(fitN_xz)]])
 })
 
 test_that("coef() returns the intercepts of every treated unit", {
   suppressWarnings(d <- coef(fitN_xz, type = "intercept"))
-  expect_equal(d$variable, rep("Intercept", get_N(fitN_xz)))
+  expect_equal(d$parameter, rep("intercept", get_N(fitN_xz)))
   expect_equal(d[[get_unit(fitN_xz)]], get_treated(fitN_xz))
 })
 
 test_that("coef() defaults to the fixed coefficients", {
   suppressWarnings(d <- coef(fitN_tv))
-  expect_equal(d$variable, "coef_z")
+  expect_equal(d$term, "z")
 })
 
 test_that("coef() returns the total effect of a time-varying predictor", {
   suppressWarnings(d <- coef(fitN_tv, type = "varying"))
-  expect_equal(unique(d$variable), "coef_x")
+  expect_equal(unique(d$parameter), "coef")
+  expect_equal(unique(d$term), "x")
   expect_equal(nrow(d), get_T_total(fitN_tv))
   expect_true(get_time(fitN_tv) %in% names(d))
 })
@@ -84,8 +88,8 @@ test_that("coef() respects custom probs", {
 test_that("coef() returns the draws as a single tibble", {
   d <- coef(fit1_x, summary = FALSE)
   expect_s3_class(d, "tbl_df")
-  expect_named(d, c("parameter", "coef"))
-  expect_equal(d$parameter, "coef_x")
+  expect_named(d, c("parameter", "term", "coef"))
+  expect_equal(d$term, "x")
   expect_true(posterior::is_rvar(d$coef))
   d <- coef(fit1_x, type = "intercept", summary = FALSE)
   expect_named(d, c("parameter", "id", "coef"))

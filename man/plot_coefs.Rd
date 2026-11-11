@@ -43,7 +43,7 @@ Plots posterior means and posterior intervals for the coefficients of the
 predictors. For time-constant coefficients (\code{type = "fixed"}), a horizontal
 point-range plot is produced. For time-varying coefficients
 (\code{type = "varying"}), a ribbon-and-line plot of the total effect
-\code{beta + gamma_t} over time is produced, faceted by parameter.
+\code{beta + gamma_t} over time is produced, faceted by predictor.
 }
 \examples{
 plot_coefs(fit_single_treated)

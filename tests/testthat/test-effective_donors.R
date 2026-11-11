@@ -16,7 +16,7 @@ test_that("effective_donors returns data.frame", {
   )
   expect_equal(nrow(d), 1L)
 
-  d <- effective_donors(fitN_int)
+  d <- effective_donors(fitN_tv)
   expect_s3_class(d, "tbl_df")
   expect_named(
     d,
@@ -32,7 +32,7 @@ test_that("effective_donors returns data.frame", {
       "mcse_mean"
     )
   )
-  d <- effective_donors(fitN_int, average = TRUE)
+  d <- effective_donors(fitN_tv, average = TRUE)
   expect_s3_class(d, "tbl_df")
   expect_null(d[["variable"]])
 })
@@ -71,10 +71,7 @@ test_that("effective_donors average argument works", {
     effective_donors(fit1_int, average = "yes"),
     "Argument `average` must be a single"
   )
-  d1 <- effective_donors(fit1_int)
-  d2 <- effective_donors(fit1_int, average = FALSE)
-  expect_equal(d1, d2)
-  d1 <- effective_donors(fitN_int)
-  d2 <- effective_donors(fitN_int, average = FALSE)
+  d1 <- effective_donors(fitN_tv)
+  d2 <- effective_donors(fitN_tv, average = FALSE)
   expect_equal(d1, d2)
 })

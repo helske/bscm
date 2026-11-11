@@ -30,7 +30,7 @@ covariate_adjustment <- function(x, ...) {
 #' @param x \[`bscmfit`]\cr An object of class `bscmfit`.
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
 #'   posterior draws (`summary = FALSE`) of the covariate adjustment for each
-#'   predictor and time point.
+#'   predictor (`term`) and time point.
 #' @rdname covariate_adjustment
 #' @aliases covariate_adjustment
 #' @seealso [covariate_imbalance()] for the covariate imbalances, and
@@ -40,12 +40,12 @@ covariate_adjustment <- function(x, ...) {
 #' covariate_adjustment(fit_single_treated) |> head()
 #'
 covariate_adjustment.bscmfit <- function(
-  x,
-  average = FALSE,
-  summary = TRUE,
-  probs = c(0.025, 0.975),
-  diagnostics = TRUE,
-  ...
+    x,
+    average = FALSE,
+    summary = TRUE,
+    probs = c(0.025, 0.975),
+    diagnostics = TRUE,
+    ...
 ) {
   warn_deprecated_plot(..., replacement = "plot_covariate_adjustment")
   check_flag(average, "average")
@@ -80,7 +80,7 @@ covariate_adjustment_draws <- function(x, average = FALSE) {
     seq_len(get_N(x)),
     \(i) {
       dplyr::tibble(
-        variable = rep(predictors, each = T_total),
+        term = rep(predictors, each = T_total),
         "{time}" := rep(get_times(x), times = length(predictors)),
         adjustment = c(b * covariate_delta(x, i, X))
       )
@@ -92,7 +92,7 @@ covariate_adjustment_draws <- function(x, average = FALSE) {
     d <- d |>
       dplyr::summarise(
         adjustment = posterior::rvar_mean(.data$adjustment),
-        .by = dplyr::all_of(c("variable", time))
+        .by = dplyr::all_of(c("term", time))
       )
   }
   d

@@ -6,8 +6,8 @@ test_that("posterior_predict returns a matrix", {
 test_that("posterior_predict has correct dimensions", {
   pp <- posterior_predict(fit1_int)
   expect_equal(dim(pp), c(ndraws(fit1_int), get_T_total(fit1_int)))
-  pp <- posterior_predict(fitN_int)
-  expect_equal(dim(pp), c(ndraws(fitN_int), 3 * get_T_total(fitN_int)))
+  pp <- posterior_predict(fitN_tv)
+  expect_equal(dim(pp), c(ndraws(fitN_tv), 3 * get_T_total(fitN_tv)))
 })
 
 test_that("posterior_epred returns a matrix with correct dimensions", {
@@ -40,6 +40,6 @@ test_that("log_lik returns a matrix", {
 test_that("log_lik has correct dimensions", {
   ll <- log_lik(fit1_int)
   expect_equal(dim(ll), unname(c(ndraws(fit1_int), get_T_pre(fit1_int))))
-  ll <- log_lik(fitN_int)
-  expect_equal(dim(ll), c(ndraws(fitN_int), sum(get_T_pre(fitN_int))))
+  ll <- log_lik(fitN_xz)
+  expect_equal(dim(ll), c(ndraws(fitN_xz), sum(get_T_pre(fitN_xz))))
 })

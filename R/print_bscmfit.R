@@ -1,13 +1,15 @@
 #' Print method for bscmfit objects
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param diagnostics \[`logical(1)`]\cr If `TRUE`, the printed posterior
-#'   summaries also contain the MCMC convergence measures and the Monte Carlo
-#'   standard error of the mean. Default is `FALSE`, as the convergence of the
-#'   sampling is summarised separately, see [check_mcmc_diagnostics()].
+#' @param probs \[`numeric()`]\cr Probabilities for quantile summaries.
+#'   Default is `c(0.025, 0.975)`.
+#' @param diagnostics \[`logical(1)`]\cr If `TRUE` (the default), 
+#'   the printed posterior summaries contain the MCMC convergence measures and 
+#'   the Monte Carlo standard error of the mean.
 #' @param ... Ignored.
 #' @rdname print_bscm
 #' @export
-print.bscmfit <- function(x, diagnostics = FALSE, ...) {
+print.bscmfit <- function(x, probs = c(0.025, 0.975), diagnostics = TRUE, ...) {
+  probs <- sort_probs(probs)
   check_flag(diagnostics, "diagnostics")
   T_pre <- get_T_pre(x)
   T_total <- get_T_total(x)
@@ -61,7 +63,7 @@ print.bscmfit <- function(x, diagnostics = FALSE, ...) {
       )
     )
   }
-  print_estimates(x, diagnostics = diagnostics)
+  print_estimates(x, probs = probs, diagnostics = diagnostics)
   invisible(x)
 }
 
@@ -72,50 +74,64 @@ print.bscmfit <- function(x, diagnostics = FALSE, ...) {
 #' @param diagnostics \[`logical(1)`]\cr Whether to show the MCMC convergence
 #'   measures and the Monte Carlo standard error of the mean.
 #' @noRd
-print_estimates <- function(x, probs = c(0.025, 0.975), diagnostics = FALSE) {
+print_estimates <- function(x, probs, diagnostics) {
   single <- get_N(x) == 1L
-  pars <- c(
-    if (single && has_intercept(x)) "intercept",
-    if (has_predictors(x)) "beta",
-    if (has_tv_coefs(x) && x$setup$spline_type == "rw2") "nu",
-    if (has_tv_coefs(x)) "kappa",
-    if (single && has_ar1_error(x)) "rho",
-    if (single && has_zeta(x)) "zeta"
-  )
-  d <- lapply(
-    pars,
-    \(par) summarise_column(coef_draws(x, par), "coef", probs, diagnostics)
-  )
-  if (single) {
-    d <- c(
-      d,
-      list(
-        sigma(x, probs = probs) |>
-          dplyr::mutate(parameter = "Residual SD")
-      )
-    )
+  d <- summary(x, probs = probs, diagnostics = diagnostics)
+  if (!single) {
+    d <- dplyr::filter(d, .data$parameter %in% c("coef", "tv_sd", "tv_slope"))
   }
-  if (length(d) > 0L) {
-    d <- dplyr::bind_rows(d) |>
-      dplyr::select(-dplyr::any_of(get_unit(x))) |>
-      dplyr::relocate("parameter", .before = 1L) |>
-      dplyr::rename(variable = "parameter")
-    cat(
-      "\nSummary statistics of the time-",
-      if (!single) " and unit-",
-      "invariant parameters",
-      ":\n",
-      sep = ""
-    )
-    print_estimate_table(d, diagnostics)
+  par <- d$parameter
+  term <- d[["term"]] %||% rep(NA_character_, nrow(d))
+  d$variable <- dplyr::case_when(
+    par == "coef" ~ term,
+    par == "tv_sd" ~ paste0("sd(", term, ")"),
+    par == "tv_slope" ~ paste0("slope(", term, ")"),
+    .default = par
+  )
+  sections <- list(
+    "Coefficients" = c("intercept", "coef"),
+    "Time variation of coefficients" = c("tv_sd", "tv_slope"),
+    "Error" = c("sigma", "ar1")
+  )
+  for (section in names(sections)) {
+    rows <- d[d$parameter %in% sections[[section]], ]
+    if (nrow(rows) > 0L) {
+      cat("\n", section, ":\n", sep = "")
+      rows |>
+        dplyr::select(-dplyr::any_of(c("parameter", "term", get_unit(x)))) |>
+        dplyr::relocate("variable", .before = 1L) |>
+        print_estimate_table()
+    }
   }
   if (!single) {
     cat("\nUnit-specific parameters are available via `summary()`.\n")
   }
+  cat("\nDonor weights:\n")
+  effective_donors(
+    x,
+    average = TRUE,
+    probs = probs,
+    diagnostics = diagnostics
+  ) |>
+    dplyr::mutate(
+      variable = if (single) {
+        "Effective number of donors"
+      } else {
+        "Average effective number of donors"
+      }
+    ) |>
+    dplyr::select(-dplyr::any_of(get_unit(x))) |>
+    dplyr::relocate("variable", .before = 1L) |>
+    print_estimate_table()
   if (!is.null(x$data)) {
     treatment <- get_treatment(x)
     e <- list(
-      average_treatment_effect(x, average = TRUE, probs = probs) |>
+      average_treatment_effect(
+        x, 
+        average = TRUE, 
+        probs = probs, 
+        diagnostics = diagnostics
+      ) |>
         dplyr::rename(variable = treatment) |>
         dplyr::mutate(
           variable = dplyr::if_else(
@@ -129,9 +145,9 @@ print_estimates <- function(x, probs = c(0.025, 0.975), diagnostics = FALSE) {
       e <- c(
         e,
         list(
-          bayes_R2(x, probs = probs) |>
+          bayes_R2(x, probs = probs, diagnostics = diagnostics) |>
             dplyr::mutate(variable = "Bayesian R2"),
-          rmse(x, probs = probs) |>
+          rmse(x, probs = probs, diagnostics = diagnostics) |>
             dplyr::rename(variable = treatment) |>
             dplyr::mutate(
               variable = dplyr::if_else(
@@ -152,24 +168,21 @@ print_estimates <- function(x, probs = c(0.025, 0.975), diagnostics = FALSE) {
       ":\n",
       sep = ""
     )
-    print_estimate_table(e, diagnostics)
+    print_estimate_table(e)
+  } else {
+    cat(
+      "\nSome of the summary statistics are not available because the ",
+      "original data are not stored in the model fit object.\n",
+      sep = ""
+    )
   }
 }
 
 #' Print a table of posterior summaries without the tibble header lines
 #'
 #' @param d \[`tibble`]\cr Table of posterior summaries.
-#' @param diagnostics \[`logical(1)`]\cr Whether to keep the convergence
-#'   measures. The summaries computed by the corresponding methods, such as
-#'   [bayes_R2()], always contain them, so they are dropped here.
 #' @noRd
-print_estimate_table <- function(d, diagnostics) {
-  if (!diagnostics) {
-    d <- dplyr::select(
-      d,
-      -dplyr::any_of(c("rhat", "ess_bulk", "ess_tail", "mcse_mean"))
-    )
-  }
+print_estimate_table <- function(d) {
   # remove the dimensions and the column type lines of the tibble output
-  cat(format(d, n = nrow(d))[-c(1, 3)], sep = "\n")
+  cat(format(d, n = nrow(d), width = Inf)[-c(1, 3)], sep = "\n")
 }

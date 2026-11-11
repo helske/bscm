@@ -33,7 +33,9 @@ MCMC convergence measures and the Monte Carlo standard error of the mean.}
 }
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
-posterior draws (\code{summary = FALSE}) in long format.
+posterior draws (\code{summary = FALSE}) in long format, with a column named
+by the unit variable (treated unit), \code{donor}, and the summaries or the
+draws in column \code{weight}.
 }
 \description{
 Extract donor weights of a Bayesian synthetic control model

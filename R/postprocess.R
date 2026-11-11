@@ -70,6 +70,70 @@ rvars_of <- function(x, parameter) {
   as_draws_rvars(x, parameter)[[parameter]]
 }
 
+#' Terms and treated units of the elements of a model parameter
+#'
+#' Returns one row per element of the model parameter given by its role name,
+#' in the order of the posterior draws, with the predictor or tilt direction
+#' (`term`) and the treated unit (`unit`) of each element, `NA` when not
+#' applicable.
+#'
+#' @param x \[`bscmfit`]\cr The model fit object.
+#' @param parameter \[`character(1)`]\cr Role name of the model parameter.
+#' @noRd
+parameter_elements <- function(x, parameter) {
+  treated <- get_treated(x)
+  switch(
+    parameter,
+    coef = dplyr::tibble(term = x$setup$beta_names, unit = NA),
+    tv_sd = ,
+    tv_slope = dplyr::tibble(term = x$setup$gamma_names, unit = NA),
+    tilt = {
+      tilt <- x$priors$weights$tilt
+      terms <- if (is.null(tilt$V)) {
+        paste0("PC", seq_len(tilt$R))
+      } else {
+        colnames(tilt$V) %||% paste0("V", seq_len(tilt$R))
+      }
+      # phi[i, r] of unit i and direction r, the unit varying fastest
+      dplyr::tibble(
+        term = rep(terms, each = length(treated)),
+        unit = rep(treated, times = length(terms))
+      )
+    },
+    # intercept, sigma, ar1, weights, and concentration
+    dplyr::tibble(term = NA, unit = treated)
+  )
+}
+
+#' Posterior draws of model parameters in long format
+#'
+#' Returns a `tibble` with one row per element of the model parameters given
+#' by their role names, with columns `parameter`, `term`, a column named by
+#' the unit variable, and the posterior draws as an `rvar` column `value`.
+#' Columns `term` and the unit column are omitted when they are `NA` for all
+#' rows.
+#'
+#' @param x \[`bscmfit`]\cr The model fit object.
+#' @param parameters \[`character()`]\cr Role names of the model parameters.
+#' @noRd
+parameter_draws <- function(x, parameters) {
+  d <- lapply(
+    parameters,
+    \(par) {
+      dplyr::tibble(
+        parameter = par,
+        parameter_elements(x, par),
+        value = c(rvars_of(x, stan_parameter_names[[par]]))
+      )
+    }
+  ) |>
+    dplyr::bind_rows()
+  empty <- c("term", "unit")[c(all(is.na(d$term)), all(is.na(d$unit)))]
+  d |>
+    dplyr::select(-dplyr::all_of(empty)) |>
+    dplyr::rename(dplyr::any_of(stats::setNames("unit", get_unit(x))))
+}
+
 #' Check that an argument is a single logical value
 #'
 #' @param x Value to check.

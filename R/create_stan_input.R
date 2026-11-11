@@ -1,12 +1,12 @@
 #' Compute descriptive statistics to be used with default priors
 #' @noRd
 compute_descriptives <- function(
-  Y,
-  Z,
-  T_pre,
-  X_y = NULL,
-  X_z = NULL,
-  beta_names = NULL
+    Y,
+    Z,
+    T_pre,
+    X_y = NULL,
+    X_z = NULL,
+    beta_names = NULL
 ) {
   pooled_within_sd <- function(s, n) {
     sqrt(stats::weighted.mean(s^2, w = n - 1))
@@ -35,7 +35,7 @@ compute_descriptives <- function(
       i = "Found SD < {1e-8} for unit {names(constant_sd)}."
     )
   )
-
+  
   mean_y <- vapply(
     seq_len(N),
     \(i) mean(Y[seq_len(T_pre[i]), i], na.rm = TRUE),
@@ -91,7 +91,7 @@ compute_descriptives <- function(
 }
 
 prior_to_stan <- function(x, type) {
-
+  
   max_npar <- switch(
     type,
     sigma = 3L,
@@ -104,12 +104,15 @@ prior_to_stan <- function(x, type) {
     zeta = 3L
   )
   if (type == "omega") {
-    if (x$zeta) x$length <- 0L
+    if (inherits(x$concentration, "bscm_prior")) {
+      x$length <- 0L
+      x$concentration <- NULL
+    }
     pars <- array(0, dim = max(0, x$length))
   } else {
     pars <- matrix(0, max(0, x$length), max_npar)
   }
-
+  
   if (is.null(x)) {
     dist <- 0
   } else {
@@ -193,13 +196,13 @@ prior_to_stan <- function(x, type) {
   )
 }
 create_standata <- function(
-  setup,
-  priors,
-  Y,
-  Z,
-  X_y = NULL,
-  X_z = NULL,
-  spline_def = NULL
+    setup,
+    priors,
+    Y,
+    Z,
+    X_y = NULL,
+    X_z = NULL,
+    spline_def = NULL
 ) {
   N <- ncol(Y)
   T_total <- nrow(Y)
@@ -213,8 +216,12 @@ create_standata <- function(
   D <- spline_def$D %||% 0
   A <- spline_def$A %||% matrix(0, 0, 0)
   noncentered_xi <- as.integer(spline_def$noncentered_xi %||% 0)
-
-  c(
+  names(priors) <- stan_parameter_names[names(priors)]
+  if (inherits(priors$omega$concentration, "bscm_prior")) {
+    priors$zeta <- priors$omega$concentration
+  }
+  
+  standata <- c(
     list(
       use_alpha = as.integer(setup$has_icpt),
       use_beta = as.integer(setup$has_x),
@@ -248,7 +255,79 @@ create_standata <- function(
       recursive = FALSE
     )
   )
+  tilt <- priors$omega$tilt
+  if (!is.null(tilt)) {
+    standata <- c(
+      standata,
+      create_tilt_data(tilt, Z, min(setup$T_pre), setup$donors)
+    )
+  }
+  standata
 }
+
+#' Create the Stan data for the tilt of the prior of the donor weights
+#'
+#' With the tilt, the donor weights of treated unit `i` are
+#' `softmax(V phi_i + ...)` with `phi_i ~ normal(0, scale)`. When the tilt is
+#' defined by the number of directions `R`, the columns of `V` are the first
+#' `R` right singular vectors of the pre-treatment donor outcomes after
+#' removing the donor means and the common time effects, standardized to unit
+#' standard deviation. A user-supplied `V` is used as is, with rows matched to
+#' the donors by the row names.
+#'
+#' @param tilt \[`list()`]\cr Tilt specification from `check_tilt()`.
+#' @param Z \[`matrix()`]\cr Donor outcomes, with time points on rows.
+#' @param T_pre \[`integer()`]\cr Numbers of pre-treatment time points of the
+#'   treated units.
+#' @param donors \[`character()`]\cr Donor ids, in the order of the columns
+#'   of `Z`.
+#' @param call The calling environment reported in the error message.
+#' @return A list with elements `R`, `V`, and `sd_phi`.
+#' @noRd
+create_tilt_data <- function(
+    tilt,
+    Z,
+    T_pre,
+    donors,
+    call = rlang::caller_env()
+) {
+  J <- ncol(Z)
+  T0 <- min(T_pre)
+  if (is.null(tilt$V)) {
+    R <- tilt$R
+    max_R <- min(T0, J) - 1L
+    stopifnot_(
+      R <= max_R,
+      c(
+        "Element {.val R} of {.arg tilt} must be at most {max_R}.",
+        i = "The tilt directions are computed from {T0} pre-treatment time
+        point{?s} of {J} donors, so there are at most {max_R} of them.",
+        i = "The default prior of {.val weights} has a tilt with {.code R = 3}.
+        Define the prior of {.val weights} with smaller {.val R} or without a 
+        tilt."
+      ),
+      call = call
+    )
+    Z_pre <- Z[seq_len(T0), , drop = FALSE]
+    Z_pre <- sweep(Z_pre, 2, colMeans(Z_pre))
+    Z_pre <- Z_pre - rowMeans(Z_pre)
+    V <- unclass(scale(svd(Z_pre, nu = 0, nv = R)$v))
+  } else {
+    missing_donors <- setdiff(donors, rownames(tilt$V))
+    stopifnot_(
+      length(missing_donors) == 0L,
+      c(
+        "Element {.val V} of {.arg tilt} has no rows for
+        {cli::qty(missing_donors)}donor{?s} {.val {missing_donors}}.",
+        i = "The rows of {.val V} are matched to the donors by the row names."
+      ),
+      call = call
+    )
+    V <- unname(tilt$V[donors, , drop = FALSE])
+  }
+  list(R = ncol(V), V = V, sd_phi = tilt$scale)
+}
+
 # x: standata, d: descriptives
 create_inits <- function(x, d, spline_def, marginalize_sigma = FALSE) {
   eta <- matrix(stats::rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
@@ -279,6 +358,10 @@ create_inits <- function(x, d, spline_def, marginalize_sigma = FALSE) {
   # sigma is not a parameter of the marginalized model
   if (marginalize_sigma) {
     inits$sigma <- NULL
+  }
+  # tilt coefficients exist only in the model with the tilt
+  if (!is.null(x$V)) {
+    inits$phi <- matrix(stats::rnorm(x$N * x$R, 0, 0.1), x$N, x$R)
   }
   inits
 }

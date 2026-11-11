@@ -38,6 +38,7 @@ single_treated <- data.frame(
   dplyr::mutate(
     treatment = as.integer(id == 1 & time >= 0),
     y = alpha + delta + x + f + (1 + time) * treatment + epsilon,
+    id = factor(id, levels = seq_len(J + 1))
   ) |>
   dplyr::select(time, id, y, x, treatment)
 

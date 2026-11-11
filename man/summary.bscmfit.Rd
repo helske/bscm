@@ -16,9 +16,12 @@
 \arguments{
 \item{object}{[\code{bscmfit}]\cr The model fit object.}
 
-\item{parameters}{[\code{character()}]\cr Vector of parameter names. When
-\code{NULL} (the default), corresponds to a relevant subset of the model
-parameters, as in \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.}
+\item{parameters}{[\code{character()}]\cr Names of the model parameters to
+summarise, among the parameters of the model listed in \code{\link[=bscm_prior]{bscm_prior()}} other
+than weights, which are summarised by \code{\link[=donor_weights]{donor_weights()}}. When \code{NULL} (the
+default), all of these parameters. The other quantities of the model, such
+as the time-varying parts of the coefficients and the spline coefficients,
+are available via \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.}
 
 \item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
 Default is \code{c(0.025, 0.975)}.}
@@ -27,16 +30,20 @@ Default is \code{c(0.025, 0.975)}.}
 also contains the MCMC convergence measures and the Monte Carlo standard
 error of the mean.}
 
-\item{...}{Additional arguments passed to \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.}
+\item{...}{Ignored.}
 }
 \value{
-A \code{tibble} with posterior summaries of the model parameters.
+A \code{tibble} with one row per element of each model parameter, with
+columns \code{parameter}, \code{term} (predictor or tilt direction), a
+column named by the unit variable (treated unit), and the posterior
+summaries. Columns \code{term} and the unit column are omitted when not
+needed.
 }
 \description{
 Returns posterior summaries of the model parameters, i.e. the posterior
 mean, standard deviation, quantiles as defined by the \code{probs} argument, and
-the MCMC convergence measures. The parameters are named as in the posterior
-draws, see \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}}.
+the MCMC convergence measures, see \code{\link[=bscm_prior]{bscm_prior()}} for the parameter
+names.
 }
 \details{
 Note that many (more) summaries are available via separate methods, e.g.,

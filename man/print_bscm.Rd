@@ -4,15 +4,17 @@
 \alias{print.bscmfit}
 \title{Print method for bscmfit objects}
 \usage{
-\method{print}{bscmfit}(x, diagnostics = FALSE, ...)
+\method{print}{bscmfit}(x, probs = c(0.025, 0.975), diagnostics = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr The model fit object.}
 
-\item{diagnostics}{[\code{logical(1)}]\cr If \code{TRUE}, the printed posterior
-summaries also contain the MCMC convergence measures and the Monte Carlo
-standard error of the mean. Default is \code{FALSE}, as the convergence of the
-sampling is summarised separately, see \code{\link[=check_mcmc_diagnostics]{check_mcmc_diagnostics()}}.}
+\item{probs}{[\code{numeric()}]\cr Probabilities for quantile summaries.
+Default is \code{c(0.025, 0.975)}.}
+
+\item{diagnostics}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
+the printed posterior summaries contain the MCMC convergence measures and
+the Monte Carlo standard error of the mean.}
 
 \item{...}{Ignored.}
 }

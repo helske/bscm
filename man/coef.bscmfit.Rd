@@ -50,12 +50,14 @@ is the average level of the effect in the pre-treatment period and
 the types \code{"fixed"} and \code{"varying"}.
 }
 \details{
-The individual components \code{beta}, \code{nu}, \code{gamma}, \code{kappa}, \code{rho} and
-\code{zeta} are not returned here; use \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} to extract them.
+The output has the columns \code{parameter} (\code{"intercept"} or \code{"coef"}),
+\code{term} (the predictor, not for intercepts), a column named by the unit
+variable (intercepts) or the time variable (\code{type = "varying"}), and the
+posterior summaries or the draws in column \code{coef}.
 }
 \examples{
 coef(fit_single_treated)
 }
 \seealso{
-\code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} for the individual model parameters.
+\code{\link[=summary.bscmfit]{summary.bscmfit()}} for the other model parameters.
 }

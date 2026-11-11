@@ -6,13 +6,16 @@
 #' weights, use [bscm::donor_weights()].
 #'
 #' @param x \[`bscmfit`]\cr The model fit object.
-#' @param parameters \[`character()`]\cr Vector of parameter names. When
-#'   `NULL`, (the default), corresponds to a relevant subset of
-#'   `c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")`. Other possible
-#'   choices are `"gamma"` (time-varying part of the regression coefficients), `"xi"`
-#'   (spline coefficients), `"lp__"` (log-posterior values without
-#'   constants), `"a"` (working intercepts corresponding to centered donors and covariates), and
-#'  `"eta"` (parameters used to construct weights using ILR or softmax transformation).
+#' @param parameters \[`character()`]\cr Vector of names of the posterior
+#'   draws, i.e., the model parameters in the Stan model, see
+#'   [bscm_prior()]. When `NULL`, (the default), corresponds to a relevant
+#'   subset of
+#'   `c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta", "phi")`.
+#'   Other possible choices are `"gamma"` (time-varying part of the regression 
+#'   coefficients), `"xi"` (spline coefficients), `"lp__"` (log-posterior 
+#'   values without constants), `"a"` (working intercepts corresponding to 
+#'   centered donors and covariates), and `"eta"` (parameters used to 
+#'   construct weights using ILR or softmax transformation).
 #' @param include \[`logical(1)`]\cr If `TRUE` (the default), output includes
 #'   only the variables defined by the argument `parameters`. If `FALSE`, these
 #'   variables are excluded from the output. If `NULL`, same as `TRUE` but
@@ -28,16 +31,18 @@
 #' @examples
 #' head(as.data.frame(fit_single_treated, parameters = c("alpha", "sigma")))
 as.data.frame.bscmfit <- function(
-  x,
-  row.names = NULL,
-  optional = FALSE,
-  parameters = NULL,
-  include = TRUE,
-  ...
+    x,
+    row.names = NULL,
+    optional = FALSE,
+    parameters = NULL,
+    include = TRUE,
+    ...
 ) {
   all_pars <- setdiff(get_stanfit(x)@model_pars, x$setup$excluded_pars)
   if (is.null(parameters)) {
-    parameters <- c("alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta")
+    parameters <- c(
+      "alpha", "beta", "sigma", "kappa", "nu", "rho", "zeta", "phi"
+    )
     parameters <- intersect(parameters, all_pars)
   } else {
     if (is.null(include)) {

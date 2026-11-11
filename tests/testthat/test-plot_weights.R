@@ -4,9 +4,9 @@ test_that("plot_weights returns ggplot for single treated unit", {
 })
 
 test_that("plot_weights returns named list of ggplots for N > 1", {
-  suppressWarnings(plots <- plot_weights(fitN_int))
+  suppressWarnings(plots <- plot_weights(fitN_tv))
   expect_type(plots, "list")
-  expect_named(plots, get_treated(fitN_int))
+  expect_named(plots, get_treated(fitN_tv))
   expect_true(all(vapply(plots, inherits, logical(1L), "ggplot")))
 })
 

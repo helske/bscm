@@ -20,7 +20,7 @@ test_that("print.bscmfit shows treated unit info for single treated", {
 })
 
 test_that("print.bscmfit shows number of treated units for N > 1", {
-  suppressWarnings(out <- capture.output(print(fitN_int)))
+  suppressWarnings(out <- capture.output(print(fitN_tv)))
   expect_true(any(grepl("Number of treated units:", out)))
 })
 
@@ -36,18 +36,20 @@ test_that("print.bscmfit does not show AR(1) for IID model", {
 
 test_that("print.bscmfit shows the summaries of the model parameters", {
   suppressWarnings(out <- capture.output(print(fit1_x)))
-  expect_true(
-    any(
-      grepl(
-        "Summary statistics of the time-invariant parameters",
-        out,
-        fixed = TRUE
-      )
-    )
+  expect_true(all(c("Coefficients:", "Error:", "Donor weights:") %in% out))
+  expect_false("Time variation of coefficients:" %in% out)
+  labels <- sub("^[0-9]+ +([^ ]+).*", "\\1", out)
+  expect_true(all(c("intercept", "x", "sigma") %in% labels))
+  expect_true(any(grepl("Effective number of donors", out, fixed = TRUE)))
+})
+
+test_that("print.bscmfit shows the convergence measures unless disabled", {
+  suppressWarnings(out <- capture.output(print(fit1_x)))
+  expect_true(any(grepl("mcse_mean", out, fixed = TRUE)))
+  suppressWarnings(
+    out <- capture.output(print(fit1_x, diagnostics = FALSE))
   )
-  expect_true(any(grepl("Intercept", out, fixed = TRUE)))
-  expect_true(any(grepl("coef_x", out, fixed = TRUE)))
-  expect_true(any(grepl("Residual SD", out, fixed = TRUE)))
+  expect_false(any(grepl("mcse_mean", out, fixed = TRUE)))
 })
 
 test_that("print.bscmfit shows the treatment effects and the model fit", {
@@ -61,11 +63,13 @@ test_that("print.bscmfit shows the treatment effects and the model fit", {
 
 test_that("print.bscmfit omits the unit-specific statistics for N > 1", {
   suppressWarnings(out <- capture.output(print(fitN_xz)))
+  expect_true("Coefficients:" %in% out)
+  expect_false("Error:" %in% out)
+  expect_true("Donor weights:" %in% out)
   expect_true(
-    any(
-      grepl("time- and unit-invariant parameters", out, fixed = TRUE)
-    )
+    any(grepl("Average effective number of donors", out, fixed = TRUE))
   )
+  expect_false(any(grepl("intercept", out, fixed = TRUE)))
   expect_true(
     any(grepl("available via `summary()`", out, fixed = TRUE))
   )
@@ -79,7 +83,8 @@ test_that("print.bscmfit omits the treatment effects without the data", {
   x <- fit1_x
   x$data <- NULL
   suppressWarnings(out <- capture.output(print(x)))
-  expect_true(any(grepl("Residual SD", out, fixed = TRUE)))
+  expect_true("Error:" %in% out)
+  expect_true(any(grepl("Some of the summary statistics", out, fixed = TRUE)))
   expect_false(
     any(grepl("Average post-treatment effect", out, fixed = TRUE))
   )

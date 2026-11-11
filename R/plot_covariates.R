@@ -166,7 +166,7 @@ adjustment_plot <- function(d, time, qs, alpha, scales, id, ...) {
     geom_hline(yintercept = 0, linetype = 2) +
     geom_line(colour = "#0C7BDC") +
     scale_x_continuous(limits = range(d[[time]])) +
-    facet_wrap(~variable, scales = scales, ...) +
+    facet_wrap(~ term, scales = scales, ...) +
     labs(
       x = time,
       y = paste0("Covariate adjustment", if (!is.null(id)) paste0(" for ", id))

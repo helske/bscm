@@ -42,17 +42,19 @@ Either \code{"iid"} (independent and identically distributed errors) or
 \code{"ar1"} (first-order autoregressive process). Default is \code{"iid"}.}
 
 \item{priors}{[\code{list()}]\cr List of prior definitions for the model
-parameters. See \code{\link[=bscm_prior]{bscm_prior()}} for details on the available prior
-families and how to define them. If \code{NULL} (the default), default
-priors are used.}
+parameters. See \code{\link[=bscm_prior]{bscm_prior()}} for the names of the parameters, the
+available prior families, and the default priors. Parameters not in the
+list get default priors, and if \code{NULL} (the default), default priors are
+used for all parameters. The priors of a fitted model are returned by
+\code{\link[=get_priors]{get_priors()}}.}
 
 \item{marginalize_sigma}{[\code{logical(1)} or \code{NULL}]\cr If \code{TRUE}, the
 standard deviations of the error term are integrated out during MCMC
 sampling, and drawn afterwards from their conditional posterior
 distribution. If \code{FALSE}, they are sampled jointly with the
 other parameters. The default \code{NULL} corresponds to \code{TRUE} if the prior of
-\code{sigma} is either \code{scaled_inv_chi_pr} (the default),
-\code{half_normal_pr}, or \code{sqrt_inv_gamma}.}
+\code{sigma} is either \code{half_normal_pr} (the default),
+\code{scaled_inv_chi_pr}, or \code{sqrt_inv_gamma_pr}.}
 
 \item{prior_only}{[\code{logical(1)}]\cr If \code{TRUE}, samples from prior
 predictive distribution. Default is \code{FALSE}.}
@@ -133,23 +135,26 @@ vector \eqn{z_j} minus the donor-specific intercept \eqn{\alpha_j} and
 the effect of covariates \eqn{X_j \beta} for that donor. Note that
 \eqn{\beta} is common across donors and the treated units.
 
-The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-either a symmetric Dirichlet, a logistic normal or logistic Laplace
-prior, with the corresponding concentration parameters
-\eqn{\zeta_i} either fixed or given their own prior.
-See \code{\link[=bscm_prior]{bscm_prior()}} for details.
-
 By default, the standard deviations \eqn{\sigma_i} of the error term are
-integrated out analytically during MCMC sampling (\code{marginalize_sigma}).
+integrated out analytically during MCMC sampling (\code{marginalize_sigma}) to
+improve sampling performance (specifically, to avoid occasional divergences).
 The posterior draws of
 \eqn{\sigma_i} are then sampled from their conditional posterior
 distribution given the other parameters, so they are available for
 post-processing as usual. Marginalization is supported for the priors
 \code{\link[=half_normal_pr]{half_normal_pr()}}, \code{\link[=scaled_inv_chi_pr]{scaled_inv_chi_pr()}}, and \code{\link[=sqrt_inv_gamma_pr]{sqrt_inv_gamma_pr()}} on
-\eqn{\sigma_i}. The default prior for \eqn{\sigma_i} is
-\code{half_normal_pr(0.5 * s_i)}, where \eqn{s_i} is the standard deviation of the
-pre-treatment outcome of treated unit \eqn{i}, or of its difference to the
-mean of the donors, whichever is smaller.
+\eqn{\sigma_i}.
+
+The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
+either a symmetric Dirichlet, a logistic normal or logistic Laplace
+prior, with the corresponding concentration parameters
+\eqn{\zeta_i} either fixed or given their own prior, and optionally a tilt
+along a few directions, e.g., the principal components of the donors.
+Both are defined in the prior of \code{weights}, e.g.,
+\code{priors = list(weights = logistic_normal_pr(inv_gamma_pr(10, 2), tilt = list(R = 3, scale = 2)))}. By default, \eqn{\zeta_i} are estimated
+and the prior is tilted along the first three principal component
+directions of the donors. The tilt requires \code{marginalize_sigma = TRUE}.
+See \code{\link[=bscm_prior]{bscm_prior()}} for details.
 
 Model can contain missing values in the outcome variable of the treated,
 but not of the donors, nor in the covariates. Missing outcomes are
@@ -160,7 +165,7 @@ automatically imputed during MCMC sampling under a missing at random
 # skip diagnostics and use small number of iterations for CRAN checks
 fit <- bscm(
   y ~ x, single_treated, "treatment", "time", "id",
-  priors = list(omega = logistic_normal_pr(0.5)),
+  priors = list(weights = logistic_normal_pr(0.5)),
   chains = 1, cores = 1, refresh = 0, iter = 1000,
   mcmc_diagnostics = FALSE
 )

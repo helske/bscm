@@ -52,24 +52,33 @@ Bayesian synthetic control model y ~ x
 Treated unit: 1 
 Number of donors: 50 
 Number of time periods (pre + post): 40 + 10 
-MCMC sampling using 2 chains with 2500 + 2500 iterations took 7.73 seconds
+MCMC sampling using 2 chains with 2500 + 2500 iterations took 12.5 seconds
 
 MCMC diagnostics indicate no issues. 
 
-Summary statistics of the time-invariant parameters:
-  variable        mean     sd   q2.5 q97.5
-1 Intercept     0.0910 0.437  -0.646 1.06 
-2 coef_x        0.982  0.0606  0.856 1.10 
-3 concentration 0.199  0.0663  0.106 0.355
-4 Residual SD   0.593  0.0779  0.461 0.765
+Coefficients:
+  variable   mean     sd   q2.5 q97.5
+1 intercept 0.468 0.459  -0.421  1.38
+2 x         0.936 0.0860  0.770  1.11
+
+Error:
+  variable  mean     sd  q2.5 q97.5
+1 sigma    0.594 0.0766 0.464 0.761
+
+Donor weights:
+  variable        mean    sd   q2.5 q97.5
+1 concentration  0.277 0.129  0.123 0.614
+2 tilt(PC1)     -0.435 0.975 -2.53  1.37 
+3 tilt(PC2)     -0.973 0.942 -3.01  0.734
+4 tilt(PC3)      2.27  0.964  0.471 4.38 
 
 Average treatment effects and measures of model fit:
-  variable                           mean      sd   q2.5 q97.5
-1 Average pre-treatment effect  -0.000720 0.135   -0.265 0.262
-2 Average post-treatment effect  5.90     0.319    5.24  6.52 
-3 Bayesian R2                    0.993    0.00187  0.989 0.996
-4 Pre-treatment RMSE             0.824    0.108    0.639 1.05 
-5 Post-treatment RMSE            6.75     0.331    6.08  7.42 
+  variable                          mean      sd   q2.5 q97.5
+1 Average pre-treatment effect  0.000539 0.133   -0.266 0.266
+2 Average post-treatment effect 5.50     0.443    4.67  6.41 
+3 Bayesian R2                   0.993    0.00185  0.989 0.996
+4 Pre-treatment RMSE            0.823    0.104    0.644 1.05 
+5 Post-treatment RMSE           6.28     0.453    5.42  7.19 
 ```
 And default visualization:
 ``` r

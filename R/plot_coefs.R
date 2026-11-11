@@ -4,7 +4,7 @@
 #' predictors. For time-constant coefficients (`type = "fixed"`), a horizontal
 #' point-range plot is produced. For time-varying coefficients
 #' (`type = "varying"`), a ribbon-and-line plot of the total effect
-#' `beta + gamma_t` over time is produced, faceted by parameter.
+#' `beta + gamma_t` over time is produced, faceted by predictor.
 #'
 #' @param x \[`bscmfit`]\cr Output from [bscm()].
 #' @param type \[`character(1)`]\cr Type of coefficients to plot. Either
@@ -29,18 +29,18 @@ plot_coefs <- function(x, ...) {
 #' @examples
 #' plot_coefs(fit_single_treated)
 plot_coefs.bscmfit <- function(
-  x,
-  type = NULL,
-  probs = c(0.025, 0.975),
-  alpha = 0.5,
-  scales = "free_y",
-  ...
+    x,
+    type = NULL,
+    probs = c(0.025, 0.975),
+    alpha = 0.5,
+    scales = "free_y",
+    ...
 ) {
   stopifnot_(
     has_predictors(x),
     "The model does not contain any predictors."
   )
-
+  
   if (is.null(type)) {
     type <- if (has_tv_coefs(x)) "varying" else "fixed"
   } else {
@@ -50,7 +50,7 @@ plot_coefs.bscmfit <- function(
       "Argument {.arg type} must be either {.val fixed} or {.val varying}."
     )
   }
-
+  
   probs <- interval_probs(probs)
   if (type == "fixed") {
     stopifnot_(
@@ -78,15 +78,15 @@ plot_coefs_fixed <- function(x, probs) {
   d <- coef_draws(x, "fixed") |>
     summarise_column("coef", probs, diagnostics = FALSE) |>
     dplyr::mutate(
-      parameter = factor(.data$parameter, levels = unique(.data$parameter))
+      term = factor(.data$term, levels = unique(.data$term))
     )
   qs <- paste0("q", 100 * probs)
-  ggplot(d, aes(.data$mean, .data$parameter)) +
+  ggplot(d, aes(.data$mean, .data$term)) +
     geom_linerange(
       aes(xmin = .data[[qs[1]]], xmax = .data[[qs[2]]])
     ) +
     geom_point() +
-    labs(x = "Value", y = "Parameter") +
+    labs(x = "Value", y = "Predictor") +
     theme_bw()
 }
 
@@ -102,7 +102,7 @@ plot_coefs_varying <- function(x, probs, alpha, scales) {
   d <- coef_draws(x, "varying") |>
     summarise_column("coef", probs, diagnostics = FALSE) |>
     dplyr::mutate(
-      parameter = factor(.data$parameter, levels = unique(.data$parameter))
+      term = factor(.data$term, levels = unique(.data$term))
     )
   ggplot(d, aes(.data[[time_var]], .data$mean)) +
     geom_ribbon(
@@ -112,7 +112,7 @@ plot_coefs_varying <- function(x, probs, alpha, scales) {
     ) +
     geom_line(colour = "#0C7BDC") +
     scale_x_continuous(limits = range(d[[time_var]])) +
-    facet_wrap(~parameter, scales = scales) +
+    facet_wrap(~term, scales = scales) +
     labs(x = time_var, y = "Value") +
     theme_bw()
 }

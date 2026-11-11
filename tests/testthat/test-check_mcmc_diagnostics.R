@@ -22,7 +22,7 @@ test_that("check_mcmc_diagnostics returns bscmfit_diagnostics", {
 
 test_that("print.bscmfit_diagnostics returns x invisibly", {
   diag <- check_mcmc_diagnostics(fit_single_treated, warn = FALSE)
-  expect_invisible(print(diag))
+  capture.output(expect_invisible(print(diag)))
 })
 
 test_that("print.bscmfit_diagnostics indicates no issues for a well-fit model", {

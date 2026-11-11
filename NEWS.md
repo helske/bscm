@@ -1,42 +1,67 @@
 # bscm 1.1.0
 
-* Logistic normal prior (and new logistic Laplace prior) of weights `omega` is 
-  no parameterized by concentration `zeta = 1/scale^2`, where scale is the 
+* The model parameters are now named by their roles in all user-facing
+  input and output: `intercept`, `coef`, `tv_sd`, `tv_slope`, `sigma`, `ar1`,
+  `weights`, `concentration`, and `tilt`, see `?bscm_prior` for their
+  definitions and the corresponding names of the posterior draws (`alpha`,
+  `beta`, `kappa`, `nu`, `sigma`, `rho`, `omega`, `zeta`, and `phi`).
+* The standard deviations `sigma` of the error term are now integrated out
+  analytically during MCMC sampling by default, and their posterior draws are
+  sampled afterwards from their conditional posterior distribution. This is
+  controlled by the new argument `marginalize_sigma` of `bscm`, and is
+  supported with the priors `half_normal_pr()`, `scaled_inv_chi_pr()`, and
+  `sqrt_inv_gamma_pr()` of `sigma`. The default prior of `sigma` is now
+  `half_normal_pr(sd_e)`.
+* Logistic normal prior (and new logistic Laplace prior) of donor weights is 
+  now parameterized by concentration `zeta = 1/scale^2`, where scale is the 
   standard deviation of the log-weights.
-* Concentration parameter `zeta` of donor weights `omega` can now
-  be estimated from the data instead of being fixed by the user. Calling
-  `logistic_normal_pr()` without arguments (equivalently,
-  `logistic_normal_pr(NA)`, and similarly for `dirichlet_pr()` and 
-  `logistic_laplace_pr()`) leaves the scale unspecified, in which case it is
-  a unit-specific model parameter `zeta`. The prior for `zeta` is defined as
-  the element `zeta` of the `priors` list of `bscm`.
-* The default prior of the donor weights `omega` is now the logistic normal
-  prior with estimated scale `zeta` instead of the uniform Dirichlet prior.
+* Concentration parameter of donor weights can now
+  be estimated instead of being fixed, by defining argument `concentration` of 
+  `logistic_normal_pr()`, `logistic_laplace_pr()`, and `dirichlet_pr()`, as 
+  `bscm_prior, e.g., `logistic_normal_pr(inv_gamma_pr(10, 2))`. Calling these 
+  functions without `concentration` uses the default prior, while a 
+  number fixes it as before.
+* The priors of the donor weights gained an argument `tilt`, which
+  adds unit-specific coefficients `phi` that tilt the prior along the first 
+  `R` principal components of the donors' pre-treatment outcomes 
+  with `normal_pr(0, scale)` prior for `phi`.
+* The default prior of the donor weights is now the logistic normal
+  prior with estimated concentration `zeta` and a tilt along the first three
+  principal components of the donors,
+  `logistic_normal_pr(tilt = list(R = 3, scale = 2))`, instead of the uniform
+  Dirichlet prior. Without marginalization of `sigma`, the default prior has
+  no tilt.
 * Added more prior distributions.
-* The elements of the `priors` list can now be named either by the name of the
-  parameter in the posterior draws or by a plain-text synonym.
-* The posterior summaries shown by `print` now use plain-text labels
-  throughout, e.g. `scale_gamma_x` in place of `kappa_x` and `coef_x` in 
-  place of `beta_x`. 
+* `get_priors` now returns a data frame with columns `parameter`, `term`,
+  the unit variable, and `prior`, with one row per predictor or treated unit,
+  and the priors of the concentrations and the tilt coefficients on their own
+  rows.
 * Fixed `loo_R2` for multiple treated units.
 * `coef` now returns the total effect of each predictor instead of the
   individual model parameters, one type at a time: the intercepts with
   `type = "intercept"`, the coefficients of the predictors whose effect is
   constant with `type = "fixed"` (the default), and the total effect
   `beta + gamma_t` of each time-varying predictor at each time point with
-  `type = "varying"`.
+  `type = "varying"`. The output has columns `parameter`, `term` (the
+  predictor), and the unit or time variable.
 * `plot_coefs` no longer has an argument `combine`, and always shows the total 
   effect `beta + gamma_t` of the time-varying predictors. 
-* `summary` now returns posterior summaries of the model parameters, named as
-  in the posterior draws, and no longer has a class and a print method of its
-  own. It gained an argument `parameters` for selecting the parameters to
-  summarise.
+* `summary` now returns posterior summaries of the model parameters in long
+  format, with columns `parameter` (role name), `term` (predictor or tilt
+  direction), and the unit variable, and no longer has a class and a print
+  method of its own. It gained an argument `parameters` for selecting the
+  parameters to summarise by their role names.
+* The column `treated` of the output of `donor_weights` is now named by the
+  unit variable, and the column `variable` of `covariate_adjustment` is now
+  `term`.
 * All methods returning posterior summaries, such as `coef` and `rmse`, gain 
   new argument `diagnostics` to control whether to compute and return the MCMC 
   diagnostics such as Rhat and ESS values.
-* `print` now shows the posterior summaries of the model parameters and the
-  average pre- and post-treatment effects. With a single treated unit, the
-  Bayesian R2 and the pre- and post-treatment RMSEs are shown as well, and
+* `print` now shows the posterior summaries of the model parameters in
+  sections "Coefficients", "Time variation of coefficients", "Error", and
+  "Donor weights", with short labels such as `x`, `sd(x)`, and `slope(x)`,
+  and the average pre- and post-treatment effects. With a single treated unit, 
+  the Bayesian R2 and the pre- and post-treatment RMSEs are shown as well, and
   with several treated units, only the parameters which are invariant over
   both time and unit.
 * The simplex weight vector with Dirichlet prior is now based on the 
@@ -50,8 +75,7 @@
   argument `df` now refers to the number of the basis functions in the 
   pre-treatment period using extended range of knot positions to avoid 
   boundary effects. In addition, `tv()` now has a new argument `knot_spacing` 
-  which can be used as alternative to `df` to specify the number of knots in 
-  the pre-treatment period.
+  as as alternative to `df` to specify the number of knots.
 * Default `type` argument in `tv()` is now `rw2` matching the second difference 
   penalty of the spline coefficients (old default was `rw1` for first 
   differences). Use of `rw2` adds another parameter `nu`, which is the slope 

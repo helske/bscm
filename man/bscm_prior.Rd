@@ -16,13 +16,13 @@
 \alias{scaled_inv_chi_pr}
 \alias{sqrt_inv_gamma_pr}
 \alias{student_pr}
-\title{Prior distributions in the Bayesian synthetic control model}
+\title{Priors of the Bayesian synthetic control model}
 \usage{
 beta_pr(shape1, shape2)
 
 cauchy_pr(location, scale)
 
-dirichlet_pr(concentration = NA)
+dirichlet_pr(concentration = NULL, tilt = NULL)
 
 exponential_pr(rate)
 
@@ -34,9 +34,9 @@ inv_gamma_pr(shape, scale)
 
 laplace_pr(location, scale)
 
-logistic_laplace_pr(concentration = NA)
+logistic_laplace_pr(concentration = NULL, tilt = NULL)
 
-logistic_normal_pr(concentration = NA)
+logistic_normal_pr(concentration = NULL, tilt = NULL)
 
 normal_pr(location, scale)
 
@@ -54,13 +54,16 @@ prior.}
 
 \item{location}{[\code{numeric()}]\cr Location parameter(s).}
 
-\item{scale}{[\code{numeric()}]\cr Scale parameter(s). For the priors of the
-donor weights \code{omega}, this can also be \code{NA}, in which case the scale is
-estimated from the data, see details.}
+\item{scale}{[\code{numeric()}]\cr Scale parameter(s).}
 
-\item{concentration}{[\code{numeric()}]\cr Concentration parameter(s). Can
-also be \code{NA}, in which case the concentration is estimated from the data,
-see details.}
+\item{concentration}{[\code{numeric()}, \code{bscm_prior}, or \code{NULL}]\cr Fixed
+positive concentration parameter(s), a \code{bscm_prior}, or \code{NULL} (the
+default) for the default prior, see details.}
+
+\item{tilt}{[\code{list()} or \code{NULL}]\cr Tilt of the prior of the donor
+weights, either \verb{list(R = <integer>, scale = <number>)} or
+\verb{list(V = <matrix>, scale = <number>)}. Default is \code{NULL} (no tilt). See
+details.}
 
 \item{rate}{[\code{numeric()}]\cr Rate parameter(s).}
 
@@ -72,55 +75,213 @@ see details.}
 A \code{bscm_prior} object.
 }
 \description{
-These functions specify prior distributions for parameters of the Bayesian
-synthetic control model estimated by \code{\link[=bscm]{bscm()}}. See \code{\link[=available_priors]{available_priors()}} for
-the list of available prior distributions and their definitions.
+These functions specify the prior distributions of the parameters of the
+Bayesian synthetic control model estimated by \code{\link[=bscm]{bscm()}}. The priors are given
+as a list in the \code{priors} argument of \code{\link[=bscm]{bscm()}}, with elements named by the
+parameters listed below, e.g.,
+\code{priors = list(sigma = half_normal_pr(2), weights = dirichlet_pr(1))}.
+Parameters not in the list get their default priors. Each parameter has a
+single prior family, whose parameters can vary across the predictors or the
+treated units. The priors of a fitted model are returned by \code{\link[=get_priors]{get_priors()}},
+and \code{\link[=available_priors]{available_priors()}} lists the prior distributions.
 }
-\details{
-Priors with support on the real line can be used for parameters that can
-take any real value (\code{alpha}, \code{beta}, \code{nu}). Note however that for the
-intercept the prior corresponds to a value of the intercept when donors and
-predictors corresponding to time-constant coefficients are centered.
+\section{Parameters}{
+Each parameter is listed below with its mathematical symbol and the name of
+its posterior draws in \code{\link[=as_draws.bscmfit]{as_draws.bscmfit()}} and \code{\link[=as.data.frame.bscmfit]{as.data.frame.bscmfit()}}.
+The parameter names are used in the \code{priors} argument of \code{\link[=bscm]{bscm()}} and in the
+output of \code{\link[=get_priors]{get_priors()}}, \code{\link[=summary.bscmfit]{summary.bscmfit()}}, and \code{\link[=coef.bscmfit]{coef.bscmfit()}}. The
+labels used by the print method are given where they differ from the
+parameter names.
 
-For parameters constrained to be positive (\code{sigma}, \code{kappa}, \code{zeta}),
-priors with positive support can be used, as well as the priors with
-support on the real line, which are then truncated to positive values.
+The default weakly informative priors are scaled by the following
+statistics of the pre-treatment period, with the resulting values rounded
+to two significant digits:
+\itemize{
+\item \code{mean_y}: Mean of the outcome of the treated unit.
+\item \code{sd_e}: Standard deviation of the outcome of the treated unit, or of its
+difference to the mean of the donors, whichever is smaller.
+\item \code{sd_y}: Standard deviation of the outcome, pooled within the treated
+units.
+\item \code{sd_x}: Standard deviation of the predictor, pooled within the treated
+units.
+\item \code{sd_t}: \eqn{\sqrt{T (T + 1) / 12}}, where \eqn{T} is the length of the
+longest pre-treatment period.
+\item \code{J}: Number of donors.
+}
 
-For autoregressive coefficients of the residuals (rho) the prior corresponds
-to transformation \code{0.5 * (1 + rho)}, so that the support is (0, 1). Only
-supported prior distribution for this is \code{beta_pr(shape1, shape2)}.
+The statistics \code{mean_y} and \code{sd_e} are computed separately for each treated
+unit, and \code{sd_x} separately for each predictor.
+\subsection{\code{intercept} (\eqn{\alpha}, draws \code{alpha})}{
 
-For the donor weight vector \code{omega}, priors with support on the simplex are
-used. The concentration or scale parameter \eqn{\zeta} of these priors can
-either be fixed by the user or estimated from the data. Calling
-\code{logistic_normal_pr()} (and equivalently for \code{dirichlet_pr()} and
-\code{logistic_laplace_pr()}) without arguments (or argument value \code{NA}) leaves
-the prior parameter unspecified, in which case \eqn{\zeta_i} is a parameter
-of the model, estimated separately for each treated unit \eqn{i}, with the
-prior for \eqn{\zeta_i} is defined as the element
-\code{zeta} of the \code{priors} list of \code{\link[=bscm]{bscm()}}. The default prior for \eqn{\zeta_i}
-is \verb{inv_gamma_pr(sqrt(J), 0.5 * sqrt(J) / log(1 + J / 5)}, where \code{J} is the
-number of donors. This prior penalizes very small concentrations
-which are prone to cause sampling problems due to challenging posterior
-geometry and concentration of weights for a single donor.
-Note: This default is chosen based on prior calibration
-of the distribution of effective number of donors \eqn{1/\sum(\omega^2)}
-with the total number of donors \eqn{J} ranging from 20 to 200,
-leading to 5\% and 95\% prior quantiles about 2 and J/10.
+Intercept of each treated unit. Priors with support on the real line can be
+used. The prior is defined for the intercept of the model in which the
+donors and all predictors are centered by their pre-treatment means (draws
+\code{a}), from which \eqn{\alpha} is computed. The default
+prior is \code{normal_pr(mean_y, 2 * sd_e)}.
+}
 
-Each element of the \code{priors} list of \code{\link[=bscm]{bscm()}} can be named either by the
-name of the model parameter or by a plain-text synonym:\tabular{lll}{
-   Parameter \tab Synonym \tab Quantity \cr
-   \code{alpha} \tab \code{intercept} \tab intercept of each treated unit \cr
-   \code{beta} \tab \code{coef} \tab time-constant regression coefficients \cr
-   \code{kappa} \tab \code{scale_gamma} \tab scale of the time-varying coefficients \cr
-   \code{nu} \tab \code{slope_gamma} \tab trend slope of the time-varying coefficients \cr
-   \code{rho} \tab \code{ar1} \tab autoregressive coefficient of the residuals \cr
-   \code{omega} \tab \code{weights} \tab donor weights \cr
-   \code{zeta} \tab \code{concentration} \tab concentration of the prior of \code{omega} \cr
-   \code{sigma} \tab \code{sd} \tab standard deviation of the error term \cr
+\subsection{\code{coef} (\eqn{\beta}, draws \code{beta})}{
+
+Coefficients of the predictors, common to the treated units and the donors,
+labelled by the names of the predictors in the print output, e.g., \code{x} for
+the coefficient of predictor \code{x}. For a predictor with a time-varying
+coefficient, \eqn{\beta} is the average level of the coefficient in the
+pre-treatment period, see \code{\link[=tv]{tv()}}. Priors with support on the real line can
+be used. The default prior is \code{normal_pr(0, 2 * sd_y / sd_x)}.
+}
+
+\subsection{\code{tv_sd} (\eqn{\kappa}, draws \code{kappa})}{
+
+Standard deviations of the spline coefficients of the time-varying
+coefficients, labelled \code{sd(z)} for predictor \code{x} in the print output, see
+\code{\link[=tv]{tv()}}. Priors with positive support or with support on the real line
+(truncated to positive values) can be used. The default prior is
+\code{half_normal_pr(0.5 * sd_y / sd_x)}.
+}
+
+\subsection{\code{tv_slope} (\eqn{\nu}, draws \code{nu})}{
+
+Slopes of the linear trend of the time-varying coefficients with
+\code{type = "rw2"} in \code{\link[=tv]{tv()}}, labelled \code{slope(z)} for predictor \code{x} in the
+print output. Priors with support on the real line can be used. The default
+prior is \code{normal_pr(0, 2 * sd_y / (sd_x * sd_t))}.
+}
+
+\subsection{\code{sigma} (\eqn{\sigma}, draws \code{sigma})}{
+
+Standard deviation of the error term of each treated unit. Priors with
+positive support or with support on the real line (truncated to positive
+values) can be used. With \code{marginalize_sigma = TRUE} in \code{\link[=bscm]{bscm()}}, only
+\code{half_normal_pr()}, \code{scaled_inv_chi_pr()}, and \code{sqrt_inv_gamma_pr()} are
+supported. The default prior is \code{half_normal_pr(sd_e)}.
+}
+
+\subsection{\code{ar1} (\eqn{\rho}, draws \code{rho})}{
+
+Autoregressive coefficient of the error term of each treated unit, with
+\code{error = "ar1"} in \code{\link[=bscm]{bscm()}}. The prior is defined for the transformation
+\code{0.5 * (1 + rho)}, so that its support is (0, 1), and only \code{beta_pr()} is
+supported. The default prior is \code{beta_pr(2, 2)}.
+
+Donor weights of each treated unit. The prior must be one of the simplex
+priors \code{dirichlet_pr()}, \code{logistic_normal_pr()}, or \code{logistic_laplace_pr()},
+whose arguments \code{concentration} and \code{tilt} define the concentration and the
+tilt of the prior, see below and the section "Prior distributions". The
+default prior is
+\code{logistic_normal_pr(tilt = list(R = 3, scale = 2))}, i.e., the logistic
+normal prior with estimated concentration (see below) and a tilt along the
+first three principal component directions of the donors. With
+\code{marginalize_sigma = FALSE} in \code{\link[=bscm]{bscm()}}, the default prior has no tilt. A
+user-defined prior of \code{weights} has a tilt only if its argument \code{tilt} is
+given, e.g., \code{logistic_normal_pr()} defines the prior without a tilt.
+}
+
+\subsection{\code{concentration} (\eqn{\zeta}, draws \code{zeta})}{
+
+Concentration of the prior of the donor weights of each treated unit. The
+concentration is either fixed by giving positive number(s) as the argument
+\code{concentration} of the simplex prior, or estimated by giving its prior as
+\code{concentration}, e.g., \code{logistic_normal_pr(inv_gamma_pr(10, 2))}. Priors
+with positive support or with support on the real line (truncated to
+positive values) can be used. Fixed and estimated concentrations cannot be
+mixed across treated units. The default prior (\code{concentration = NULL}) is
+\code{inv_gamma_pr(sqrt(J), 0.5 * sqrt(J) / log(1 + J / 5))}. This prior
+penalizes very small concentrations, which are prone to cause sampling
+problems due to challenging posterior geometry.
+}
+
+\subsection{\code{tilt} (\eqn{\phi}, draws \code{phi})}{
+
+Tilt coefficients of the prior of the donor weights, labelled \code{tilt(PC1)}
+in the print output. The argument \code{tilt} of the simplex priors adds an
+exponential tilt to the prior of the donor weights. With the tilt, the
+weights of treated unit \eqn{i} are
+\eqn{\omega_i = \text{softmax}(V \phi_i + u_i)}, where \eqn{u_i} are the
+log-weights of the untilted prior, \eqn{V} is a \eqn{J \times R} matrix
+of directions shared by all treated units, and
+\eqn{\phi_i \sim N(0, \text{scale}^2 I)} are the tilt coefficients of
+treated unit \eqn{i}. The tilt is given as a list, either
+\itemize{
+\item \verb{list(R = <integer>, scale = <number>)}: The columns of \eqn{V} are the
+first \code{R} principal component directions of the donors, i.e., the first
+\code{R} right singular vectors of the matrix of the donors' pre-treatment
+outcomes (the first \code{min(T_pre)} time points) after two-way demeaning,
+with each column of \eqn{V} standardized to zero mean and unit standard
+deviation. The matrix \eqn{V} is computed from the data of each fit,
+so refits such as those of \code{\link[=placebo_effects]{placebo_effects()}}, \code{\link[=leave_donor_out]{leave_donor_out()}},
+and \code{\link[=lfo]{lfo()}} compute it from their own donors and pre-treatment period.
+\item \verb{list(V = <matrix>, scale = <number>)}: A user-defined numeric matrix
+\eqn{V} with one column per direction and row names containing the ids
+of all donors. The rows are matched to the donors by the row names, and
+rows of other units are ignored. The matrix is used as is, without
+centering or scaling.
+}
+
+In both cases, \code{scale} is the prior standard deviation of the tilt
+coefficients \eqn{\phi_i}. In the output, the tilt coefficients are named
+\code{PC1}, \code{PC2}, ... for the principal component directions, and by the column
+names of a user-defined \code{V} (\code{V1}, \code{V2}, ... if it has none). The tilt
+requires \code{marginalize_sigma = TRUE} in \code{\link[=bscm]{bscm()}}. The default prior of
+\code{weights} has the tilt \code{list(R = 3, scale = 2)}.
 }
 }
+
+\section{Prior distributions}{
+The following priors follow the definitions of the corresponding
+distributions in Stan:
+\itemize{
+\item \code{beta_pr(shape1, shape2)}: Beta distribution.
+\item \code{cauchy_pr(location, scale)}: Cauchy distribution.
+\item \code{exponential_pr(rate)}: Exponential distribution.
+\item \code{gamma_pr(shape, rate)}: Gamma distribution.
+\item \code{inv_gamma_pr(shape, scale)}: Inverse gamma distribution.
+\item \code{laplace_pr(location, scale)}: Laplace (double exponential) distribution.
+\item \code{normal_pr(location, scale)}: Normal distribution.
+\item \code{student_pr(df, location, scale)}: Student's t distribution.
+}
+
+In addition, the following priors are available:
+\itemize{
+\item \code{half_normal_pr(scale)}: Half-normal distribution. This corresponds to
+\code{normal_pr(0, scale)} prior for a parameter with lower bound of zero.
+\item \code{sqrt_inv_gamma_pr(shape, scale)}: Square-root inverse gamma
+distribution defined as
+\eqn{x^2 \sim \text{Inv-Gamma}(\text{shape}, \text{scale})}, with the
+inverse gamma distribution as in \code{inv_gamma_pr()}.
+\item \code{scaled_inv_chi_pr(df, scale)}: Scaled inverse chi distribution defined
+as
+\eqn{x^2 \sim \text{Inv-Gamma}(\text{df} / 2, \text{scale}^2 / 2)}, i.e.,
+\code{sqrt_inv_gamma_pr(df / 2, scale^2 / 2)}.
+}
+
+Of these, \code{cauchy_pr()}, \code{laplace_pr()}, \code{normal_pr()}, and \code{student_pr()}
+have support on the real line, \code{beta_pr()} on (0, 1), and the others
+positive support.
+
+For the donor weights \eqn{\omega}, the following simplex priors are
+available:
+\itemize{
+\item \code{dirichlet_pr(concentration, tilt)}: Symmetric Dirichlet distribution
+with concentration \eqn{\zeta}, i.e.,
+\eqn{\omega \sim \text{Dirichlet}(\zeta, \ldots, \zeta)}.
+\item \code{logistic_normal_pr(concentration, tilt)}: Logistic normal distribution
+where the concentration \eqn{\zeta} is the precision of the normal
+distribution, so that \eqn{\omega = \text{softmax}(\eta / \sqrt{\zeta})},
+where \eqn{\eta \sim N(0, I)} constrained to sum to zero and scaled to
+have marginal standard deviation of one.
+\item \code{logistic_laplace_pr(concentration, tilt)}: As the logistic normal prior,
+but with the zero-sum vector \eqn{\eta} constructed from independent
+(scaled) Laplace-distributed variables.
+}
+
+For all three simplex priors, small concentrations correspond to a prior
+favoring sparse weight vectors, while large concentrations correspond to
+more diffuse weight vectors. Specifically for the Dirichlet prior,
+\eqn{\zeta < 1} concentrates the weight on few donors, \eqn{\zeta = 1} is
+the uniform prior over the simplex, and \eqn{\zeta > 1} pulls the weights
+toward the center of the simplex.
+}
+
 \examples{
 normal_pr(c(0, 0), c(1, 2))
 student_pr(df = 4, location = 0, scale = 2)
@@ -130,8 +291,14 @@ beta_pr(2, 2)
 dirichlet_pr(1)
 logistic_normal_pr(2)
 logistic_normal_pr()
+logistic_normal_pr(concentration = inv_gamma_pr(10, 2))
+logistic_normal_pr(tilt = list(R = 3, scale = 2))
 
 }
+\references{
+Stan Development Team. 2026. Stan Functions Reference, 2.40.
+https://mc-stan.org/docs/functions-reference
+}
 \seealso{
-\code{\link[=available_priors]{available_priors()}}, \code{\link[=bscm]{bscm()}}
+\code{\link[=available_priors]{available_priors()}}, \code{\link[=bscm]{bscm()}}, \code{\link[=get_priors]{get_priors()}}
 }

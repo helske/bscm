@@ -14,11 +14,15 @@ get_priors(x, ...)
 
 \item{...}{Ignored.}
 
-\item{as_data_frame}{[\code{logical(1)}]\cr If \code{TRUE},
-returns priors as a \code{data.frame}. Default is \code{TRUE}.}
+\item{as_data_frame}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
+returns priors as a \code{data.frame}.}
 }
 \value{
-A named list of \code{bscm_prior} objects for the parameters of the model.
+A named list of \code{bscm_prior} objects, or a \code{data.frame} with one
+row per element of each model parameter and columns \code{parameter},
+\code{term} (predictor), a column named by the unit variable (treated
+unit), and \code{prior}. Columns \code{term} and the unit column are omitted when
+they are not needed.
 }
 \description{
 Get prior specifications used in the Bayesian synthetic control model

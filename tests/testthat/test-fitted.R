@@ -4,9 +4,9 @@ test_that("fitted returns data.frame with correct structure", {
   expect_identical(names(d)[1:4], c("id", "time", "treatment", "mean"))
   expect_equal(nrow(d), get_T_total(fit1_noint))
 
-  suppressWarnings(d <- fitted(fitN_int, diagnostics = FALSE))
-  expect_equal(d$time, rep(get_times(fitN_int), 3))
-  expect_equal(d$id, rep(get_treated(fitN_int), each = get_T_total(fitN_int)))
+  suppressWarnings(d <- fitted(fitN_tv, diagnostics = FALSE))
+  expect_equal(d$time, rep(get_times(fitN_tv), 3))
+  expect_equal(d$id, rep(get_treated(fitN_tv), each = get_T_total(fitN_tv)))
 })
 
 test_that("fitted returns posterior draws when summary = FALSE", {

@@ -4,25 +4,25 @@ test_that("plot_effects.bscmfit returns a ggplot for single treated unit", {
 })
 
 test_that("plot_effects.bscmfit returns one plot per unit for N > 1", {
-  p <- plot_effects(fitN_int)
+  p <- plot_effects(fitN_tv)
   expect_type(p, "list")
-  expect_named(p, get_treated(fitN_int))
+  expect_named(p, get_treated(fitN_tv))
   expect_true(all(vapply(p, inherits, logical(1L), "ggplot")))
 })
 
 test_that("plot_effects.bscmfit returns averaged ggplot when average = TRUE", {
-  p <- plot_effects(fitN_int, average = TRUE)
+  p <- plot_effects(fitN_tv, average = TRUE)
   expect_s3_class(p, "ggplot")
 })
 
 test_that("plot_effects.bscmfit returns per-unit ggplot when unit is specified", {
-  p <- plot_effects(fitN_int, unit = 1)
+  p <- plot_effects(fitN_tv, unit = 1)
   expect_s3_class(p, "ggplot")
 })
 
 test_that("plot_effects.bscmfit validates unit argument", {
   expect_error(
-    plot_effects(fitN_int, unit = 99),
+    plot_effects(fitN_tv, unit = 99),
     "Argument `unit` must be one of"
   )
 })

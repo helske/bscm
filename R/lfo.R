@@ -79,8 +79,18 @@ lfo.bscmfit <- function(
   time <- get_time(x)
   standata <- get_standata(x)
   standata$sample_y_rep <- FALSE
+  tilt <- x$priors$weights$tilt
+  donors <- get_donors(x)
   refit_at <- function(t_lfo) {
     standata$T_pre[] <- t_lfo
+    if (!is.null(tilt)) {
+      standata[c("R", "V", "sd_phi")] <- create_tilt_data(
+        tilt,
+        standata$Z,
+        T_pre_min,
+        donors
+      )
+    }
     refit_bscm(x, standata)
   }
   n_steps <- T_pre_min - L

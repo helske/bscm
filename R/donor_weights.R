@@ -7,18 +7,20 @@ donor_weights <- function(x, ...) {
 #'
 #' @inheritParams bscm_postprocessing
 #' @return A `tibble` of posterior summaries (`summary = TRUE`) or
-#'   posterior draws (`summary = FALSE`) in long format.
+#'   posterior draws (`summary = FALSE`) in long format, with a column named
+#'   by the unit variable (treated unit), `donor`, and the summaries or the
+#'   draws in column `weight`.
 #' @rdname donor_weights
 #' @aliases donor_weights
 #' @export
 #' @examples
 #' donor_weights(fit_single_treated) |> head(5)
 donor_weights.bscmfit <- function(
-  x,
-  summary = TRUE,
-  probs = c(0.025, 0.5, 0.975),
-  diagnostics = TRUE,
-  ...
+    x,
+    summary = TRUE,
+    probs = c(0.025, 0.5, 0.975),
+    diagnostics = TRUE,
+    ...
 ) {
   check_flag(summary, "summary")
   probs <- sort_probs(probs)
@@ -37,7 +39,7 @@ weights_draws <- function(x) {
   donors <- get_donors(x)
   J <- length(donors)
   dplyr::tibble(
-    treated = rep(get_treated(x), each = J),
+    "{get_unit(x)}" := rep(get_treated(x), each = J),
     donor = rep(donors, times = get_N(x)),
     weight = c(rvars_of(x, "omega"))
   )

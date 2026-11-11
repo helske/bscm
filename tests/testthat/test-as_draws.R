@@ -6,7 +6,10 @@ test_that("as_draws returns a draws_array", {
   d <- as_draws(fit1_int, c("omega", "eta"), include = FALSE)
   expect_equal(
     posterior::variables(d),
-    c("zeta[1]", "a[1]", "alpha[1]", "sigma[1]", "lp__")
+    c(
+      "zeta[1]", "a[1]", "phi[1,1]", "phi[1,2]", "phi[1,3]", "alpha[1]",
+      "sigma[1]", "lp__"
+    )
   )
 })
 
@@ -27,6 +30,6 @@ test_that("as_draws_rvars returns a draws_rvars", {
   d <- as_draws_rvars(fit1_int, "omega", include = FALSE)
   expect_equal(
     posterior::variables(d),
-    c("eta", "zeta", "a", "alpha", "sigma", "lp__")
+    c("eta", "zeta", "a", "phi", "alpha", "sigma", "lp__")
   )
 })

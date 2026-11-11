@@ -44,23 +44,27 @@
 #' the effect of covariates \eqn{X_j \beta} for that donor. Note that
 #' \eqn{\beta} is common across donors and the treated units.
 #'
-#' The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
-#' either a symmetric Dirichlet, a logistic normal or logistic Laplace 
-#' prior, with the corresponding concentration parameters 
-#' \eqn{\zeta_i} either fixed or given their own prior. 
-#' See [bscm_prior()] for details.
-#'
 #' By default, the standard deviations \eqn{\sigma_i} of the error term are
-#' integrated out analytically during MCMC sampling (`marginalize_sigma`).
+#' integrated out analytically during MCMC sampling (`marginalize_sigma`) to 
+#' improve sampling performance (specifically, to avoid occasional divergences).
 #' The posterior draws of
 #' \eqn{\sigma_i} are then sampled from their conditional posterior
 #' distribution given the other parameters, so they are available for
 #' post-processing as usual. Marginalization is supported for the priors
 #' [half_normal_pr()], [scaled_inv_chi_pr()], and [sqrt_inv_gamma_pr()] on
-#' \eqn{\sigma_i}. The default prior for \eqn{\sigma_i} is
-#' `half_normal_pr(0.5 * s_i)`, where \eqn{s_i} is the standard deviation of the
-#' pre-treatment outcome of treated unit \eqn{i}, or of its difference to the
-#' mean of the donors, whichever is smaller.
+#' \eqn{\sigma_i}.
+#' 
+#' The donor weights \eqn{\omega_i} of each treated unit \eqn{i} are given
+#' either a symmetric Dirichlet, a logistic normal or logistic Laplace 
+#' prior, with the corresponding concentration parameters
+#' \eqn{\zeta_i} either fixed or given their own prior, and optionally a tilt
+#' along a few directions, e.g., the principal components of the donors.
+#' Both are defined in the prior of `weights`, e.g.,
+#' `priors = list(weights = logistic_normal_pr(inv_gamma_pr(10, 2),
+#' tilt = list(R = 3, scale = 2)))`. By default, \eqn{\zeta_i} are estimated
+#' and the prior is tilted along the first three principal component
+#' directions of the donors. The tilt requires `marginalize_sigma = TRUE`.
+#' See [bscm_prior()] for details.
 #'
 #' Model can contain missing values in the outcome variable of the treated,
 #' but not of the donors, nor in the covariates. Missing outcomes are
@@ -82,16 +86,18 @@
 #'   Either `"iid"` (independent and identically distributed errors) or
 #'   `"ar1"` (first-order autoregressive process). Default is `"iid"`.
 #' @param priors \[`list()`]\cr List of prior definitions for the model
-#'   parameters. See [bscm_prior()] for details on the available prior
-#' families and how to define them. If `NULL` (the default), default
-#' priors are used.
+#'   parameters. See [bscm_prior()] for the names of the parameters, the
+#'   available prior families, and the default priors. Parameters not in the
+#'   list get default priors, and if `NULL` (the default), default priors are
+#'   used for all parameters. The priors of a fitted model are returned by
+#'   [get_priors()].
 #' @param marginalize_sigma \[`logical(1)` or `NULL`]\cr If `TRUE`, the
 #'   standard deviations of the error term are integrated out during MCMC
 #'   sampling, and drawn afterwards from their conditional posterior
 #'   distribution. If `FALSE`, they are sampled jointly with the
 #'   other parameters. The default `NULL` corresponds to `TRUE` if the prior of 
-#'   `sigma` is either `scaled_inv_chi_pr` (the default),
-#'   `half_normal_pr`, or `sqrt_inv_gamma`.
+#'   `sigma` is either `half_normal_pr` (the default),
+#'   `scaled_inv_chi_pr`, or `sqrt_inv_gamma_pr`.
 #' @param prior_only \[`logical(1)`]\cr If `TRUE`, samples from prior
 #'   predictive distribution. Default is `FALSE`.
 #' @param mcmc_diagnostics \[`logical(1)`]\cr If `TRUE` (the default), the
@@ -126,7 +132,7 @@
 #' # skip diagnostics and use small number of iterations for CRAN checks
 #' fit <- bscm(
 #'   y ~ x, single_treated, "treatment", "time", "id",
-#'   priors = list(omega = logistic_normal_pr(0.5)),
+#'   priors = list(weights = logistic_normal_pr(0.5)),
 #'   chains = 1, cores = 1, refresh = 0, iter = 1000,
 #'   mcmc_diagnostics = FALSE
 #' )
@@ -186,7 +192,6 @@ bscm <- function(
     all(table(data[[unit]], data[[time]]) == 1),
     "Data is not balanced."
   )
-  priors <- resolve_prior_aliases(priors)
   marginalizable_sigma_priors <- c(
     "half_normal", "scaled_inv_chi", "sqrt_inv_gamma"
   )
@@ -202,7 +207,16 @@ bscm <- function(
       {.code marginalize_sigma = FALSE}."
     )
   )
-
+  has_tilt <- !is.null(priors$weights$tilt)
+  stopifnot_(
+    !has_tilt || marginalize_sigma,
+    c(
+      "The tilt of the prior of {.val weights} is not supported with
+      {.code marginalize_sigma = FALSE}.",
+      i = "Use a prior for {.val sigma} supported with
+      {.code marginalize_sigma = TRUE}, or drop the tilt."
+    )
+  )
   treatment_table <- table(data[[treatment]], data[[unit]])
   treated_idx <- which(treatment_table[2, ] > 0)
   treated <- colnames(treatment_table)[treated_idx]
@@ -295,21 +309,6 @@ bscm <- function(
       )
     }
   }
-  stan_args <- list(...)
-  stan_args$chains <- stan_args$chains %||% 4L
-  if (is.null(stan_args$control$adapt_delta)) {
-    stan_args$control$adapt_delta <- 0.9
-  }
-  if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
-    stan_args$iter <- 5000L
-    stan_args$warmup <- 2500L
-  }
-  stan_args$object <- if (marginalize_sigma) {
-    stanmodels$bscm_marginalized_sigma
-  } else {
-    stanmodels$bscm
-  }
-  stan_args$include <- FALSE
   
   if (has_w) {
     spline_def <- build_spline(
@@ -323,6 +322,7 @@ bscm <- function(
   } else {
     spline_def <- NULL
   }
+
   setup <- dplyr::lst(
     outcome,
     treatment,
@@ -354,8 +354,28 @@ bscm <- function(
   priors <- define_priors(
     priors, descriptives, setup, spline_def
   )
+  setup$has_zeta <- inherits(priors$weights$concentration, "bscm_prior")
+  # the default prior of the weights can add the tilt
+  has_tilt <- !is.null(priors$weights$tilt)
   
-  setup$has_zeta <- !is.null(priors$zeta)
+  stan_args <- list(...)
+  stan_args$chains <- stan_args$chains %||% 4L
+  if (is.null(stan_args$control$adapt_delta)) {
+    stan_args$control$adapt_delta <- 0.9
+  }
+  if (is.null(stan_args$iter) && is.null(stan_args$warmup)) {
+    stan_args$iter <- 5000L
+    stan_args$warmup <- 2500L
+  }
+  stan_args$object <- if (has_tilt) {
+    stanmodels$bscm_marginalized_sigma_tilt
+  } else if (marginalize_sigma) {
+    stanmodels$bscm_marginalized_sigma
+  } else {
+    stanmodels$bscm
+  }
+  stan_args$include <- FALSE
+  
   excluded_pars <- c(
     if (!has_icpt) "alpha",
     if (!has_x) "beta",
@@ -363,6 +383,7 @@ bscm <- function(
     if (spline_type != "rw2") "nu",
     if (error != "ar1") "rho",
     if (!setup$has_zeta) "zeta",
+    if (!has_tilt) "phi",
     if (marginalize_sigma) "rss"
   )
   stan_args$pars <- setup$excluded_pars <- union(excluded_pars, stan_args$pars)

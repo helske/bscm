@@ -39,7 +39,7 @@ MCMC convergence measures and the Monte Carlo standard error of the mean.}
 \value{
 A \code{tibble} of posterior summaries (\code{summary = TRUE}) or
 posterior draws (\code{summary = FALSE}) of the covariate adjustment for each
-predictor and time point.
+predictor (\code{term}) and time point.
 }
 \description{
 Computes the posterior distribution of the covariate adjustment to the

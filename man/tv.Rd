@@ -4,28 +4,29 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, df = 10, knot_spacing = NULL, type = "rw2", noncentered = TRUE)
+tv(tv_formula, knot_spacing = 2, type = "rw2", df = NULL, noncentered = TRUE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
 defining the the time-varying part of the BSCM formula.}
 
-\item{df}{[\code{integer(1)}]\cr Integer defining the number of spline basis
-functions in the pre-treatment period
-(maximum in case of staggered adoptation). Default is \code{df = 10}, which is
-completely arbitrary. Must be larger than 4.}
-
-\item{knot_spacing}{[\code{numeric(1)}]\cr Optional argument to specify the
-equidistant spacing of knots for the spline basis. If \code{NULL} (the default),
-knots, spacing is defined by \code{df} argument.}
+\item{knot_spacing}{[\code{numeric(1)}]\cr Positive value (typically integer)
+defining the equidistant spacing of knots for the spline basis. Default is
+2, i.e. there is a knot at every other time point.}
 
 \item{type}{[\code{character(1)}]\cr Prior type for spline coefficients. Either
 \code{"rw1"} or \code{"rw2"} for first and second order random walks.
 Default is "rw2".}
 
+\item{df}{[\code{integer(1)}]\cr Optional integer defining the number of
+spline basis functions in the pre-treatment period
+(maximum in case of staggered adoptation). Must be at least 4.
+Overrides argument \code{knot_spacing}.}
+
 \item{noncentered}{[\code{logical(1)}]\cr If \code{TRUE} (the default), the spline
 coefficients are sampled using a non-centered parameterization.
-If \code{FALSE}, a centered parameterization is used.
+If \code{FALSE}, a centered parameterization is used. This is only a
+computational choice and does not affect the model definition.
 Depending on the case, one of these might lead to more efficient and
 numerically stable sampling, so if you encounter divergences,
 try changing this.}
@@ -48,5 +49,6 @@ spline is modelled separately, so that \verb{gamma_t = nu * t_c + (A xi)_t},
 where \code{t_c} is the time index centered at the pre-treatment period, \code{nu}
 the slope, \code{A} the constrained spline basis, and \code{xi} the spline
 coefficients with standard deviation \code{kappa}, with separate priors
-for \code{beta}, \code{nu}, and \code{kappa}.
+\code{coef} for \code{beta}, \code{tv_slope} for \code{nu}, and \code{tv_sd} for \code{kappa} (see
+\code{\link[=bscm_prior]{bscm_prior()}}).
 }

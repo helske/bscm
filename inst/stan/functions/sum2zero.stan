@@ -23,17 +23,3 @@ vector zero_sum_constrain(vector y) {
   return z;
 }
 
-// ILR transformation and symmetric Dirichlet(alpha) log-density using log_x
-// dropping constant 0.5 * log(N)
-vector dirichlet_ilr_simplex_lp(vector y, real alpha) {
-  int N = rows(y) + 1;
-  vector[N] z = zero_sum_constrain(y);
-  real r = log_sum_exp(z);
-  vector[N] log_x = z - r;
-  // jacobian from ILR transformation: const + sum(log_x)
-  // sum(log_x) = -N * r as sum(z) = 0
-  // Dirichlet log-density:
-  // (alpha - 1) * sum(log_x) + lgamma(N * alpha) - N * lgamma(alpha)
-  target += - alpha * N * r + lgamma(N * alpha) - N * lgamma(alpha);
-  return exp(log_x);
-}

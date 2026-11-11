@@ -37,18 +37,6 @@ tryCatch(
       seed = 1,
       save_warmup = FALSE
     )
-    fitN_int <- bscm(
-      y ~ 1,
-      data = multiple_treated,
-      treatment = "treatment",
-      time = "time",
-      unit = "id",
-      chains = 1,
-      iter = 1000,
-      refresh = 0,
-      seed = 1,
-      save_warmup = FALSE
-    )
     fitN_xz <- bscm(
       y ~ x + z,
       data = multiple_treated,
@@ -69,7 +57,7 @@ tryCatch(
       unit = "id",
       priors = list(
         intercept = normal_pr(0, 10),
-        scale_gamma = exponential_pr(1/2)
+        tv_sd = exponential_pr(1/2)
       ),
       chains = 1,
       iter = 1000,

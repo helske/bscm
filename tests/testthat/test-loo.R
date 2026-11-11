@@ -11,7 +11,7 @@ test_that("loo works with r_eff = FALSE", {
 })
 
 test_that("loo works for multiple treated units", {
-  l <- suppressWarnings(loo(fitN_int))
+  l <- suppressWarnings(loo(fitN_tv))
   expect_s3_class(l, "loo")
   expect_true("estimates" %in% names(l))
 })

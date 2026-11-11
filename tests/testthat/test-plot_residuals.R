@@ -4,22 +4,22 @@ test_that("plot_residuals returns ggplot for single treated unit", {
 })
 
 test_that("plot_residuals returns named list of ggplots for N > 1", {
-  suppressWarnings(plots <- plot_residuals(fitN_int))
+  suppressWarnings(plots <- plot_residuals(fitN_tv))
   expect_type(plots, "list")
-  expect_named(plots, get_treated(fitN_int))
+  expect_named(plots, get_treated(fitN_tv))
   expect_true(all(vapply(plots, inherits, logical(1L), "ggplot")))
 })
 
 test_that("plot_residuals returns a single ggplot for a selected unit", {
   suppressWarnings(
-    p <- plot_residuals(fitN_int, unit = get_treated(fitN_int)[1])
+    p <- plot_residuals(fitN_tv, unit = get_treated(fitN_tv)[1])
   )
   expect_s3_class(p, "ggplot")
   suppressWarnings(
     p <- plot_residuals(
-      fitN_int,
+      fitN_tv,
       type = "autocorrelation",
-      unit = get_treated(fitN_int)[2]
+      unit = get_treated(fitN_tv)[2]
     )
   )
   expect_s3_class(p, "ggplot")
@@ -39,7 +39,7 @@ test_that("plot_residuals validates type argument", {
 
 test_that("plot_residuals validates unit argument", {
   expect_error(
-    suppressWarnings(plot_residuals(fitN_int, unit = "not_a_unit")),
+    suppressWarnings(plot_residuals(fitN_tv, unit = "not_a_unit")),
     "Argument `unit` must be one of the treated units"
   )
 })
@@ -80,9 +80,9 @@ test_that("residual_acf returns draws when summary = FALSE", {
 })
 
 test_that("residual_acf is computed separately for each treated unit", {
-  suppressWarnings(d <- residual_acf(fitN_int, max_lag = 3L))
-  expect_setequal(unique(d$id), get_treated(fitN_int))
-  expect_equal(nrow(d), 3L * get_N(fitN_int))
+  suppressWarnings(d <- residual_acf(fitN_tv, max_lag = 3L))
+  expect_setequal(unique(d$id), get_treated(fitN_tv))
+  expect_equal(nrow(d), 3L * get_N(fitN_tv))
 })
 
 test_that("residual_acf accepts any number of quantiles", {

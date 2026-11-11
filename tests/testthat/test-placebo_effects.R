@@ -19,7 +19,7 @@ test_that("placebo_effects validates arguments", {
 
 test_that("placebo_effects errors for multiple treated units", {
   expect_error(
-    placebo_effects(fitN_int, type = "donor"),
+    placebo_effects(fitN_tv, type = "donor"),
     "currently supported only for models with a single treated unit"
   )
 })

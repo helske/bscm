@@ -4,10 +4,10 @@ test_that("residuals returns data.frame with correct structure", {
   expect_identical(names(d)[1:4], c("id", "time", "treatment", "mean"))
   expect_equal(nrow(d), unname(get_T_pre(fit1_noint)[1]))
 
-  suppressWarnings(d <- residuals(fitN_int))
+  suppressWarnings(d <- residuals(fitN_tv))
   expect_equal(
     d$id,
-    rep(get_treated(fitN_int), each = get_T_pre(fitN_int)[1])
+    rep(get_treated(fitN_tv), each = get_T_pre(fitN_tv)[1])
   )
 })
 

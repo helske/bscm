@@ -1,6 +1,7 @@
 functions {
-#include functions/features.stan
+#include functions/sum2zero.stan
 #include functions/priors.stan
+#include functions/omega.stan
 #include functions/marginalization.stan
 }
 

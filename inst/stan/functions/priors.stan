@@ -54,27 +54,3 @@ real prior_lpdf(vector x, data int dist, data matrix pars) {
 real prior_lpdf(vector x, int dist) {
   return prior_lupdf(x | 0, rep_matrix(0, 0, 0));
 }
-
-/* Create weights omega from unconstrained vector x and modify target accordingly
-* Codes (alphabetical order, matching prior_to_stan() in R):
-*  -1: dirichlet
-*  -2: logistic laplace
-*  -3: logistic normal
-*/
-vector build_omega_lp(vector x, real zeta, data int dist) {
-  int J = rows(x) + 1;
-  vector[J] omega;
-  if (dist == -1) {
-    omega = dirichlet_ilr_simplex_lp(x, zeta);
-  } else {
-    real scale = sqrt(J * inv(J - 1));
-    if (dist == -2) {
-      target += double_exponential_lpdf(x | 0, 1);
-      scale *= inv_sqrt(2);
-    } else if (dist == -3) {
-      target += std_normal_lpdf(x);
-    }
-    omega = softmax(inv_sqrt(zeta) * scale * zero_sum_constrain(x));
-  }
-  return omega;
-}

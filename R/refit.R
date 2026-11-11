@@ -4,7 +4,9 @@
 refit_bscm <- function(x, standata) {
   init <- lapply(x$stanfit@stan_args, `[[`, "init")
   stan_args <- x$stanfit@stan_args[[1]]
-  model <- if (isTRUE(x$setup$marginalize_sigma)) {
+  model <- if (!is.null(x$priors$weights$tilt)) {
+    stanmodels$bscm_marginalized_sigma_tilt
+  } else if (isTRUE(x$setup$marginalize_sigma)) {
     stanmodels$bscm_marginalized_sigma
   } else {
     stanmodels$bscm

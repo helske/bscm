@@ -5,7 +5,7 @@ test_that("covariate_adjustment has expected columns", {
     d,
     c(
       "id",
-      "variable",
+      "term",
       "time",
       "mean",
       "sd",
@@ -17,12 +17,12 @@ test_that("covariate_adjustment has expected columns", {
       "mcse_mean"
     )
   )
-  expect_setequal(unique(d$variable), fit1_x$setup$beta_names)
+  expect_setequal(unique(d$term), fit1_x$setup$beta_names)
 })
 
 test_that("covariate_adjustment returns draws when summary = FALSE", {
   d <- covariate_adjustment(fit1_x, summary = FALSE)
-  expect_named(d, c("id", "variable", "time", "adjustment"))
+  expect_named(d, c("id", "term", "time", "adjustment"))
   expect_true(posterior::is_rvar(d$adjustment))
 })
 
@@ -45,7 +45,7 @@ test_that("covariate_adjustment is unit specific unless averaged", {
 
 test_that("covariate_adjustment handles fixed and time-varying coefficients", {
   suppressWarnings(d <- covariate_adjustment(fitN_tv))
-  expect_setequal(unique(d$variable), fitN_tv$setup$beta_names)
+  expect_setequal(unique(d$term), fitN_tv$setup$beta_names)
   # predictors with a fixed coefficient must not be dropped to NA in a model
   # that also contains time-varying coefficients
   expect_false(anyNA(d$mean))

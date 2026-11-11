@@ -26,10 +26,10 @@ test_that("synthetic_control validates summary argument", {
 })
 
 test_that("synthetic_control handles N > 1 with unit column", {
-  d <- synthetic_control(fitN_int)
-  expect_equal(nrow(d), get_T_total(fitN_int) * get_N(fitN_int))
+  d <- synthetic_control(fitN_xz)
+  expect_equal(nrow(d), get_T_total(fitN_xz) * get_N(fitN_xz))
   expect_true("id" %in% names(d))
-  expect_setequal(unique(d$id), get_treated(fitN_int))
+  expect_setequal(unique(d$id), get_treated(fitN_xz))
 })
 
 test_that("synthetic_control errors when model has no saved data", {

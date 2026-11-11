@@ -29,17 +29,17 @@
 #' 
 #' For the priors on donor weights \eqn{\omega}, following options are 
 #' available:
-#' * `dirichlet_pr(concentration)`: Symmetric Dirichlet distribution with
-#'   concentration \eqn{\zeta}, i.e., 
+#' * `dirichlet_pr(concentration, tilt)`: Symmetric Dirichlet distribution
+#'   with concentration \eqn{\zeta}, i.e., 
 #'   \eqn{\omega \sim \text{Dirichlet}(\zeta, \ldots, \zeta)}.
-#' * `logistic_normal_pr(concentration)`: Logistic normal distribution where 
-#'   concentration \eqn{\zeta} is the precision of the the normal distribution, 
+#' * `logistic_normal_pr(concentration, tilt)`: Logistic normal distribution
+#'   where concentration \eqn{\zeta} is the precision of the the normal distribution, 
 #'   so that \eqn{\omega = \text{softmax}(\eta/\sqrt(\zeta))}, where
 #'   \eqn{\eta \sim N(0, I)} constrained to sum to zero and scaled to have 
 #'   marginal standard deviation of one.
-#' * `logistic_laplace_pr(concentration)`: As the logistic normal prior, but
-#'   with the zero-sum vector \eqn{\eta} constructed from independent (scaled) 
-#'   Laplace-distributed variables.
+#' * `logistic_laplace_pr(concentration, tilt)`: As the logistic normal prior,
+#'   but with the zero-sum vector \eqn{\eta} constructed from independent 
+#'   (scaled) Laplace-distributed variables.
 #' 
 #' For all of the three priors above, small values of concentration corresponds 
 #' to prior favoring sparse weight vectors, while larger concentration 
@@ -48,9 +48,13 @@
 #' few donors, while \eqn{\zeta = 1} is uniform prior over the simplex, and
 #' \eqn{\zeta > 1} pulls weights toward the center of the simplex.
 #' 
-#' The default prior on the concentration \eqn{\zeta} is Inverse-Gamma with
-#' shape \eqn{\sqrt(J)} and scale \eqn{\sqrt(J) / (2\log(1 + J / 5))}, where 
-#' \eqn{J} is the number of donors.
+#' The concentration \eqn{\zeta} can be fixed, or estimated by giving its
+#' prior as `concentration`, e.g., `logistic_normal_pr(inv_gamma_pr(10, 2))`.
+#' By default (`concentration = NULL`), \eqn{\zeta} is estimated with
+#' Inverse-Gamma prior with shape \eqn{\sqrt(J)} and scale
+#' \eqn{\sqrt(J) / (2\log(1 + J / 5))}, where \eqn{J} is the number of donors.
+#' The argument `tilt` of these priors defines an optional tilt of the prior
+#' along given directions, see [bscm_prior()].
 #'
 #' @return A `data.frame` with columns `distribution` (name of the
 #'   distribution), `constructor` (function defining the prior),
@@ -99,14 +103,14 @@ available_priors <- function() {
     hyperparameters = c(
       "shape1, shape2",
       "location, scale",
-      "concentration",
+      "concentration, tilt",
       "rate",
       "shape, rate",
       "scale",
       "shape, scale",
       "location, scale",
-      "scale",
-      "scale",
+      "concentration, tilt",
+      "concentration, tilt",
       "location, scale",
       "df, scale",
       "shape, scale",
