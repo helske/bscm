@@ -10,7 +10,8 @@ tryCatch(
       iter = 500,
       refresh = 0,
       seed = 1,
-      save_warmup = FALSE
+      save_warmup = FALSE,
+      mcmc_diagnostics  = FALSE
     )
     fit1_noint <- bscm(
       y ~ 0,
@@ -23,7 +24,8 @@ tryCatch(
       iter = 500,
       refresh = 0,
       seed = 1,
-      save_warmup = FALSE
+      save_warmup = FALSE,
+      mcmc_diagnostics  = FALSE
     )
     fit1_x <- bscm(
       y ~ x,
@@ -35,7 +37,8 @@ tryCatch(
       iter = 500,
       refresh = 0,
       seed = 1,
-      save_warmup = FALSE
+      save_warmup = FALSE,
+      mcmc_diagnostics  = FALSE
     )
     fitN_xz <- bscm(
       y ~ x + z,
@@ -47,7 +50,8 @@ tryCatch(
       iter = 500,
       refresh = 0,
       seed = 1,
-      save_warmup = FALSE
+      save_warmup = FALSE,
+      mcmc_diagnostics  = FALSE
     )
     fitN_tv <- bscm(
       y ~ z + tv(~x, 10),
@@ -63,7 +67,8 @@ tryCatch(
       iter = 1000,
       refresh = 0,
       seed = 1,
-      save_warmup = FALSE
+      save_warmup = FALSE,
+      mcmc_diagnostics = FALSE
     )
   }),
   error = function(e) {

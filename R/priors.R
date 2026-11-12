@@ -31,8 +31,6 @@
 #'   units.
 #' * `sd_x`: Standard deviation of the predictor, pooled within the treated
 #'   units.
-#' * `sd_t`: \eqn{\sqrt{T (T + 1) / 12}}, where \eqn{T} is the length of the
-#'   longest pre-treatment period.
 #' * `J`: Number of donors.
 #'
 #' The statistics `mean_y` and `sd_e` are computed separately for each treated
@@ -68,7 +66,8 @@
 #' Slopes of the linear trend of the time-varying coefficients with
 #' `type = "rw2"` in [tv()], labelled `slope(z)` for predictor `x` in the
 #' print output. Priors with support on the real line can be used. The default
-#' prior is `normal_pr(0, 2 * sd_y / (sd_x * sd_t))`.
+#' prior is `normal_pr(0, 2 * sqrt(2) / (T - 1) * sd_y / sd_x)`, where `T` is 
+#' the maximum length of the pre-treatment period of the treated units.
 #'
 #' ## `sigma` (\eqn{\sigma}, draws `sigma`)
 #'

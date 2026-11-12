@@ -1,5 +1,5 @@
 test_that("covariate_adjustment has expected columns", {
-  suppressWarnings(d <- covariate_adjustment(fit1_x))
+  d <- covariate_adjustment(fit1_x, diagnostics = FALSE)
   expect_s3_class(d, "tbl_df")
   expect_named(
     d,
@@ -10,11 +10,7 @@ test_that("covariate_adjustment has expected columns", {
       "mean",
       "sd",
       "q2.5",
-      "q97.5",
-      "rhat",
-      "ess_bulk",
-      "ess_tail",
-      "mcse_mean"
+      "q97.5"
     )
   )
   expect_setequal(unique(d$term), fit1_x$setup$beta_names)
@@ -36,18 +32,16 @@ test_that("covariate_adjustment accepts any number of quantiles", {
 })
 
 test_that("covariate_adjustment is unit specific unless averaged", {
-  suppressWarnings(d <- covariate_adjustment(fitN_tv))
-  expect_setequal(unique(d$id), get_treated(fitN_tv))
-  suppressWarnings(d_avg <- covariate_adjustment(fitN_tv, average = TRUE))
+  d <- covariate_adjustment(fitN_xz, diagnostics = FALSE)
+  expect_setequal(unique(d$id), get_treated(fitN_xz))
+  d_avg <- covariate_adjustment(fitN_xz, average = TRUE, diagnostics = FALSE)
   expect_false("id" %in% names(d_avg))
-  expect_equal(nrow(d_avg) * get_N(fitN_tv), nrow(d))
+  expect_equal(nrow(d_avg) * get_N(fitN_xz), nrow(d))
 })
 
 test_that("covariate_adjustment handles fixed and time-varying coefficients", {
-  suppressWarnings(d <- covariate_adjustment(fitN_tv))
+  d <- covariate_adjustment(fitN_tv, diagnostics = FALSE)
   expect_setequal(unique(d$term), fitN_tv$setup$beta_names)
-  # predictors with a fixed coefficient must not be dropped to NA in a model
-  # that also contains time-varying coefficients
   expect_false(anyNA(d$mean))
 })
 

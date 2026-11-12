@@ -19,7 +19,8 @@ default_priors <- function(d, setup, spline_def) {
     if (setup$has_w) {
       pr_kappa <- half_normal_pr(signif(0.5 * sd_yx[setup$tv_idx], 2))
       if (setup$spline_type == "rw2") {
-        pr_nu <- normal_pr(0, signif(2 * sd_yx[setup$tv_idx] / d$sd_t, 2))
+        c_nu <- 2 * sqrt(2) / (max(setup$T_pre) - 1)
+        pr_nu <- normal_pr(0, signif(c_nu * sd_yx[setup$tv_idx], 2))
       }
     }
   }

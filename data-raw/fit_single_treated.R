@@ -9,6 +9,6 @@ fit_single_treated <- bscm(
   refresh = 0,
   iter = 2000,
   warmup = 1000,
-  pars = c("eta", "a", "y_imputed") # exclude these to reduce size of the fit 
+  pars = c("eta", "a") # exclude these to reduce size of the fit 
 )
 usethis::use_data(fit_single_treated, overwrite = TRUE)

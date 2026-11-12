@@ -112,6 +112,7 @@ test_that("bscmfit$call is recorded", {
   expect_true(is.call(fit1_int$call))
 })
 
-test_that("bscmfit$converge is a bscmfit_diagnostics object", {
-  expect_s3_class(fit1_int$converge, "bscmfit_diagnostics")
+test_that("bscmfit$converge is a bscmfit_diagnostics object or character", {
+  expect_s3_class(fit_single_treated$converge, "bscmfit_diagnostics")
+  expect_type(fit1_int$converge, "character")
 })

@@ -84,8 +84,6 @@ compute_descriptives <- function(
       pooled_within_sd,
       n = T_pre
     )
-    max_T_pre <- max(T_pre)
-    out$sd_t <- sqrt(max_T_pre * (max_T_pre + 1) / 12)
   }
   out
 }
@@ -330,9 +328,11 @@ create_tilt_data <- function(
 
 # x: standata, d: descriptives
 create_inits <- function(x, d, spline_def, marginalize_sigma = FALSE) {
-  eta <- matrix(stats::rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
-  sigma <- array(stats::runif(x$N, 0.5, 1.5) * d$sd_e)
   a <- beta <- rho <- kappa <- nu <- zeta <- array(0, 0)
+  eta <- matrix(stats::rnorm(x$N * (x$J - 1), 0, 0.1), x$N, x$J - 1)
+  sigma <- array(
+    pmax(abs(stats::rnorm(x$N, 0, 0.5 * d$sd_e)), 0.01)
+  )
   xi <- matrix(0, 0, 0)
   if (x$use_alpha) {
     a <- array(stats::rnorm(x$N, d$mean_y, 0.25 * d$sd_e))
@@ -341,10 +341,13 @@ create_inits <- function(x, d, spline_def, marginalize_sigma = FALSE) {
     sd_yx <- d$sd_y / d$sd_x
     beta <- array(stats::rnorm(x$K, 0, 0.1 * sd_yx))
     if (x$use_gamma) {
-      xi <- matrix(0, x$D, x$L)
-      kappa <- array(stats::runif(x$L, 0.01, 0.05))
+      xi <- matrix(rnorm(x$D * x$L, 0, 0.01), x$D, x$L)
+      kappa <- array(
+        pmax(abs(stats::rnorm(x$L, 0, 0.05 * sd_yx[x$tv_idx])), 0.01)
+      )
       if (x$use_nu) {
-        nu <- array(stats::rnorm(x$L, 0, 0.05 * sd_yx / d$sd_t))
+        c_nu <- 2 * sqrt(2) / (max(x$T_pre) - 1)
+        nu <- array(stats::rnorm(x$L, 0, 0.1 * c_nu * sd_yx[x$tv_idx]))
       }
     }
   }

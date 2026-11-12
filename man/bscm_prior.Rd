@@ -104,8 +104,6 @@ difference to the mean of the donors, whichever is smaller.
 units.
 \item \code{sd_x}: Standard deviation of the predictor, pooled within the treated
 units.
-\item \code{sd_t}: \eqn{\sqrt{T (T + 1) / 12}}, where \eqn{T} is the length of the
-longest pre-treatment period.
 \item \code{J}: Number of donors.
 }
 
@@ -144,7 +142,8 @@ coefficients, labelled \code{sd(z)} for predictor \code{x} in the print output, 
 Slopes of the linear trend of the time-varying coefficients with
 \code{type = "rw2"} in \code{\link[=tv]{tv()}}, labelled \code{slope(z)} for predictor \code{x} in the
 print output. Priors with support on the real line can be used. The default
-prior is \code{normal_pr(0, 2 * sd_y / (sd_x * sd_t))}.
+prior is \code{normal_pr(0, 2 * sqrt(2) / (T - 1) * sd_y / sd_x)}, where \code{T} is
+the maximum length of the pre-treatment period of the treated units.
 }
 
 \subsection{\code{sigma} (\eqn{\sigma}, draws \code{sigma})}{
