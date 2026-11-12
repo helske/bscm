@@ -53,15 +53,10 @@ print.bscmfit <- function(x, probs = c(0.025, 0.975), diagnostics = TRUE, ...) {
     round(max(rowSums(x$elapsed_time$sampling)), 2),
     "seconds\n"
   )
-  if (!is.null(x$converge)) {
+  if (checkmate::test_class(x$converge, "bscmfit_diagnostics")) {
     print(x$converge)
   } else {
-    cat(
-      paste0(
-        "MCMC diagnostics are not available. Use `check_mcmc_diagnostics()` ",
-        "on the model fit object to obtain these.\n"
-      )
-    )
+    cat(x$converge, "\n")
   }
   print_estimates(x, probs = probs, diagnostics = diagnostics)
   invisible(x)

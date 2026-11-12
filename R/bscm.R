@@ -322,7 +322,7 @@ bscm <- function(
   } else {
     spline_def <- NULL
   }
-
+  
   setup <- dplyr::lst(
     outcome,
     treatment,
@@ -384,7 +384,8 @@ bscm <- function(
     if (error != "ar1") "rho",
     if (!setup$has_zeta) "zeta",
     if (!has_tilt) "phi",
-    if (marginalize_sigma) "rss"
+    if (marginalize_sigma) "rss",
+    if (nrow(missing_idx) == 0) "y_imputed"
   )
   stan_args$pars <- setup$excluded_pars <- union(excluded_pars, stan_args$pars)
   
@@ -440,6 +441,11 @@ bscm <- function(
     !identical(stan_args$algorithm, "Fixed_param")
   if (run_diags) {
     out$converge <- check_mcmc_diagnostics.bscmfit(out)
+  } else {
+    out$converge <- paste0(
+      "MCMC diagnostics are not available. Use `check_mcmc_diagnostics()` ",
+      "on the model fit object to obtain these."
+    )
   }
   out$elapsed_time <- list(
     total = proc.time() - start_time,
