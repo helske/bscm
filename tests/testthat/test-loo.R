@@ -3,6 +3,9 @@ test_that("loo returns a loo object", {
   expect_s3_class(l, "loo")
   expect_true("estimates" %in% names(l))
   expect_true("pointwise" %in% names(l))
+  d <- attr(l, "diagnostics")
+  expect_s3_class(d, "tbl_df")
+  expect_named(d, c("id", "time", "pareto_k", "n_eff", "r_eff"))
 })
 
 test_that("loo works with r_eff = FALSE", {

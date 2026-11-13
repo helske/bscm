@@ -104,7 +104,7 @@ leave_donor_out.bscmfit <- function(
   }
   issues <- vapply(
     diagnostics[-1L],
-    \(x) x$has_issues,
+    \(x) isTRUE(x$has_issues),
     logical(1)
   )
   warnifnot_(
@@ -137,12 +137,12 @@ leave_donor_out.bscmfit <- function(
 }
 
 diags2df <- function(x) {
-  data.frame(
+  dplyr::tibble(
     has_issues = x$has_issues,
     n_divergences = x$n_divergences,
     n_max_treedepth = x$n_max_treedepth,
     n_low_bfmi = x$n_low_bfmi,
-    messages = I(list(x$messages)),
-    rhat_and_ess = I(list(x$rhat_and_ess))
+    messages = list(x$messages),
+    rhat_and_ess = list(x$rhat_and_ess)
   )
 }

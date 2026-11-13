@@ -111,8 +111,9 @@
 #'
 #' ## `tilt` (\eqn{\phi}, draws `phi`)
 #'
-#' Tilt coefficients of the prior of the donor weights, labelled `tilt(PC1)`
-#' in the print output. The argument `tilt` of the simplex priors adds an
+#' Tilt coefficients of the prior of the donor weights, not shown in the print
+#' output but available via [summary.bscmfit()]. The argument `tilt` of the
+#' simplex priors adds an
 #' exponential tilt to the prior of the donor weights. With the tilt, the
 #' weights of treated unit \eqn{i} are
 #' \eqn{\omega_i = \text{softmax}(V \phi_i + u_i)}, where \eqn{u_i} are the

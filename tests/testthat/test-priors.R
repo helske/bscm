@@ -110,7 +110,7 @@ test_that("prior constructors check the correct arguments", {
 })
 test_that("available_priors lists all prior constructors", {
   pr <- available_priors()
-  expect_s3_class(pr, "data.frame")
+  expect_s3_class(pr, "tbl_df")
   expect_equal(pr$distribution, sort(pr$distribution))
   fns <- sub("()", "", pr$constructor, fixed = TRUE)
   expect_true(all(vapply(fns, exists, logical(1))))
@@ -355,10 +355,15 @@ test_that("get_priors shows one row per element of each parameter", {
     ),
     class = "bscmfit"
   )
-  tilt <- ", tilt = list(R = 3, scale = 2))"
+  d <- get_priors(x)
+  expect_s3_class(
+    d,
+    c("bscm_priors", "tbl_df", "tbl", "data.frame"),
+    exact = TRUE
+  )
   expect_equal(
-    get_priors(x),
-    data.frame(
+    dplyr::as_tibble(unclass(d)),
+    dplyr::tibble(
       parameter = c(
         "intercept", "intercept", "sigma", "sigma", "weights", "weights",
         "concentration", "concentration", "tilt"
@@ -369,15 +374,17 @@ test_that("get_priors shows one row per element of each parameter", {
         "normal(1, 1)",
         "half_normal(1)",
         "half_normal(2)",
-        paste0("logistic_normal(concentration = inv_gamma(3, 1)", tilt),
-        paste0("logistic_normal(concentration = inv_gamma(3, 2)", tilt),
+        "logistic_normal",
+        "logistic_normal",
         "inv_gamma(3, 1)",
         "inv_gamma(3, 2)",
-        "normal(0, 2)"
+        "normal(0, 2), R = 3"
       )
     )
   )
-  x$priors$weights <- logistic_normal_pr(c(2, 2))
+  out <- capture.output(print(d))
+  expect_false(any(grepl("NA", out, fixed = TRUE)))
+  x$priors$weights <- logistic_normal_pr(c(2, 3))
   x$priors$coef <- normal_pr(0, c(1, 2))
   x$setup$beta_names <- c("x", "z")
   d <- get_priors(x)
@@ -387,4 +394,8 @@ test_that("get_priors shows one row per element of each parameter", {
     c(rep(c("intercept", "sigma", "weights"), each = 2), "coef", "coef")
   )
   expect_equal(d$term, c(rep(NA, 6), "x", "z"))
+  expect_equal(
+    d$prior[d$parameter == "weights"],
+    c("logistic_normal(2)", "logistic_normal(3)")
+  )
 })

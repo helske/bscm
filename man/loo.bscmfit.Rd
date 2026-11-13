@@ -27,10 +27,12 @@ Default is \code{0.7}.}
 \item{...}{Additional arguments to \code{\link[loo:loo]{loo::loo()}}.}
 }
 \value{
-An output from \code{\link[loo:loo]{loo::loo()}}. When \code{reloo = TRUE}, this contains
-additional attribute \code{refits} which is a data frame with the
-indices of observations that were refitted when \code{reloo = TRUE}, together
-with their Pareto \code{k}, \code{n_eff}, and \code{r_eff} diagnostics before refitting.
+An output from \code{\link[loo:loo]{loo::loo()}}, with an additional attribute
+\code{diagnostics}, a \code{tibble} with the treated unit and time point of each
+observation, together with their Pareto \code{k}, \code{n_eff}, and \code{r_eff}
+diagnostics. When \code{reloo = TRUE}, these diagnostics are the ones before
+the refits, while the Pareto \code{k} of the refitted observations is set to
+zero in the \code{diagnostics} element of the \code{\link[loo:loo]{loo::loo()}} output.
 }
 \description{
 Approximate leave-one-out (LOO) cross-validation for Bayesian synthetic

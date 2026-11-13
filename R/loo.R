@@ -13,10 +13,12 @@
 #' diagnostic that triggers an exact refit when `reloo = TRUE`.
 #' Default is `0.7`.
 #' @param ... Additional arguments to [loo::loo()].
-#' @return An output from [loo::loo()]. When `reloo = TRUE`, this contains
-#'  additional attribute `refits` which is a data frame with the
-#'  indices of observations that were refitted when `reloo = TRUE`, together
-#'  with their Pareto `k`, `n_eff`, and `r_eff` diagnostics before refitting.
+#' @return An output from [loo::loo()], with an additional attribute
+#'  `diagnostics`, a `tibble` with the treated unit and time point of each
+#'  observation, together with their Pareto `k`, `n_eff`, and `r_eff`
+#'  diagnostics. When `reloo = TRUE`, these diagnostics are the ones before
+#'  the refits, while the Pareto `k` of the refitted observations is set to
+#'  zero in the `diagnostics` element of the [loo::loo()] output.
 #' @references
 #' Vehtari A, Gelman A, and Gabry J (2017).
 #' Practical Bayesian model evaluation using leave-one-out cross-validation and
@@ -55,14 +57,13 @@ loo.bscmfit <- function(
   ))
   treated <- get_treated(x)
   times <- get_times(x)
-  diags <- data.frame(
-    unit = treated[ti[, 2]],
-    time = times[ti[, 1]],
+  diags <- dplyr::tibble(
+    "{get_unit(x)}" := treated[ti[, 2]],
+    "{get_time(x)}" := times[ti[, 1]],
     pareto_k = loo_out$diagnostics$pareto_k,
     n_eff = loo_out$diagnostics$n_eff,
     r_eff = loo_out$diagnostics$r_eff
   )
-  names(diags)[1:2] <- c(get_unit(x), get_time(x))
   attr(loo_out, "diagnostics") <- diags
   bad_k <- loo::pareto_k_ids(loo_out, threshold = k_threshold)
   if (length(bad_k) == 0L || !reloo) {
@@ -76,8 +77,8 @@ loo.bscmfit <- function(
 
   for (k in seq_along(bad_k)) {
     obs <- bad_k[k]
-    t <- ti[k, 1]
-    i <- ti[k, 2]
+    t <- ti[obs, 1]
+    i <- ti[obs, 2]
     standata$missing_idx <- rbind(
       missing_idx,
       c(unit = i, time = t)

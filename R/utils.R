@@ -52,3 +52,13 @@ build_Q <- function(J) {
   }
   Q
 }
+
+#' Print the rows of a tibble without the tibble header lines
+#'
+#' @param d \[`tibble`]\cr Table to print.
+#' @noRd
+print_tibble_rows <- function(d) {
+  # remove the dimensions and the column type lines of the tibble output,
+  # infinite width keeps all columns from moving to a footer
+  cat(format(d, n = nrow(d), width = Inf)[-c(1, 3)], sep = "\n")
+}

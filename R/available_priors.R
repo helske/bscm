@@ -56,7 +56,7 @@
 #' The argument `tilt` of these priors defines an optional tilt of the prior
 #' along given directions, see [bscm_prior()].
 #'
-#' @return A `data.frame` with columns `distribution` (name of the
+#' @return A `tibble` with columns `distribution` (name of the
 #'   distribution), `constructor` (function defining the prior),
 #'   `hyperparameters` (arguments of the constructor), and `support`
 #'   (support of the distribution).
@@ -67,7 +67,7 @@
 #' @examples
 #' available_priors()
 available_priors <- function() {
-  data.frame(
+  dplyr::tibble(
     distribution = c(
       "beta",
       "cauchy",

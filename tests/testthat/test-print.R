@@ -13,6 +13,12 @@ test_that("print.bscmfit output contains MCMC info", {
   expect_true(any(grepl("MCMC sampling", out)))
 })
 
+test_that("print.bscmfit shows the diagnostics details only with issues", {
+  out <- capture.output(print(fit_single_treated))
+  expect_true(any(grepl("no issues", out, fixed = TRUE)))
+  expect_false(any(grepl("Largest Rhat", out, fixed = TRUE)))
+})
+
 test_that("print.bscmfit shows treated unit info for single treated", {
   out <- capture.output(print(fit_single_treated))
   expect_true(any(grepl("Treated unit:", out)))

@@ -166,7 +166,11 @@ placebo_effects.bscmfit <- function(
       diagnostics_list[[i]] <- check_mcmc_diagnostics(fit, warn = FALSE)
     }
   }
-  issues <- vapply(diagnostics_list, \(d) d$has_issues, logical(1L))
+  issues <- vapply(
+    diagnostics_list,
+    \(d) isTRUE(d$has_issues),
+    logical(1L)
+  )
   warnifnot_(
     all(!issues),
     "Some of the placebo runs resulted in MCMC diagnostic warnings. Check 

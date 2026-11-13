@@ -54,7 +54,8 @@ print.bscmfit <- function(x, probs = c(0.025, 0.975), diagnostics = TRUE, ...) {
     "seconds\n"
   )
   if (checkmate::test_class(x$converge, "bscmfit_diagnostics")) {
-    print(x$converge)
+    # the details of the diagnostics only when they indicate problems
+    print(x$converge, print_table = x$converge$has_issues)
   } else {
     cat(x$converge, "\n")
   }
@@ -95,7 +96,7 @@ print_estimates <- function(x, probs, diagnostics) {
       rows |>
         dplyr::select(-dplyr::any_of(c("parameter", "term", get_unit(x)))) |>
         dplyr::relocate("variable", .before = 1L) |>
-        print_estimate_table()
+        print_tibble_rows()
     }
   }
   if (!single) {
@@ -117,7 +118,7 @@ print_estimates <- function(x, probs, diagnostics) {
     ) |>
     dplyr::select(-dplyr::any_of(get_unit(x))) |>
     dplyr::relocate("variable", .before = 1L) |>
-    print_estimate_table()
+    print_tibble_rows()
   if (!is.null(x$data)) {
     treatment <- get_treatment(x)
     e <- list(
@@ -163,7 +164,7 @@ print_estimates <- function(x, probs, diagnostics) {
       ":\n",
       sep = ""
     )
-    print_estimate_table(e)
+    print_tibble_rows(e)
   } else {
     cat(
       "\nSome of the summary statistics are not available because the ",
@@ -171,13 +172,4 @@ print_estimates <- function(x, probs, diagnostics) {
       sep = ""
     )
   }
-}
-
-#' Print a table of posterior summaries without the tibble header lines
-#'
-#' @param d \[`tibble`]\cr Table of posterior summaries.
-#' @noRd
-print_estimate_table <- function(d) {
-  # remove the dimensions and the column type lines of the tibble output
-  cat(format(d, n = nrow(d), width = Inf)[-c(1, 3)], sep = "\n")
 }

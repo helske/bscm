@@ -7,22 +7,22 @@
 \usage{
 get_priors(x, ...)
 
-\method{get_priors}{bscmfit}(x, as_data_frame = TRUE, ...)
+\method{get_priors}{bscmfit}(x, as_table = TRUE, ...)
 }
 \arguments{
 \item{x}{[\code{bscmfit}]\cr Output from \code{\link[=bscm]{bscm()}}.}
 
 \item{...}{Ignored.}
 
-\item{as_data_frame}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
-returns priors as a \code{data.frame}.}
+\item{as_table}{[\code{logical(1)}]\cr If \code{TRUE} (the default),
+returns priors as a \code{tibble}.}
 }
 \value{
-A named list of \code{bscm_prior} objects, or a \code{data.frame} with one
+A named list of \code{bscm_prior} objects, or a \code{tibble} with one
 row per element of each model parameter and columns \code{parameter},
 \code{term} (predictor), a column named by the unit variable (treated
-unit), and \code{prior}. Columns \code{term} and the unit column are omitted when
-they are not needed.
+unit), and \code{prior}. Column \code{term} is omitted when the model has no
+predictors, and \code{NA} values are printed as empty cells.
 }
 \description{
 Get prior specifications used in the Bayesian synthetic control model

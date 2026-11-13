@@ -7,7 +7,7 @@
 available_priors()
 }
 \value{
-A \code{data.frame} with columns \code{distribution} (name of the
+A \code{tibble} with columns \code{distribution} (name of the
 distribution), \code{constructor} (function defining the prior),
 \code{hyperparameters} (arguments of the constructor), and \code{support}
 (support of the distribution).

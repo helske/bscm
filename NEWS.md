@@ -37,6 +37,11 @@
   and the priors of the concentrations and the tilt coefficients on their own
   rows.
 * Fixed `loo_R2` for multiple treated units.
+* Fixed `check_mcmc_diagnostics`, which compared rounded Rhat and ESS values
+  to the thresholds, so that, e.g., Rhat of 1.0096 was reported as an issue. 
+  The values are now rounded only for display.
+* Fixed indexing issue in `loo` with `reloo = TRUE`, which refitted the model 
+  by leaving out wrong observations.
 * `coef` now returns the total effect of each predictor instead of the
   individual model parameters, one type at a time: the intercepts with
   `type = "intercept"`, the coefficients of the predictors whose effect is
@@ -84,6 +89,14 @@
   the summary methods, with argument `unit` specifying which units to plot.
 * Fixed the generation of posterior predictive means for the post-treatment 
   period when using AR(1) residuals.
+* All functions returning tables now return tibble instead of plain data frame.
+* `check_mcmc_diagnostics` now returns its results visibly, and its print 
+  method shows by default the table of the largest Rhat and smallest ESS 
+  values, also when there are no issues. The problems are printed instead of 
+  given as a warning, and the default of `print_table` is now `TRUE`. The 
+  print method of `bscmfit` shows the table only in case of issues. For models 
+  with 50 or fewer posterior draws, `check_mcmc_diagnostics` now gives a 
+  warning and returns `NULL` instead of an error, also with `warn = FALSE`.
 * Output of `loo` now contains an attribute `diagnostics` 
   with unit and time indices of observations with corresponding pareto-k 
   diagnostics.

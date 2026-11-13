@@ -15,11 +15,14 @@ check_mcmc_diagnostics(x, ...)
 \item{...}{Ignored.}
 
 \item{warn}{[\code{logical(1)}]\cr If \code{TRUE} (the default), generates and
-(typically) prints out a warning in a case of problematic results. Setting
-this to \code{FALSE} silently returns the check results.}
+prints out a warning in a case of problematic results. Setting
+this to \code{FALSE} returns the check results without the warning.}
 }
 \value{
-Invisibly returns a list containing the results of the check.
+A list of class \code{bscmfit_diagnostics} containing the results of the
+check, see \code{\link[=print.bscmfit_diagnostics]{print.bscmfit_diagnostics()}}. If the model has 50 or fewer
+posterior draws, the diagnostics are not meaningful and are not computed,
+and \code{NULL} is returned invisibly with a warning, regardless of \code{warn}.
 }
 \description{
 This function is automatically called at the end of \code{\link[=bscm]{bscm()}} to check that

@@ -191,8 +191,9 @@ problems due to challenging posterior geometry.
 
 \subsection{\code{tilt} (\eqn{\phi}, draws \code{phi})}{
 
-Tilt coefficients of the prior of the donor weights, labelled \code{tilt(PC1)}
-in the print output. The argument \code{tilt} of the simplex priors adds an
+Tilt coefficients of the prior of the donor weights, not shown in the print
+output but available via \code{\link[=summary.bscmfit]{summary.bscmfit()}}. The argument \code{tilt} of the
+simplex priors adds an
 exponential tilt to the prior of the donor weights. With the tilt, the
 weights of treated unit \eqn{i} are
 \eqn{\omega_i = \text{softmax}(V \phi_i + u_i)}, where \eqn{u_i} are the

@@ -12,10 +12,13 @@
 #' @rdname check_mcmc_diagnostics
 #' @param x \[`bscmfit`]\cr The model fit object.
 #' @param warn \[`logical(1)`]\cr If `TRUE` (the default), generates and
-#' (typically) prints out a warning in a case of problematic results. Setting
-#' this to `FALSE` silently returns the check results.
+#' prints out a warning in a case of problematic results. Setting
+#' this to `FALSE` returns the check results without the warning.
 #' @param ... Ignored.
-#' @return Invisibly returns a list containing the results of the check.
+#' @return A list of class `bscmfit_diagnostics` containing the results of the
+#' check, see [print.bscmfit_diagnostics()]. If the model has 50 or fewer
+#' posterior draws, the diagnostics are not meaningful and are not computed,
+#' and `NULL` is returned invisibly with a warning, regardless of `warn`.
 #' @references https://mc-stan.org/learn-stan/diagnostics-warnings.html
 check_mcmc_diagnostics <- function(x, ...) {
   UseMethod("check_mcmc_diagnostics", x)
@@ -34,18 +37,25 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     algorithm %in% c("NUTS", "HMC"),
     "Model was not estimated using MCMC, nothing to diagnose."
   )
-  n_chains <- nchains(x)
+  
   n_draws <- ndraws(x)
-  stopifnot_(
-    n_draws > 50L,
-    "MCMC diagnostics are not meaningful for only few posterior draws. 
-    The model was estimated with only {n_draws} draws."
-  )
+  if (n_draws <= 50L) {
+    warning_(
+      c(
+        "MCMC diagnostics are not meaningful for only few posterior draws.",
+        i = "The model contains only {n_draws} draws, so the diagnostics
+        were not computed."
+      )
+    )
+    return(invisible(NULL))
+  }
+  
+  n_chains <- nchains(x)
   n_divergences <- rstan::get_num_divergent(get_stanfit(x))
   n_max_treedepth <- rstan::get_num_max_treedepth(get_stanfit(x))
   max_td <- get_stanfit(x)@stan_args[[1L]]$control$max_treedepth %||% 10
   n_low_bfmi <- sum(rstan::get_bfmi(get_stanfit(x)) < 0.2)
-
+  
   sumr <- x |>
     as_draws() |>
     posterior::summarise_draws(posterior::default_convergence_measures())
@@ -54,20 +64,15 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     which.min(sumr$ess_bulk),
     which.min(sumr$ess_tail)
   )
-  sumr <- cbind(
-    data.frame(
-      diagnostic = c("Largest Rhat", "Smallest bulk-ESS", "Smallest tail-ESS")
-    ),
-    sumr[idx, ]
+  sumr <- dplyr::tibble(
+    diagnostic = c("Largest Rhat", "Smallest bulk-ESS", "Smallest tail-ESS"),
+    dplyr::as_tibble(sumr[idx, ])
   )
-  sumr$rhat <- round(sumr$rhat, 3)
-  sumr$ess_bulk <- round(sumr$ess_bulk)
-  sumr$ess_tail <- round(sumr$ess_tail)
+  
   rhat_ok <- sumr$rhat[1] < 1.01
-
   ess_bulk_ok <- sumr$ess_bulk[2] > (n_chains * 100)
   ess_tail_ok <- sumr$ess_tail[3] > (n_chains * 100)
-
+  
   issues <- c(
     divergences = n_divergences > 0,
     rhat = !rhat_ok,
@@ -76,7 +81,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     max_treedepth = n_max_treedepth > 0
   )
   messages <- c(
-    x = paste(
+    x = paste0(
       n_divergences,
       " out of ",
       n_draws,
@@ -85,8 +90,8 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     ),
     x = paste0(
       "Largest Rhat convergence diagnostic is ",
-      sumr$rhat[1],
-      " > 1.01 for variable ",
+      signif(sumr$rhat[1], 4),
+      " \u2265 1.01 for variable ",
       sumr$variable[1],
       ". As the chains have not necessarily converged, results might not be ",
       "reliable. Increasing the number of iterations might help."
@@ -94,11 +99,11 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     `!` = paste0(
       "Smallest effective sample sizes are less than 100 x number of chains ",
       "(bulk-ESS ",
-      sumr$ess_bulk[2],
+      floor(sumr$ess_bulk[2]),
       " for variable ",
       sumr$variable[2],
       " and tail-ESS ",
-      sumr$ess_tail[3],
+      floor(sumr$ess_tail[3]),
       " for ",
       sumr$variable[3],
       "). This affects the accuracy of the posterior summaries. ",
@@ -120,7 +125,7 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
       " of the results."
     )
   )[which(issues)]
-
+  
   out <- dplyr::lst(
     n_divergences,
     n_max_treedepth,
@@ -133,36 +138,32 @@ check_mcmc_diagnostics.bscmfit <- function(x, warn = TRUE, ...) {
     cli::cli_warn(messages)
   }
   class(out) <- "bscmfit_diagnostics"
-  invisible(out)
+  out
 }
 #' Print MCMC Diagnostics
 #'
+#' Prints whether the diagnostics indicate problems, the messages describing
+#' them, and by default the table of the largest Rhat and smallest ESS values.
+#'
 #' @param x \[`bscmfit_diagnostics`]\cr The diagnostics object returned by
 #' [check_mcmc_diagnostics.bscmfit()].
-#' @param print_table \[`logical(1)`] If `NULL` (the default) only prints the
-#' table of largest Rhat and smallest ESS values in case diagnostics indicate
-#' problems. If `TRUE` or `FALSE`, always prints or does not print the table.
+#' @param print_table \[`logical(1)`]\cr If `FALSE`, prints only the overall 
+#' result and the messages describing the problems. If `TRUE` (the default), 
+#' also prints the table of the largest Rhat and smallest ESS values. 
 #' @param ... Ignored.
 #' @return input `x` (invisibility).
 #' @export
-print.bscmfit_diagnostics <- function(x, print_table = NULL, ...) {
-  stopifnot_(
-    checkmate::test_flag(print_table, null.ok = TRUE),
-    "Argument {.arg print_table} must be a single {.cls logical} value."
-  )
+print.bscmfit_diagnostics <- function(x, print_table = TRUE, ...) {
+  check_flag(print_table, "print_table")
   if (x$has_issues) {
-    if (is.null(print_table)) {
-      print_table <- TRUE
-    }
-    warning_(c("\nMCMC diagnostics indicate potential problems:", x$messages))
+    cat("\nMCMC diagnostics indicate potential problems:\n")
+    cat(cli::format_bullets_raw(x$messages), sep = "\n")
   } else {
-    if (is.null(print_table)) {
-      print_table <- FALSE
-    }
-    cat("\nMCMC diagnostics indicate no issues. \n")
+    cat("\nMCMC diagnostics indicate no issues.\n")
   }
   if (print_table) {
-    print(x$rhat_and_ess)
+    cat("\n")
+    print_tibble_rows(x$rhat_and_ess)
   }
   invisible(x)
 }
