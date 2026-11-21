@@ -22,8 +22,7 @@
 #'   defining the equidistant spacing of knots for the spline basis. Default is 
 #'   2, i.e. there is a knot at every other time point.
 #' @param type \[`character(1)`]\cr Prior type for spline coefficients. Either
-#'   `"rw1"` or `"rw2"` for first and second order random walks.
-#'   Default is "rw2".
+#'   `"rw1"` (the default) or `"rw2"` for first and second order random walks.
 #' @param df \[`integer(1)`]\cr Optional integer defining the number of 
 #'   spline basis functions in the pre-treatment period
 #'   (maximum in case of staggered adoptation). Must be at least 4. 
@@ -41,7 +40,7 @@
 tv <- function(
   tv_formula,
   knot_spacing = 2,
-  type = "rw2",
+  type = "rw1",
   df = NULL,
   noncentered = TRUE
 ) {

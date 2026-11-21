@@ -7,7 +7,7 @@ build_spline <- function(
     T_pre,
     spline_df = NULL,
     knot_spacing = NULL,
-    type = "rw2",
+    type = "rw1",
     noncentered = TRUE
 ) {
   degree <- 3L

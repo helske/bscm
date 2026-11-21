@@ -81,10 +81,6 @@
   pre-treatment period using extended range of knot positions to avoid 
   boundary effects. In addition, `tv()` now has a new argument `knot_spacing` 
   as as alternative to `df` to specify the number of knots.
-* Default `type` argument in `tv()` is now `rw2` matching the second difference 
-  penalty of the spline coefficients (old default was `rw1` for first 
-  differences). Use of `rw2` adds another parameter `nu`, which is the slope 
-  of the linear trend in `gamma`.
 * Fixes and changes to `plot` methods: visualization is now separated from the 
   the summary methods, with argument `unit` specifying which units to plot.
 * Fixed the generation of posterior predictive means for the post-treatment 

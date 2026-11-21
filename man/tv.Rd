@@ -4,7 +4,7 @@
 \alias{tv}
 \title{Define the time-varying coefficients for BSCM}
 \usage{
-tv(tv_formula, knot_spacing = 2, type = "rw2", df = NULL, noncentered = TRUE)
+tv(tv_formula, knot_spacing = 2, type = "rw1", df = NULL, noncentered = TRUE)
 }
 \arguments{
 \item{tv_formula}{[\code{formula}]\cr One-sided formula, e.g., \code{~ x + z}
@@ -15,8 +15,7 @@ defining the equidistant spacing of knots for the spline basis. Default is
 2, i.e. there is a knot at every other time point.}
 
 \item{type}{[\code{character(1)}]\cr Prior type for spline coefficients. Either
-\code{"rw1"} or \code{"rw2"} for first and second order random walks.
-Default is "rw2".}
+\code{"rw1"} (the default) or \code{"rw2"} for first and second order random walks.}
 
 \item{df}{[\code{integer(1)}]\cr Optional integer defining the number of
 spline basis functions in the pre-treatment period
